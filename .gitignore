@@ -1,0 +1,11 @@
+**/.DS_Store
+build.xml
+manifest.mf
+nbproject/
+.idea/*
+/target/
+/out/
+/build/
+*.iml
+.gradle
+
