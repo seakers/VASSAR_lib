@@ -1,0 +1,234 @@
+%% Evaluate_Iridium_architecture.m
+function [r,score,panel_scores,data_continuity_score] = Evaluate_Iridium_architecture(r,arch,params)
+% Usage : [r,score_vec,panel_scores_mat,data_continuity_score_vec] = Evaluate_Iridium_architecture(r,arch,params)
+% arch is a row vector of 66 integers. Each integer represents a payload
+% id. The correspondance is given in  params.payload_list
+clear explanation_facility
+r.reset;
+%% Assert one Mission per satellite
+for i = 1:length(arch)
+    if arch(i) >0
+        % Retrieve instrument names
+        instr_list_str = [];
+        n = length(params.payload_list{arch(i)}.instruments);
+
+        for j = 1:n
+            instr_list_str = [instr_list_str ' ' params.payload_list{arch(i)}.instruments{j}];
+        end
+
+        % Retrieve orbital parameters
+        vars = params.IridiumSatelliteParameters.get(i).toArray;% [raan, ano, launchdate]
+        call = ['(assert (MANIFEST::Mission (Name ' params.satellite_names '-' num2str(i) ')' ...
+            ' (orbit-altitude# ' num2str(params.Iridium_altitude) ')' ...
+            ' (orbit-inclination ' num2str(params.Iridium_inclination) ')' ...
+            ' (orbit-RAAN ' num2str(vars(1)) ')' ...
+            ' (orbit-anomaly# ' num2str(vars(2)) ')' ...
+            ' (instruments ' instr_list_str ')' ...
+            ' (lifetime ' num2str(params.lifetime) ')' ...
+            ' (launch-date ' num2str(vars(3)) ')' ...
+            '))'];
+        r.eval(call);
+        if arch(i)>6 % more than one instrument
+            call = ['(assert (SYNERGIES::cross-registered-instruments '...
+        ' (instruments ' instr_list_str ') '...
+        ' (degree-of-cross-registration spacecraft) '...
+        ' (platform ' params.satellite_names '-' num2str(i) ' ) '...
+        '))' ];
+            r.eval(call);
+        end
+    end
+end
+
+%% C
+
+% %% Focus MANIFEST and run to assert manifested instruments and get their
+% % 1) assert instruments of each mission (salience 20)
+% % 2) inherit instrument attributes from instrument database (salience 10, not needed )
+% % 3) inherit instrument attributes from mission (e.g orbit) (salience 10,  not needed)
+% % ==> note that it will all be single satellite orbits at this point
+% 
+% fprintf('Manifest...\n');
+% r.eval('(focus MANIFEST)');
+% r.run;
+% 
+% if params.MEMORY_SAVE
+%     % remove manifest rules, not needed anymore
+%     list_rules = r.listDefrules();
+%     while list_rules.hasNext()
+%         rule = list_rules.next().getName();
+%         if rule.startsWith('MANIFEST')
+%             r.removeDefrule(rule)
+%         end
+%     end
+% end
+% 
+% 
+% %% Focus CAPABILITIES and run to get REQUIREMENTS::measurements
+% % 1) assert measurements for each instrument
+% % 2) inherit measurement attributes from instrument (salience -10)
+% 
+% fprintf('Capabilities...\n');
+% 
+% r.eval('(focus CAPABILITIES)');
+% r.run;
+% 
+% 
+% % Cross-register all measurements at the platform level
+% facts = r.listFacts(); % iterator
+% % measurement_list = java.util.ArrayList;
+% measurement_list_str = [];
+% while facts.hasNext()
+%     f = facts.next();
+%     if ~strcmp(f.getDeftemplate,'[deftemplate REQUIREMENTS::Measurement]')
+%         continue
+%     end
+% %     measurement_list.add(f.getSlotValue('Id').stringValue(r.getGlobalContext()));
+%     measurement_list_str = [measurement_list_str ' ' char(f.getSlotValue('Id').stringValue(r.getGlobalContext()))];
+% end
+% call = ['(assert (SYNERGIES::cross-registered '...
+%     ' (measurements ' measurement_list_str ') '...
+%     ' (degree-of-cross-registration spacecraft) '...
+%     ' (platform ' char(mission.name) ' ) '...
+%     '))' ];
+% r.eval(call);
+% 
+% 
+% if params.MEMORY_SAVE
+%     % remove Capabilities rules, not needed anymore
+%     list_rules = r.listDefrules();
+%     while list_rules.hasNext()
+%         rule = list_rules.next().getName();
+%         if rule.startsWith('CAPABILITIES')
+%             r.removeDefrule(rule)
+%         end
+%     end
+% end
+% %% Focus SYNERGIES and run to get synergies between measurements
+% % 1) Modify measurements in the presence of others (does retract and assert) from xls database (salience -5)
+% % 2) spatial-disaggregation, space/time averaging
+% % 3) Assert new measurements from combinations of others
+% 
+% fprintf('Synergies...\n');
+% r.eval('(focus SYNERGIES)');
+% r.run;
+% 
+% if params.MEMORY_SAVE
+%     % remove SYNERGIES rules, not needed anymore
+%     list_rules = r.listDefrules();
+%     while list_rules.hasNext()
+%         rule = list_rules.next().getName();
+%         if rule.startsWith('SYNERGIES')
+%             r.removeDefrule(rule)
+%         end
+%     end
+% end
+% %% Load ASSIMILATION rules, focus, run, and compute assimilated revisit times
+% fprintf('Assimilation 1...\n');
+% 
+% %[r,params] = load_assimilation_rules(r,params); % can't load them before because they fire too soon
+% 
+% % Create map of measurements with same orbit to compute real revisit timesw
+% call = ['(defrule ASSIMILATION::test ' ...
+%     ' (declare (salience 5)) ' ...
+%     ' ?c <- (accumulate (bind ?map (new java.util.HashMap))   ' ...
+%     ' ((lambda (?pa ?alt ?ra ?an ?fo ?in) ' ...
+%     ' (if (?map containsKey ?pa) then ' ...
+%     ' (bind ?x (?map get ?pa)) ' ...
+%     ' (?x add (create$ ?fo ?alt ?in ?ra ?an)) ' ...
+%     ' (?map put ?pa ?x) ' ...
+%     ' else ' ...
+%     '	(bind ?list (new java.util.ArrayList))   ' ...
+%     '  (?list add (create$ ?fo ?alt ?in ?ra ?an)) ' ...
+%     '  (?map put ?pa ?list) ' ...
+%     ' )) ' ...
+%     ' ?p ?h ?raan ?ano ?fov ?inc) ' ...
+%     '  ?map  ' ...                                      ' ...
+%     ' (REQUIREMENTS::Measurement (Parameter ?p&~nil) (Field-of-view# ?fov) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-altitude# ?h) (orbit-anomaly# ?ano) (Id ?id) ' ...
+%     '      ))  ' ...
+%     ' => ' ...
+%     ' (store MAP ?c) ' ...
+%     ' )'];
+% r.eval(call);
+% r.eval('(focus ASSIMILATION)');
+% r.run;
+% 
+% % remove test rule
+% r.removeDefrule('ASSIMILATION::test');
+% 
+% % compute aggregated revisit times #
+% map = r.eval('(fetch MAP)').javaObjectValue(r.getGlobalContext());% this is a map with key parameter, object = array of lists (fov,h,inc,raan,ano)
+% meas_array = map.keySet.toArray;
+% num_measurements = length(meas_array);
+% for i = 1:num_measurements
+%     param = meas_array(i);
+%     list_of_orbits = map.get(param).toArray;%  array where each element is (fov,h,inc,raan,ano)
+%     [num_planes,num_sat_per_planes,h,inc,fov] = get_nplanes_and_nsats(list_of_orbits);
+%     call = ['(defrule ASSIMILATION::compute-aggregated-revisit-time-' num2str(i) ' ' ...
+%         '?m <- (REQUIREMENTS::Measurement (Parameter "' param '"))' ...
+%         '(DATABASE::Revisit-time-of (mission-architecture constellation) (num-of-planes# ' num2str(num_planes) ') ' ...
+%         '(num-of-sats-per-plane# ' num2str(num_sat_per_planes) ') ' ...
+%         '(orbit-altitude# ' num2str(h) ') ' ...
+%         '(orbit-inclination ' num2str(inc) ') ' ...
+%         '(instrument-field-of-view# ' num2str(fov) ') ' ...
+%         '(avg-revisit-time-global# ?glob) (avg-revisit-time-tropics# ?trop) (avg-revisit-time-northern-hemisphere# ?nh)' ...
+%         '(avg-revisit-time-southern-hemisphere# ?sh) (avg-revisit-time-cold-regions# ?cold) (avg-revisit-time-US# ?us))' ...
+%         ' => ' ...
+%         '(modify ?m (avg-revisit-time-global# ?glob) (avg-revisit-time-tropics# ?trop) (avg-revisit-time-northern-hemisphere# ?nh)' ...
+%         '(avg-revisit-time-southern-hemisphere# ?sh) (avg-revisit-time-cold-regions# ?cold) (avg-revisit-time-US# ?us))' ...
+%         ')'];
+%     r.eval(call);
+%         
+% end
+% [r,params] = load_assimilation_rules(r,params);% load rule to compute-temporal-resolution#-from-revisit-times
+% % r.eval('(watch all)');
+% fprintf('Assimilation 2...\n');
+% r.eval('(focus ASSIMILATION)');
+% r.run;
+% 
+% % remove ASSIMILATION rules, not needed anymore
+% list_rules = r.listDefrules();
+% while list_rules.hasNext()
+%     rule = list_rules.next().getName();
+%     if rule.startsWith('ASSIMILATION')
+%         r.removeDefrule(rule)
+%     end
+% end
+% 
+% %% Focus FUZZY and run to compute fuzzy qualitative values from numerical values 
+% fprintf('Fuzzy...\n');
+% r.eval('(focus FUZZY)');
+% r.run;
+% 
+% if params.MEMORY_SAVE
+% 
+%     list_rules = r.listDefrules();
+%     while list_rules.hasNext()
+%         rule = list_rules.next().getName();
+%         if rule.startsWith('FUZZY')
+%             r.removeDefrule(rule)
+%         end
+%     end
+% end
+% 
+% %% Focus REQUIREMENTS and run to get value
+% fprintf('Requirements...\n');
+% r.eval('(focus REQUIREMENTS)');
+% r.run;
+% [score,panel_scores,objective_scores,subobjective_scores] = compute_scientific_benefit(r,params);
+% [data_continuity_score,data_continuity_matrix] = check_data_continuity2(r,params);
+% 
+% if params.MEMORY_SAVE
+%     list_rules = r.listDefrules();
+%     while list_rules.hasNext()
+%         rule = list_rules.next().getName();
+%         if rule.startsWith('REQUIREMENTS')
+%             r.removeDefrule(rule)
+%         end
+%     end
+% end
+% %% Print results
+% fprintf('Explanations...\n');
+% 
+% r.eval('(focus REASONING)');
+% r.run;
+end

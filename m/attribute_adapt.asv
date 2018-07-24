@@ -1,0 +1,38 @@
+function val_out = attribute_adapt(val_in)
+if strcmpn(val_in,'Very High',6)
+    val_out = 'Highest';
+elseif strcmpn(val_in,'High',4)
+    val_out = 'High';
+elseif strcmpn(val_in,'Medium (1-3 days)',11)
+    val_out = 'Medium';
+elseif strcmpn(val_in,'Low (~1 week)',9)
+    val_out = 'Low';
+elseif strcmpn(val_in,'Very Low',6)
+    val_out = 'Lowest';
+    
+elseif strcmpn(val_in,'Very wide (>2000km)',6)
+    val_out = 'Very-wide-2000km';
+elseif strcmpn(val_in,'Wide',4)
+    val_out = 'Wide-1000km';
+elseif strcmpn(val_in,'Medium (~100km)',11)
+    val_out = 'Medium-100km';
+elseif strcmpn(val_in,'Narrow(~10km)',5)
+    val_out = 'Narrow-10km';
+    
+    
+elseif strcmpn(val_in,'Hyperspectral(>100 channels)',6)
+    val_out = 'Very-wide-2000km';
+elseif strcmpn(val_in,'Multispectral(~10-30 channels)',5)
+    val_out = 'Wide-1000km';
+elseif strcmpn(val_in,'Multiband (2-7 channels',5)
+    val_out = 'Wide-1000km';
+elseif strcmpn(val_in,'Multispectral(~10-30 channels)',5)
+    val_out = 'Wide-1000km';
+    
+    
+end
+return
+
+Wide (~1000km)
+Medium (~100km)
+Narrow(~10km)

@@ -1,0 +1,29 @@
+function [] = show_explanations_in_excel(list)
+%% Open the Excel application
+h = actxserver('Excel.Application');
+% Show the Excel window
+h.Visible = 1;
+
+% What attributes and operations are available for the handle "h"?  These
+% are attributes and operations of the Excel object ... and are documented
+% in the Excel Visual Basic Reference:
+% (In Microsoft Office 2003 Excel)
+% Help -> Microsoft Excel Help -> Table of Contents -> Microsoft Excel Visual Basic Reference
+
+
+%% Open the example "test.xls" (FULL PATH NEEDED)
+file = [pwd '\explanations.xls'];  %If it's in the current directory
+sheet = 1;
+range = 'B1';
+workbook = h.Workbooks.Open( file );
+
+%% Within a workbook, there are worksheets
+Sheets = h.ActiveWorkBook.Sheets;
+
+% Start with worksheet 1
+Sheets.Item(1).Activate;
+
+ActivesheetRange = get(Activesheet,'Range','A1:A10');
+    set(ActivesheetRange, 'Value', A);
+    
+

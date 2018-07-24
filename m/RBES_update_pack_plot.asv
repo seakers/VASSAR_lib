@@ -1,0 +1,14 @@
+scrsz = get(0,'ScreenSize');
+figure1 = figure('Position',[1 0 scrsz(3) scrsz(4)]);
+
+% Create axes
+ax = axes('Parent',figure1,'FontSize',14,'FontName','Arial');
+
+entries = db_pack_EOS.entrySet.iterator;
+while(entries.hasNext())
+    entry = entries.next();
+    arch = entry.getKey;
+    metrics = entry.getValue;
+    plot(metrics.get(0),metrics.get(1),'bx','Parent',ax);
+    hold on;
+end

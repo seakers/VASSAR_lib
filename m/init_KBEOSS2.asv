@@ -1,0 +1,26 @@
+function [r,params] = init_KBEOSS2()
+%% Preliminaries
+% Add path
+javaaddpath('C:\Documents and Settings\Dani\My Documents\NetBeansProjects\EOLanguage\dist\EOLanguage.jar')
+javaaddpath('C:\Documents and Settings\Dani\My Documents\software\Jess71p2\lib\jess.jar');
+javaaddpath('C:\Documents and Settings\Dani\My Documents\NetBeansProjects\EOLanguage\build\classes\');
+
+%% Import measurement attributes (global variables)
+% Read xls Measurement attribute definitions
+[num,txt]= xlsread('C:\Documents and Settings\Dani\My Documents\PhD\research\projects\Rule-based System Architecting\AttributeSet','Measurement');
+attribs_to_keys = CreateAttributeListHashtable(num,txt);
+keys_to_attribs = CreateAttributeKeysHashMap(num,txt);
+attribs_to_types = CreateAttributeTypesHashMap(num,txt);
+attribSet = CreateAttributeSetHashMap(num,txt);
+GlobalVariables.defineMeasurement(attribs_to_keys,keys_to_attribs,attribs_to_types,attribSet);
+params.list_of_attributes = keys_to_attribs;
+
+%% Import instrument attributes
+[num,txt]= xlsread('C:\Documents and Settings\Dani\My Documents\PhD\research\projects\Rule-based System Architecting\AttributeSet','Instrument');
+
+%% Init Jess
+import jess.*
+r = jess.Rete();
+
+% r.eval('(watch all)');
+return

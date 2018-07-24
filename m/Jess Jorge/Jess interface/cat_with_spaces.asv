@@ -1,0 +1,13 @@
+function [expr] = cat_with_spaces(varargin)
+% Example calls:
+%     cat_with_spaces This is a...
+%         sample body of code.
+%     cat_with_spaces({'This' 'is' 'equivalent'})
+
+    var
+    
+    expr = '';
+    for i = 1:length(varargin)
+        expr = [expr num2str(varargin{i}) ' '];
+    end
+end

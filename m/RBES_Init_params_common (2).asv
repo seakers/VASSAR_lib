@@ -1,0 +1,112 @@
+%% RBES_Init_params_common.m
+fprintf('Im in Dropbox\n');
+
+%% Paths for Java classes
+params.javaaddpath = cell(1,4);
+params.javaaddpath{1} = 'C:\Users\dani\Downloads\Jess71p2\Jess71p2\lib\jess.jar';
+params.javaaddpath{2} = 'C:\Users\dani\Documents\NetBeansProjects\EOLanguage\dist\EOLanguage.jar';
+params.javaaddpath{3} = 'C:\Users\dani\Documents\NetBeansProjects\EOLanguage\build\classes\';
+params.javaaddpath{4} = 'C:\Program Files\MATLAB\R2011b\java\jarext\matlabcontrol-4.0.0.jar';
+
+%% Paths for common xls files 
+params.template_definition_xls          = 'C:\Users\dani\Documents\My Dropbox\RBES\xls\AttributeSet';
+params.attribute_inheritance_rules_xls  = 'C:\Users\dani\Documents\My Dropbox\RBES\xls\Attribute Inheritance Rules.xlsx';
+params.mission_analysis_database_xls    = 'C:\Users\dani\Documents\My Dropbox\RBES\xls\Mission Analysis Database.xlsx';
+params.data_continuity_xls              = 'C:\Users\dani\Documents\My Dropbox\RBES\xls\Data Continuity Requirements.xlsx';
+params.synergy_rules_xls                = 'C:\Users\dani\Documents\My Dropbox\RBES\xls\Synergy Rules.xlsx';
+params.precursor_missions_xls_path      = 'C:\Users\dani\Documents\PhD\research\projects\Earth Observation Program\Data\CEOS measurement timelines\';
+
+%% Paths for common (all) clp files
+params.module_definition_clp        = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\modules.clp';
+params.attribute_inheritance_clp    = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\attribute_inheritance_rules.clp';
+params.synergy_rules_clp            = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\synergy_rules.clp';
+params.explanation_rules_clp        = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\explanation_rules.clp';
+params.fuzzy_attribute_clp          = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\fuzzy_attribute_rules.clp';
+params.assimilation_rules_clp       = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\assimilation_rules.clp';
+params.orbit_selection_rules_clp    = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\orbit_selection_rules.clp';
+params.launch_vehicle_selection_rules_clp    = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\launch_vehicle_selection_rules.clp';
+params.EPS_design_rules_clp         = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\eps_design_rules.clp';
+params.mass_budget_rules_clp        = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\mass_budget_rules.clp';
+params.cost_estimation_rules_clp    = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\cost_estimation_rules.clp';
+params.enumeration_rules_clp        = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\enumeration_rules.clp';
+params.down_selection_rules_clp     = 'C:\\Users\\dani\\workspace\\RBES_EOSS\\src\\down_selection_rules.clp';
+
+%% Data continuity params
+params.lifetime     = 8;
+params.timestep     = (1/12);% 1 month
+params.startdate    = 2010;
+params.enddate      = 2025;
+params.CEOS_to_RBES_measurements_map = create_CEOS_to_RBES_measurements_map(params);
+timeframe = (params.enddate - params.startdate)/params.timestep + 1;
+
+% Create HashMap containing list of Measurements
+[num,txt] = xlsread(params.template_definition_xls,'Measurement');
+ind_param = find(strcmp(txt,'Parameter'));
+nmeas = num(ind_param-1,3) - 1;
+params.map_of_measurements = java.util.HashMap;
+measurements = txt(ind_param,5:5+nmeas-1)';
+for i = 1:nmeas
+    params.map_of_measurements.put(measurements{i},i);
+end
+
+[num,~,~] = xlsread(params.data_continuity_xls,'Measurement Importance');
+params.measurement_weights_for_data_continuity = num';% want row vector
+
+[num,~,~] = xlsread(params.data_continuity_xls,'Discounting Scheme');
+timeframe = (params.enddate - params.startdate)/params.timestep + 1;
+params.data_continuity_weighting_scheme = num(2:timeframe+1,2);
+
+meas = params.map_of_measurements.keySet.iterator;
+params.list_of_measurements_for_data_continuity = java.util.HashMap;
+params.reverse_map_of_measurements = java.util.HashMap;
+n = 0;
+while meas.hasNext()
+    m = meas.next();
+    id = params.map_of_measurements.get(m);
+    im = params.measurement_weights_for_data_continuity(id);
+    params.reverse_map_of_measurements.put(id,m);
+    if im > 0
+        
+        n = n + 1;
+        params.list_of_measurements_for_data_continuity.put(n,m);
+    end
+end
+
+% Create or load precursor missions data continuity matrix
+% params.missions_to_be_considered = 'NASA only, no Decadal';
+params.missions_to_be_considered = 'ESA+NASA+CNES';
+
+
+load HashMapPrecursorMatrices
+[num,txt,raw] = xlsread(params.data_continuity_xls,'Missions to consider');
+option = find(strcmp(raw(1,:),params.missions_to_be_considered));
+list_of_missions_tbc = raw(logical([0;num(:,option-1)]),1);% -1 because num does not contain first column, 0 because it does not contain first row
+params.list_of_missions_tbc = java.util.ArrayList;
+for i = 1:length(list_of_missions_tbc)
+    params.list_of_missions_tbc.add(list_of_missions_tbc{i});
+end
+
+FORCE_RECOMPUTE = 0;
+need_recompute = ~HashMapPrecursorMatrices.containsKey(params.list_of_missions_tbc);
+if FORCE_RECOMPUTE || need_recompute
+    disp('Precursor missions continuity matrix not found or not up-to-date. (Re)computing matrix...'); 
+    params = Compute_precursors_data_continuity_matrix(params);% computes params.precursors_data_continuity_matrix
+    HashMapPrecursorMatrices.put(params.list_of_missions_tbc,params.precursors_data_continuity_matrix)
+    save HashMapPrecursorMatrices HashMapPrecursorMatrices
+    disp('Added new matrix to HashMapPrecursorMatrices');
+else
+    disp('Precursor missions continuity matrix found. Reusing matrix...');
+    params.precursors_data_continuity_matrix = cell(HashMapPrecursorMatrices.get(params.list_of_missions_tbc));
+    params.precursors_data_continuity_boolean_matrix = not(cellfun(@isEmpty,params.precursors_data_continuity_matrix));
+    params.precursors_data_continuity_integer_matrix = cellfun(@size,params.precursors_data_continuity_matrix);
+end
+
+%% Watch
+params.WATCH = 0;
+
+% Memory management
+clearvars -except r params arch instr
+params.MEMORY_SAVE = 0;
+
+%% Results
+params.path_save_results = 'C:\Users\dani\Documents\My Dropbox\RBES\EOS results\';

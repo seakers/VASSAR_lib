@@ -1,0 +1,16 @@
+with combined 0.0812 in 73.21s
+with original 0.0814 in 75s
+with new 0.0814s in 49s :D
+
+solution: have fats instead of global variables that indicate that objectives are fully satisfied
+
+replace  (test (eq (worth-improving-measurement ?p) TRUE))
+by (not (REASONING::fully-satisfied (subobjective ?subobj)))
+where ?subobj is each subobjective that is related to ?p
+
+********************************8
+anotehr solution is to have intermediate rules and facts
+for each parameter, create a rule with its related subobj
+if (REASONING::fully-satisfied (subobjective WE7-9))
+for all of them, then assert (dontimprovemeasurement ?p)
+and use this fact in synergies

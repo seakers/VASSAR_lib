@@ -1,0 +1,8 @@
+function [ret] = jess(varargin)
+    j = global_jess_engine();
+    
+    expr = cat_with_spaces(varargin{:});
+    
+    
+    ret = jess_eval(j, varargin{:});
+end

@@ -1,0 +1,139 @@
+%% script_init_KBEOSS.m
+%% Preliminaries
+% Add path
+javaaddpath('C:\Documents and Settings\Dani\My Documents\NetBeansProjects\EOLanguage\dist\EOLanguage.jar')
+% javaaddpath('C:\Documents and Settings\Dani\My Documents\NetBeansProjects\EOLanguage\dist\EOLanguage.jar')
+
+%% Import measurement attributes (global variables)
+% Read xls Measurement attribute definitions
+[num,txt]= xlsread('C:\Documents and Settings\Dani\My Documents\PhD\research\projects\Rule-based System Architecting\AttributeSet','Measurement');
+
+
+% Create attributeList: attribute hashtable associating characteristics to keys
+% Example of use: 
+% int index = GlobalVariables.attributeList.get(charac);
+attribs = CreateAttributeListHashtable(num,txt);
+
+% Create attributeKeys: attribute hashtable associating keys to characteristics
+% Example of use: 
+% String charact = GlobalVariables.attributeKeys.get(new Integer(i)).toString();
+attribs_to_keys = CreateAttributeKeysHashMap(num,txt);
+
+% Create attributeTypes: attribute hashtable associating types to characteristics
+% Example of use: 
+% String typ = GlobalVariables.attributeTypes.get(charact).toString();
+attribTypes = CreateAttributeTypesHashMap(num,txt);
+
+
+% Create hashmap associating characteristic to specific EOAttributes
+% Example of use: 
+% EOAttribute att = (EOAttribute) GlobalVariables.attributeSet.get(charact);
+
+attribSet = CreateAttributeSetHashMap(num,txt);
+
+
+% load Global Variables
+GlobalVariables.defineMeasurement(attribs,attribs_to_keys,attribTypes,attribSet);
+
+%% Create measurement
+load str1
+load str2
+m1 = Measurement(str1);
+m2 = Measurement(str2); 
+
+%% Create a sample instrument (GPS occultation receiver)
+gps = Instrument('GPS occultation');
+gps.measurements(1) = m1;
+gps.measurements(2) = m2;
+
+%% Evaluate the gps instrument according to 1 subobjective
+% Start Rete engine
+javaaddpath('C:\Documents and Settings\Dani\My Documents\software\Jess71p2\lib\jess.jar');
+javaaddpath('C:\Documents and Settings\Dani\My Documents\NetBeansProjects\EOLanguage\build\classes\');
+
+import jess.*
+r = jess.Rete();
+
+% Declare and initialize global variables for each subojective
+% d = Defglobal('*subobj-clim1-1-radio_occult*',Value(0,RU.FLOAT));
+% r.addDefglobal(d);
+
+% Import java classes for measurements and so forth
+% r.eval('(deftemplate point \"A 2D point\" (slot x) (slot y))');
+% r.eval('(deftemplate Measurement (declare (from-class Measurement)))');
+r.eval('(defclass EOAttribute EOAttribute)');
+r.eval('(defclass Measurement Measurement)');
+
+
+% Import rules for subobjectives (from excel?)
+% Intermediate step can be create 1 clp file for each subobjective,
+% containing all the rules (nominal case and all degraded cases)
+% r.eval('(batch "subobjective.clp")'); % This does not work yet, it does not recognize the class Measurement
+% r.eval('(bind ?subobj-1 0.0)');
+r.eval('(deffunction update-objective-variable (?obj ?new-value) “Update the value of the global variable with the new value only if it is better” (if (> ?new-value ?obj) then (bind ?obj ?new-value)))');
+
+% r.eval('(defrule objective1-degraded "objective 1 degraded" (Measurement {parameter"Atmospheric temperature" spatial-resolution == “High”}) => (printout t "C1 objective partially satisfied" crlf) (bind ?*subobj-clim1-1-radio_occult* 0.5) (update-objective-variable ?subobj-1 0.5)))');
+% r.eval('(defrule objective1-nominal "objective 1 nominal" (Measurement (parameter ?x))(test (eq ?x "GPS occultation")) => (printout t "C1 objective fully satisfied" crlf) (bind ?*subobj-clim1-1-radio_occult* 1.0) (update-objective-variable ?subobj-1 1.0))');
+
+r.eval('+(batch "C:\\Documents and Settings\\Dani\\My Documents\\NetBeansProjects\\EOLanguage\\src\\rules_objective_climate1.clp")');
+
+% for each instrument, assert all the measureements in the measurements
+% array attribute using deffacts
+
+% Measurement 1
+r.eval('(bind ?m1 (new Measurement))');
+pause(1);
+
+r.eval('(set-member ?m1 parameter "1.5.2 Cloud type")');
+% at = LIB5Attribute('spatialResolution','High');
+pause(2);
+r.eval('(bind ?at (new EOAttribute))');
+pause(2);
+r.eval('(set-member ?at characteristic "Coverage")');
+pause(1);
+r.eval('(set-member ?at value "Global")');
+pause(1);
+r.eval('(call ?m1 addAttribute Coverage ?at)');
+pause(1);
+r.eval('(call ?m1 getAttributeValue Coverage)');
+pause(1);
+r.eval('(definstance Measurement ?m1 static)');
+
+% r.eval('(add ?m1)');
+
+%Measurement 2
+r.eval('(bind ?m2 (new Measurement))');
+r.eval('(definstance Measurement ?m2 static)');
+r.eval('(set-member ?m2 parameter "Atmospheric temperature")');
+r.eval('(bind ?at (new EOAttribute))');
+r.eval('(set-member ?at characteristic "Coverage")');
+r.eval('(set-member ?at value "Global")');
+r.eval('(call ?m1 addAttribute spatialResolution ?at)');
+r.eval('(call ?m1 getAttributeValue spatialResolution)');
+r.eval('(add ?m1)');
+
+
+m2 = Measurement;
+m2.parameter ='Atmospheric temperature';
+at = LIB5Attribute('spatialResolution','High');
+m2.spatialResolution = at;
+
+r.store('MEASUREMENT1',m1);
+r.store('MEASUREMENT2',m2);
+
+r.eval('(assert (Measurement (fetch MEASUREMENT2)))');
+r.executeCommand('(assert (Measurement (fetch MEASUREMENT2)))');
+r.eval('(reset)');
+
+x = 3.43;
+r.store('TEST-VAR',x);
+r.eval('(bind ?x (fetch TEST-VAR))');
+
+% Run the Jess engine.
+    % This fires update of all subobjective global variables (rules group 2)
+r.eval('(run)');
+
+% Get values of all subobjective variables
+r.eval('(?*subobj-clim1-1-radio_occult*)');
+
+% Calculate the objectives and total scientific value

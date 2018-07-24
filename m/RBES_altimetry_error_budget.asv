@@ -1,0 +1,17 @@
+function rms_vecs = RBES_altimetry_error_budget()
+r = global_jess_engine();
+r.eval('(bind ?result (run-query* SYNERGIES::get-error-budget "3.2.1 Sea level height"))');
+r.eval('(?result next)');
+id = r.eval('(?result getFactId)').floatValue(r.getGlobalContext());
+rms_vecs(1) = r.eval('(?result getFloat rms-POD)').floatValue(r.getGlobalContext());
+rms_vecs(2) = r.eval('(?result getFloat rms-tropo)').floatValue(r.getGlobalContext());
+rms_vecs(3) = r.eval('(?result getFloat rms-iono)').floatValue(r.getGlobalContext());
+rms_vecs(4) = r.eval('(?result getFloat rms-ins)').floatValue(r.getGlobalContext());
+rms_vecs(5) = r.eval('(?result getFloat rms-var)').floatValue(r.getGlobalContext());
+rms_vecs(6) = r.eval('(?result getFloat rms-dry)').floatValue(r.getGlobalContext());
+rms_vecs(7) = r.eval('(?result getFloat rms-tide)').floatValue(r.getGlobalContext());
+rms_vecs(8) = r.eval('(?result getFloat rms-total)').floatValue(r.getGlobalContext());
+fprintf('POD = %f tropo = %f iono = %f ins = %f var = %f dry = %f tide = %f total = %f\n',...
+    rms_vecs(1),rms_vecs(2),rms_vecs(3),rms_vecs(4),rms_vecs(5),rms_vecs(6),rms_vecs(7),rms_vecs(8));
+end
+
