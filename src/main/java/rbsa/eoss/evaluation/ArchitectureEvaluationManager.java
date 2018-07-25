@@ -4,6 +4,8 @@ import rbsa.eoss.ResourcePool;
 import rbsa.eoss.Resource;
 import rbsa.eoss.Result;
 import rbsa.eoss.architecture.AbstractArchitecture;
+import rbsa.eoss.local.BaseParams;
+
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.Executors;
@@ -12,6 +14,7 @@ import java.util.concurrent.Future;
 
 public class ArchitectureEvaluationManager {
 
+    private BaseParams params;
     private AbstractArchitectureEvaluator evaluator;
     private ArrayList<AbstractArchitecture> population;
     private ResourcePool resourcePool;
@@ -20,12 +23,13 @@ public class ArchitectureEvaluationManager {
     private ArrayList<Future<Result>> futures;
 
     public ArchitectureEvaluationManager(AbstractArchitectureEvaluator evaluator) {
+        this.params = evaluator.getParams();
         this.evaluator = evaluator;
         reset();
     }
 
     public void init(int numCPU) {
-        resourcePool = new ResourcePool(numCPU);
+        resourcePool = new ResourcePool(this.params, numCPU);
         executorService = Executors.newFixedThreadPool(numCPU);
         results.clear();
         futures.clear();

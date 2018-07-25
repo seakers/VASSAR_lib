@@ -24,6 +24,10 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
     private boolean debug;
     private List<Orbit> orbits;
 
+    public ArchitectureEvaluator(){
+        super(null, null, null);
+    }
+
     public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         super(resourcePool, arch, type);
         super.params = Params.getInstance();

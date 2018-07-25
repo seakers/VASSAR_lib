@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 
 public abstract class AbstractArchitectureEvaluator implements Callable {
 
-    protected BaseParams params;
+    protected BaseParams params = null;
     protected AbstractArchitecture arch;
     protected ResourcePool resourcePool;
     protected String type;
@@ -68,6 +68,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
 
     public void freeResource(Resource res) {
         this.resourcePool.freeResource(res);
+    }
+
+    public BaseParams getParams() {
+        if(params == null){
+            throw new IllegalStateException("Class attribute params should have been defined in the constructor.");
+        }else{
+            return params;
+        }
     }
 
     protected abstract Result evaluatePerformance(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m);
