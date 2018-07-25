@@ -123,15 +123,15 @@ public abstract class BaseParams {
         this.pathSaveResults = this.path + "/results";
 
         // Paths for common xls files
-        this.templateDefinitionXls      = this.path + "/xls/SMAP/AttributeSet.xls";
-        this.missionAnalysisDatabaseXls = this.path + "/xls/SMAP/Mission Analysis Database.xls";
-        this.capabilityRulesXls         = this.path + "/xls/SMAP/SMAP Instrument Capability Definition.xls";
-        this.requirementSatisfactionXls = this.path + "/xls/SMAP/SMAP Requirement Rules.xls";
-        this.aggregationXls             = this.path + "/xls/SMAP/SMAP Aggregation Rules.xls";
+        this.templateDefinitionXls      = this.path + "/xls/AttributeSet.xls";
+        this.missionAnalysisDatabaseXls = this.path + "/xls/Mission Analysis Database.xls";
+        this.capabilityRulesXls         = this.path + "/xls/SMAP Instrument Capability Definition.xls";
+        this.requirementSatisfactionXls = this.path + "/xls/SMAP Requirement Rules.xls";
+        this.aggregationXls             = this.path + "/xls/SMAP Aggregation Rules.xls";
 
-        this.revtimesDatFile            = this.path + "/dat/SMAP/revtimes";
-        this.scoresDatFile              = this.path + "/dat/SMAP/scores2013-10-29-15-31-49.dat";
-        this.dsmDatFile                 = this.path + "/dat/SMAP/all_dsms2013-10-29-15-35-13.dat";
+        this.revtimesDatFile            = this.path + "/dat/revtimes";
+        this.scoresDatFile              = this.path + "/dat/scores2013-10-29-15-31-49.dat";
+        this.dsmDatFile                 = this.path + "/dat/all_dsms2013-10-29-15-35-13.dat";
 
         // Paths for common clp files
         this.moduleDefinitionClp            = this.path + "/clp/modules.clp";

@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.ClimateCentric;
+package rbsa.eoss.problems.SMAP;
 
 import jess.*;
 import org.hipparchus.util.FastMath;
@@ -26,6 +26,9 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
     public ArchitectureEvaluator(){
         super(null, null, null);
+        super.params = Params.getInstance();
+        this.orbits = new ArrayList<>();
+        this.debug = false;
     }
 
     public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {

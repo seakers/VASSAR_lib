@@ -182,7 +182,7 @@ public class Orbit {
     public String toJessSlots() {
         return " (num-of-planes# " + nplanes + ")" +
             " (num-of-sats-per-plane# "  + num_sats_per_plane + ")"  + 
-            " (mission-rbsa.eoss.architecture " + mission_arch + ") " +
+            " (mission-architecture " + mission_arch + ") " +
             " (orbit-type " + type + ")"  + 
             " (orbit-altitude# "  + altitude + ")"  + 
             " (orbit-eccentricity "  + eccentricity + ")"  + 

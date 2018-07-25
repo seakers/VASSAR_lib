@@ -89,16 +89,14 @@ public class CoverageAnalysis {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
 
-        this.cwd = System.getProperty("user.dir");
-
         // Load default dataset saved in the project root directory
         StringBuffer pathBuffer = new StringBuffer();
-        
+
         final File currrentDir = new File(this.cwd);
         if (currrentDir.exists() && (currrentDir.isDirectory() || currrentDir.getName().endsWith(".zip"))) {
             pathBuffer.append(currrentDir.getAbsolutePath());
             pathBuffer.append(File.separator);
-            pathBuffer.append("orekit-data");
+            pathBuffer.append("resources");
         }
         System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
 

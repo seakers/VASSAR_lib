@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.ClimateCentric;
+package rbsa.eoss.problems.SMAP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +39,9 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
             Result result = super.evaluatePerformance(r, arch, qb, m);
 
             // Criticize performance rules
-            r.batch(params.critiquePerformanceInitializeFactsClp);
-            r.batch(params.critiquePerformanceClp);
-            r.batch(params.critiquePerformancePrecalculationClp);
+            r.batch(super.params.critiquePerformanceInitializeFactsClp);
+            r.batch(super.params.critiquePerformanceClp);
+            r.batch(super.params.critiquePerformancePrecalculationClp);
             
             r.setFocus("CRITIQUE-PERFORMANCE-PRECALCULATION");
             r.run();
@@ -58,9 +58,9 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
             evaluateCost(r, arch, result, qb, m);
             
             // Criticize cost rules
-            r.batch(params.critiqueCostInitializeFactsClp);
-            r.batch(params.critiqueCostClp);
-            r.batch(params.critiqueCostPrecalculationClp);
+            r.batch(super.params.critiqueCostInitializeFactsClp);
+            r.batch(super.params.critiqueCostClp);
+            r.batch(super.params.critiqueCostPrecalculationClp);
             
             r.setFocus("CRITIQUE-COST-PRECALCULATION");
             r.run();

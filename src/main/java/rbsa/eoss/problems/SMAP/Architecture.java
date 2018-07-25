@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.ClimateCentric;
+package rbsa.eoss.problems.SMAP;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
 
