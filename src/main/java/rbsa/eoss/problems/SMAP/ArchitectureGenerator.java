@@ -26,19 +26,19 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         ArrayList<AbstractArchitecture> man_archs = new ArrayList<>();
         man_archs.add(new Architecture("000000000000000000000000000000000000000000000000000000000000",1, params));
         //N = 1 in random orbit (12)
-        for (int i = 0; i < params.numInstr; i++) {
+        for (int i = 0; i < params.getNumInstr(); i++) {
             StringBuilder str = new StringBuilder("000000000000000000000000000000000000000000000000000000000000");
-            int orb = rnd.nextInt(params.numOrbits);
-            str.setCharAt(params.numInstr*orb + i, '1');
+            int orb = rnd.nextInt(params.getNumOrbits());
+            str.setCharAt(params.getNumInstr()*orb + i, '1');
             man_archs.add(new Architecture(str.toString(),1,params));
         }
         //N = 2 in random orbit (66)
-        for (int i = 0; i < params.numInstr - 1; i++) {
-            for (int j = i+1; j< params.numInstr; j++) {
+        for (int i = 0; i < params.getNumInstr() - 1; i++) {
+            for (int j = i+1; j< params.getNumInstr(); j++) {
                 StringBuilder str = new StringBuilder("000000000000000000000000000000000000000000000000000000000000");
-                int orb = rnd.nextInt(params.numOrbits);
-                str.setCharAt(params.numInstr*orb + i, '1');
-                str.setCharAt(params.numInstr*orb + j, '1');
+                int orb = rnd.nextInt(params.getNumOrbits());
+                str.setCharAt(params.getNumInstr()*orb + i, '1');
+                str.setCharAt(params.getNumInstr()*orb + j, '1');
                 man_archs.add(new Architecture(str.toString(),1,params));
             }
         }
@@ -100,13 +100,13 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         ArrayList<AbstractArchitecture> popu = new ArrayList<>(numArchs);
         try {
             for (int i = 0; i < numArchs; i++) {
-                boolean[][] x = new boolean[params.numOrbits][params.numInstr];
-                for (int j = 0; j < params.numOrbits; j++) {
-                    for(int k = 0; k < params.numInstr; k++){
+                boolean[][] x = new boolean[params.getNumOrbits()][params.getNumInstr()];
+                for (int j = 0; j < params.getNumOrbits(); j++) {
+                    for(int k = 0; k < params.getNumInstr(); k++){
                         x[j][k] = rnd.nextBoolean();
                     }
                 }
-                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)],params);
+                AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
                 popu.add(arch);
             }
         } catch (Exception e) {
@@ -116,17 +116,17 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
     }
 
     public ArrayList<AbstractArchitecture> generateBiasedRandomPopulation(int numArchs, double bias) {
-        int genomeLength = params.numInstr * params.numOrbits;
+        int genomeLength = params.getNumInstr() * params.getNumOrbits();
         ArrayList<AbstractArchitecture> popu = new ArrayList<>(numArchs);
         try {
             for (int i = 0; i < numArchs; i++) {
-                boolean[][] x = new boolean[params.numOrbits][params.numInstr];
-                for (int j = 0; j < params.numOrbits; j++) {
-                    for(int k = 0; k < params.numInstr; k++){
+                boolean[][] x = new boolean[params.getNumOrbits()][params.getNumInstr()];
+                for (int j = 0; j < params.getNumInstr(); j++) {
+                    for(int k = 0; k < params.getNumInstr(); k++){
                         x[j][k] = rnd.nextBoolean();
                     }
                 }
-                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)],params);
+                AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
                 popu.add(arch);
             }
         } catch (Exception e) {
@@ -142,9 +142,9 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
     }
 
     public AbstractArchitecture getMinArch() {
-        boolean[][] mat = new boolean[params.numOrbits][params.numInstr];
-        for (int i = 0; i < params.numOrbits; i++) {
-            for (int j = 0; j < params.numInstr; j++) {
+        boolean[][] mat = new boolean[params.getNumOrbits()][params.getNumInstr()];
+        for (int i = 0; i < params.getNumOrbits(); i++) {
+            for (int j = 0; j < params.getNumInstr(); j++) {
                 mat[i][j] = false;
             }
         }

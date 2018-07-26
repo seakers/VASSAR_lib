@@ -7,7 +7,7 @@ import rbsa.eoss.*;
 import java.util.HashMap;
 
 
-public class EvaluationTest {
+public class SMAPEvaluationTest {
 
     public static void main(String[] args){
 

@@ -40,12 +40,20 @@ public class Architecture extends AbstractArchitecture{
 
         int satIndex = 0;
         for(Set<String> sat:instrumentPartitioning){
-            String orb = orbitAssignment.get(sat);
+
+            String orb;
+            if(orbitAssignment.keySet().contains(sat)){
+                orb = orbitAssignment.get(sat);
+            }else{
+                throw new IllegalArgumentException("orbitAssignment does not contain a set: " + Arrays.asList(sat));
+            }
+
             for(int j = 0; j < params.getNumInstr(); j++){
                 if(sat.contains(instrList[j])){
                     this.instrumentPartitioning[j] = satIndex;
                 }
             }
+
             this.orbitAssignment[satIndex] = params.getOrbitIndexes().get(orb);
             satIndex += 1;
         }
@@ -53,7 +61,7 @@ public class Architecture extends AbstractArchitecture{
         this.numSatellites = numSatellites;
 
         if(!isFeasibleAssignment()){
-            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+            throw new IllegalArgumentException("Infeasible architecture defined: " +
                     Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
         }
     }
@@ -86,4 +94,9 @@ public class Architecture extends AbstractArchitecture{
     }
 
     public int[] getOrbitAssignment(){ return this.orbitAssignment; }
+
+    @Override
+    public String toString(){
+        return Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment);
+    }
 }
