@@ -88,11 +88,11 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
             int javaAssertedFactID = 1;
 
             // Check if all of the orbits in the original formulation are used
-            int[] precompIndex = new int[params.orbitList.length];
+            int[] precompIndex = new int[params.getOrbitList().length];
             String[] precompList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-AM","SSO-800-SSO-DD"};
 
-            for(int i = 0; i < params.orbitList.length; i++){
-                String orb = params.orbitList[i];
+            for(int i = 0; i < params.getOrbitList().length; i++){
+                String orb = params.getOrbitList()[i];
                 int matchedIndex = -1;
                 for(int j = 0; j < precompList.length; j++){
                     if(precompList[j].equalsIgnoreCase(orb)){
@@ -106,7 +106,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
             }
 
             for (String param: params.measurementsToInstruments.keySet()) {
-                Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.orbitList) + "))");
+                Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
 
                 if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
 
@@ -144,7 +144,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
                         // For each fieldOfview-orbit combination
                         for(int i = 0; i < this.orbits.size(); i++){
                             Orbit orb = this.orbits.get(i);
-                            int fov = thefovs.get(this.params.orbitIndexes.get(orb.toString())).intValue(r.getGlobalContext());
+                            int fov = thefovs.get(this.params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
 
                             if(fov <= 0){
                                 continue;
@@ -444,19 +444,19 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
         try {
             this.orbits = new ArrayList<>();
 
-            for (int i = 0; i < params.numOrbits; i++) {
+            for (int i = 0; i < params.getNumOrbits(); i++) {
                 int ninstrs = m.sumRowBool(mat, i);
                 if (ninstrs > 0) {
-                    String orbitName = params.orbitList[i];
+                    String orbitName = params.getOrbitList()[i];
 
                     Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
                     orbits.add(orb);
 
                     String payload = "";
                     String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
-                    for (int j = 0; j < params.numInstr; j++) {
+                    for (int j = 0; j < params.getNumInstr(); j++) {
                         if (mat[i][j]) {
-                            payload += " " + params.instrumentList[j];
+                            payload += " " + params.getInstrumentList()[j];
                         }
                     }
                     call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""

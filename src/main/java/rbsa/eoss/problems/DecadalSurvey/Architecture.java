@@ -23,30 +23,25 @@ public class Architecture extends AbstractArchitecture{
     public Architecture(List<Set<String>> instrumentPartitioning, Map<Set<String>, String> orbitAssignment, int numSatellites, Params params) {
         super();
 
-        String[] orbitList = params.orbitList;
-        String[] instrList = params.instrumentList;
+        String[] instrList = params.getInstrumentList();
 
-        this.instrumentPartitioning = new int[instrList.length];
-        this.orbitAssignment = new int[instrList.length];
+        this.instrumentPartitioning = new int[params.getNumInstr()];
+        this.orbitAssignment = new int[params.getNumInstr()];
 
         // Initialize entries in the orbit assignment
-        for(int i = 0; i < instrList.length; i++){
+        for(int i = 0; i < params.getNumInstr(); i++){
             this.orbitAssignment[i] = -1;
         }
 
         int satIndex = 0;
         for(Set<String> sat:instrumentPartitioning){
             String orb = orbitAssignment.get(sat);
-            for(int j = 0; j < instrList.length; j++){
+            for(int j = 0; j < params.getNumInstr(); j++){
                 if(sat.contains(instrList[j])){
                     this.instrumentPartitioning[j] = satIndex;
                 }
             }
-            for(int k = 0; k < orbitList.length; k++){
-                if(orb == orbitList[k]){
-                    this.orbitAssignment[satIndex] = k;
-                }
-            }
+            this.orbitAssignment[satIndex] = params.getOrbitIndexes().get(orb);
             satIndex += 1;
         }
 

@@ -32,17 +32,17 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         try {
             for (int i = 0; i < numArchs; i++) {
 
-                int[] instrumentPartitioning = new int[params.numInstr];
-                int[] orbitAssignment = new int[params.numInstr];
+                int[] instrumentPartitioning = new int[params.getNumInstr()];
+                int[] orbitAssignment = new int[params.getNumInstr()];
 
-                int numSats = rnd.nextInt(params.numInstr);
-                for(int j = 0; j < params.numInstr; j++){
+                int numSats = rnd.nextInt(params.getNumInstr());
+                for(int j = 0; j < params.getNumInstr(); j++){
                     instrumentPartitioning[j] = rnd.nextInt(numSats);
                 }
 
                 HashMap<Integer, Integer> map = new HashMap<>();
                 int satIndex = 0;
-                for(int j = 0; j < params.numInstr; j++){
+                for(int j = 0; j < params.getNumInstr(); j++){
                     int satID = instrumentPartitioning[j];
                     if(map.keySet().contains(satID)){
                         instrumentPartitioning[j] = map.get(satID);
@@ -53,16 +53,16 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                     }
                 }
 
-                for(int k = 0; k < params.numInstr; k++){
+                for(int k = 0; k < params.getNumInstr(); k++){
                     if(k < numSats){
-                        orbitAssignment[k] = rnd.nextInt(params.numOrbits);
+                        orbitAssignment[k] = rnd.nextInt(params.getNumOrbits());
                     }else{
                         orbitAssignment[k] = -1;
                     }
                 }
 
                 AbstractArchitecture arch = new Architecture(instrumentPartitioning, orbitAssignment,
-                        params.numSatellites[rnd.nextInt(params.numSatellites.length)],params);
+                        params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
                 popu.add(arch);
             }
         } catch (Exception e) {

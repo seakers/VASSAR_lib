@@ -27,21 +27,21 @@ public class Architecture extends AbstractArchitecture{
     public Architecture(HashMap<String, String[]> mapping, int numSatellites, Params params) {
         super();
         this.params = params;
-        bitMatrix = new boolean[params.numOrbits][params.numInstr];
-        for (int o = 0; o < params.numOrbits; o++) {
-            for(int i = 0; i < params.numInstr; i++) {
+        bitMatrix = new boolean[params.getNumOrbits()][params.getNumInstr()];
+        for (int o = 0; o < params.getNumOrbits(); o++) {
+            for(int i = 0; i < params.getNumInstr(); i++) {
                 bitMatrix[o][i] = false;
             }
         }
 
-        for (int o = 0; o < params.numOrbits; o++) {
-            String orb = params.orbitList[o];
+        for (int o = 0; o < params.getNumOrbits(); o++) {
+            String orb = params.getOrbitList()[o];
             String[] payl = mapping.get(orb);
             if (payl == null)
                 continue;
             ArrayList<String> thepayl = new ArrayList<>(Arrays.asList(payl));
-            for(int i = 0; i < params.numInstr; i++) {
-                String instr = params.instrumentList[i];
+            for(int i = 0; i < params.getNumInstr(); i++) {
+                String instr = params.getInstrumentList()[i];
                 if(thepayl.contains(instr))
                     bitMatrix[o][i] = true;
             }
@@ -64,10 +64,10 @@ public class Architecture extends AbstractArchitecture{
 
     // Utils
     private boolean[][] booleanString2Matrix(String bitString) {
-        boolean[][] mat = new boolean[params.numOrbits][params.numInstr];
-        for (int i = 0; i < params.numOrbits; i++) {
-            for (int j = 0; j < params.numInstr; j++) {
-                String b = bitString.substring(params.numInstr *i + j,params.numInstr*i + j + 1);
+        boolean[][] mat = new boolean[params.getNumOrbits()][params.getNumInstr()];
+        for (int i = 0; i < params.getNumOrbits(); i++) {
+            for (int j = 0; j < params.getNumInstr(); j++) {
+                String b = bitString.substring(params.getNumInstr() *i + j,params.getNumInstr()*i + j + 1);
                 if (b.equalsIgnoreCase("1")) {
                     mat[i][j] = true;
                 }
