@@ -21,8 +21,7 @@ public class Params extends BaseParams {
         init();
     }
 
-    public void init(){
-
+    private void init(){
         // Instruments & Orbits
         numInstr = instrumentList.length;
         numOrbits = orbitList.length;
@@ -38,6 +37,16 @@ public class Params extends BaseParams {
         for (int i = 0; i < numOrbits; i++) {
             orbitIndexes.put(orbitList[i], i);
         }
+    }
+
+    public void setInstrumentList(String[] instrumentList){
+        this.instrumentList = instrumentList;
+        init();
+    }
+
+    public void setOrbitList(String[] orbitList){
+        this.orbitList = orbitList;
+        init();
     }
 
     public String[] getInstrumentList(){

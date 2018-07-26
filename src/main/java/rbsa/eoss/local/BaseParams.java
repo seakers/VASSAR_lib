@@ -217,4 +217,6 @@ public abstract class BaseParams {
     public abstract String[] getOrbitList();
     public abstract int getNumInstr();
     public abstract int getNumOrbits();
+    public abstract HashMap<String, Integer> getInstrumentIndexes();
+    public abstract HashMap<String, Integer> getOrbitIndexes();
 }

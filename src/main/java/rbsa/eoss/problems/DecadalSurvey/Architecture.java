@@ -1,9 +1,8 @@
 package rbsa.eoss.problems.DecadalSurvey;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
+
+import java.util.*;
 
 public class Architecture extends AbstractArchitecture{
 
@@ -18,6 +17,11 @@ public class Architecture extends AbstractArchitecture{
         this.orbitAssignment = orbitAssignment;
         this.params = params;
         this.numSatellites = numSatellites;
+
+        if(!isFeasibleAssignment()){
+            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        }
     }
 
     public Architecture(List<Set<String>> instrumentPartitioning, Map<Set<String>, String> orbitAssignment, int numSatellites, Params params) {
@@ -28,8 +32,9 @@ public class Architecture extends AbstractArchitecture{
         this.instrumentPartitioning = new int[params.getNumInstr()];
         this.orbitAssignment = new int[params.getNumInstr()];
 
-        // Initialize entries in the orbit assignment
+        // Initialize entries of both arrays
         for(int i = 0; i < params.getNumInstr(); i++){
+            this.instrumentPartitioning[i] = -1;
             this.orbitAssignment[i] = -1;
         }
 
@@ -46,10 +51,29 @@ public class Architecture extends AbstractArchitecture{
         }
 
         this.numSatellites = numSatellites;
+
+        if(!isFeasibleAssignment()){
+            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        }
     }
 
     @Override
     public boolean isFeasibleAssignment() {
+        Set<Integer> temp = new HashSet<>();
+        for(int p:instrumentPartitioning){
+            if(p == -1){
+                // Instrument not assigned to any set
+                return false;
+            }
+            temp.add(p);
+        }
+        for(int p:temp){
+            if(orbitAssignment[p] == -1){
+                // Set not assigned to any orbit
+                return false;
+            }
+        }
         return true;
     }
 
