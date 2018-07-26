@@ -18,9 +18,9 @@ import rbsa.eoss.utils.MatlabFunctions;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (Params params, ResourcePool resourcePool, AbstractArchitecture arch)
     {
-        super(resourcePool, arch,"slow");
+        super(params, resourcePool, arch,"slow");
     }
 
     public List<String> getCritique() {

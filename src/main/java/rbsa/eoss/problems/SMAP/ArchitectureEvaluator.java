@@ -8,6 +8,7 @@ import rbsa.eoss.*;
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.coverage.CoverageAnalysis;
 import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
+import rbsa.eoss.local.BaseParams;
 import rbsa.eoss.spacecraft.Orbit;
 import rbsa.eoss.utils.MatlabFunctions;
 import seak.orekit.coverage.access.TimeIntervalArray;
@@ -21,31 +22,30 @@ import java.util.*;
 
 public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
-    private boolean debug;
-    private List<Orbit> orbits;
+    protected Params params;
+    protected boolean debug;
+    protected List<Orbit> orbits;
 
-    public ArchitectureEvaluator(){
-        super(null, null, null);
-        super.params = Params.getInstance();
+    public ArchitectureEvaluator(Params params){
+        super();
+        this.params = params;
         this.orbits = new ArrayList<>();
         this.debug = false;
     }
 
-    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
+    public ArchitectureEvaluator(Params params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         super(resourcePool, arch, type);
-        super.params = Params.getInstance();
+        this.params = params;
         this.orbits = new ArrayList<>();
         this.debug = false;
     }
 
-    @Override
-    public AbstractArchitectureEvaluator getNewInstance() {
-        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type);
+    public ArchitectureEvaluator getNewInstance(BaseParams params){
+        return new ArchitectureEvaluator((Params) params, super.resourcePool, super.arch, super.type);
     }
 
-    @Override
-    public AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        return new ArchitectureEvaluator(resourcePool, arch, type);
+    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
+        return new ArchitectureEvaluator(this.params, resourcePool, arch, type);
     }
 
     protected Result evaluatePerformance(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {

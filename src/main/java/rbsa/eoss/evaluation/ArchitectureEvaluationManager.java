@@ -1,11 +1,9 @@
 package rbsa.eoss.evaluation;
 
 import rbsa.eoss.ResourcePool;
-import rbsa.eoss.Resource;
 import rbsa.eoss.Result;
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.local.BaseParams;
-
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.Executors;
@@ -22,8 +20,8 @@ public class ArchitectureEvaluationManager {
     private Stack<Result> results;
     private ArrayList<Future<Result>> futures;
 
-    public ArchitectureEvaluationManager(AbstractArchitectureEvaluator evaluator) {
-        this.params = evaluator.getParams();
+    public ArchitectureEvaluationManager(BaseParams params, AbstractArchitectureEvaluator evaluator) {
+        this.params = params;
         this.evaluator = evaluator;
         reset();
     }
@@ -68,7 +66,7 @@ public class ArchitectureEvaluationManager {
     }
 
     public Result evaluateArchitecture(AbstractArchitecture arch, String mode) {
-        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, mode);
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
 
         Future<Result> future = (Future<Result>) executorService.submit(t);
         Result result = null;
@@ -76,6 +74,7 @@ public class ArchitectureEvaluationManager {
             result = future.get();
         }
         catch (Exception e) {
+            System.out.println("Exc in evaluating an architecture");
             System.out.println(e.getClass() + " : " + e.getMessage());
         }
         return result;

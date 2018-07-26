@@ -14,10 +14,15 @@ import java.util.concurrent.Callable;
 
 public abstract class AbstractArchitectureEvaluator implements Callable {
 
-    protected BaseParams params = null;
     protected AbstractArchitecture arch;
     protected ResourcePool resourcePool;
     protected String type;
+
+    public AbstractArchitectureEvaluator() {
+        this.resourcePool = null;
+        this.arch = null;
+        this.type = null;
+    }
 
     public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         this.resourcePool = resourcePool;
@@ -25,11 +30,22 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
         this.type = type;
     }
 
-    public abstract AbstractArchitectureEvaluator getNewInstance();
+    public abstract AbstractArchitectureEvaluator getNewInstance(BaseParams params);
     public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type);
+
+    public void checkInit(){
+        if(this.resourcePool == null || this.arch == null || this.type == null){
+            throw new IllegalStateException(AbstractArchitectureEvaluator.class.getName() + " not initialized. " +
+                    "Either set class attributes resourcePool, arch, and type from a constructor, " +
+                    "or use getNewInstance() method to initialize this class.");
+        }
+    }
 
     @Override
     public Result call() {
+
+        checkInit();
+
         if (!arch.isFeasibleAssignment()) {
             return new Result(arch, 0.0, 1E5);
         }
@@ -65,17 +81,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
     public Resource getResource() {
         return this.resourcePool.getResource();
     }
-
     public void freeResource(Resource res) {
         this.resourcePool.freeResource(res);
-    }
-
-    public BaseParams getParams() {
-        if(params == null){
-            throw new IllegalStateException("Class attribute params should have been defined in the constructor.");
-        }else{
-            return params;
-        }
     }
 
     protected abstract Result evaluatePerformance(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m);

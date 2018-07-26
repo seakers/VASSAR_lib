@@ -6,24 +6,27 @@ import java.util.*;
 
 public class Architecture extends AbstractArchitecture{
 
+    private Params params;
     private boolean[][] bitMatrix;
     private int numSatellites;
 
-    public Architecture(String bitString, int numSatellites) {
+    public Architecture(String bitString, int numSatellites, Params params) {
         super();
-        bitMatrix = booleanString2Matrix(bitString);
+        this.params = params;
+        this.bitMatrix = booleanString2Matrix(bitString);
         this.numSatellites = numSatellites;
     }
 
-    public Architecture(boolean[][] bitMatrix, int numSatellites) {
+    public Architecture(boolean[][] bitMatrix, int numSatellites, Params params) {
         super();
+        this.params = params;
         this.bitMatrix = bitMatrix;
         this.numSatellites = numSatellites;
     }
 
-    public Architecture(HashMap<String, String[]> mapping, int numSatellites) {
+    public Architecture(HashMap<String, String[]> mapping, int numSatellites, Params params) {
         super();
-        Params params = Params.getInstance();
+        this.params = params;
         bitMatrix = new boolean[params.numOrbits][params.numInstr];
         for (int o = 0; o < params.numOrbits; o++) {
             for(int i = 0; i < params.numInstr; i++) {
@@ -48,7 +51,6 @@ public class Architecture extends AbstractArchitecture{
 
     @Override
     public boolean isFeasibleAssignment() {
-        Params params = Params.getInstance();
         return (sumAllInstruments(bitMatrix) <= params.MAX_TOTAL_INSTR);
     }
 
@@ -62,7 +64,6 @@ public class Architecture extends AbstractArchitecture{
 
     // Utils
     private boolean[][] booleanString2Matrix(String bitString) {
-        Params params = Params.getInstance();
         boolean[][] mat = new boolean[params.numOrbits][params.numInstr];
         for (int i = 0; i < params.numOrbits; i++) {
             for (int j = 0; j < params.numInstr; j++) {

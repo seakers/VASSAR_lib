@@ -2,34 +2,35 @@ package rbsa.eoss.problems.SMAP;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.architecture.AbstractArchitectureGenerator;
+import rbsa.eoss.local.BaseParams;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 public class ArchitectureGenerator extends AbstractArchitectureGenerator{
 
-    public ArchitectureGenerator getInstance() {
-        if (instance == null) {
-            instance = new ArchitectureGenerator();
-        }
-        return instance;
+    private Params params;
+    private Random rnd;
+
+    private ArchitectureGenerator(Params params) {
+        this.params = params;
+        this.rnd = new Random();
     }
 
-    private static ArchitectureGenerator instance = null;
-
-    private ArchitectureGenerator() {
-        super();
-        this.params = Params.getInstance();
+    public ArchitectureGenerator getNewInstance(BaseParams params){
+        return new ArchitectureGenerator((Params) params);
     }
 
     protected ArrayList<AbstractArchitecture> getManualArchitectures() {
         ArrayList<AbstractArchitecture> man_archs = new ArrayList<>();
-        man_archs.add(new Architecture("000000000000000000000000000000000000000000000000000000000000",1));
+        man_archs.add(new Architecture("000000000000000000000000000000000000000000000000000000000000",1, params));
         //N = 1 in random orbit (12)
         for (int i = 0; i < params.numInstr; i++) {
             StringBuilder str = new StringBuilder("000000000000000000000000000000000000000000000000000000000000");
             int orb = rnd.nextInt(params.numOrbits);
             str.setCharAt(params.numInstr*orb + i, '1');
-            man_archs.add(new Architecture(str.toString(),1));
+            man_archs.add(new Architecture(str.toString(),1,params));
         }
         //N = 2 in random orbit (66)
         for (int i = 0; i < params.numInstr - 1; i++) {
@@ -38,15 +39,15 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                 int orb = rnd.nextInt(params.numOrbits);
                 str.setCharAt(params.numInstr*orb + i, '1');
                 str.setCharAt(params.numInstr*orb + j, '1');
-                man_archs.add(new Architecture(str.toString(),1));
+                man_archs.add(new Architecture(str.toString(),1,params));
             }
         }
 
         //One copy of each instrument in the same orbit
-        man_archs.add(new Architecture("000000000000111111111111000000000000000000000000000000000000",1));
+        man_archs.add(new Architecture("000000000000111111111111000000000000000000000000000000000000",1,params));
 
         //Two copies of each instrument in the same orbits
-        man_archs.add(new Architecture("111111111111111111111111000000000000000000000000000000000000",1));
+        man_archs.add(new Architecture("111111111111111111111111000000000000000000000000000000000000",1,params));
 
         //Reference rbsa.eoss.architecture #1
         HashMap<String,String[]> map = new HashMap<>();
@@ -55,7 +56,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         String[] payl_600DD = {""};map.put("SSO-600-SSO-DD",payl_600DD);
         String[] payl_PM = {"GACM_VIS","GACM_SWIR"};map.put("SSO-800-SSO-PM",payl_PM);
         String[] payl_800DD = {""};map.put("SSO-800-SSO-DD",payl_800DD);
-        man_archs.add(new Architecture(map, 1));
+        man_archs.add(new Architecture(map, 1,params));
 
         //Reference rbsa.eoss.architecture #2
         HashMap<String,String[]> map2 = new HashMap<>();
@@ -64,7 +65,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         String[] payl2_600DD = {""};map2.put("SSO-600-SSO-DD",payl2_600DD);
         String[] payl2_PM = {"GACM_VIS","GACM_SWIR","POSTEPS_IRS"};map2.put("SSO-800-SSO-PM",payl2_PM);
         String[] payl2_800DD = {"DESD_SAR"};map2.put("SSO-800-SSO-DD",payl2_800DD);
-        man_archs.add(new Architecture(map2, 1));
+        man_archs.add(new Architecture(map2, 1,params));
 
         //Reference rbsa.eoss.architecture #3
         HashMap<String,String[]> map3 = new HashMap<>();
@@ -73,7 +74,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         String[] payl3_600DD = {""};map3.put("SSO-600-SSO-DD",payl3_600DD);
         String[] payl3_PM = {"GACM_VIS","GACM_SWIR","POSTEPS_IRS"};map3.put("SSO-800-SSO-PM",payl3_PM);
         String[] payl3_800DD = {"DESD_SAR"};map3.put("SSO-800-SSO-DD",payl3_800DD);
-        man_archs.add(new Architecture(map3, 1));
+        man_archs.add(new Architecture(map3, 1,params));
 
         //Reference rbsa.eoss.architecture #4
         HashMap<String,String[]> map4 = new HashMap<>();
@@ -82,7 +83,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         String[] payl4_600DD = {"DESD_LID"};map4.put("SSO-600-SSO-DD",payl4_600DD);
         String[] payl4_PM = {"GACM_VIS","GACM_SWIR","POSTEPS_IRS"};map4.put("SSO-800-SSO-PM",payl4_PM);
         String[] payl4_800DD = {"DESD_SAR"};map4.put("SSO-800-SSO-DD",payl4_800DD);
-        man_archs.add(new Architecture(map4, 1));
+        man_archs.add(new Architecture(map4, 1,params));
 
         //Reference rbsa.eoss.architecture #5
         HashMap<String,String[]> map5 = new HashMap<>();
@@ -91,7 +92,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         String[] payl5_600DD = {"DESD_LID"};map5.put("SSO-600-SSO-DD",payl5_600DD);
         String[] payl5_PM = {"GACM_VIS","GACM_SWIR","POSTEPS_IRS"};map5.put("SSO-800-SSO-PM",payl5_PM);
         String[] payl5_800DD = {"DESD_SAR"};map5.put("SSO-800-SSO-DD",payl5_800DD);
-        man_archs.add(new Architecture(map5, 1));
+        man_archs.add(new Architecture(map5, 1,params));
         return man_archs;
     }
 
@@ -105,7 +106,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                         x[j][k] = rnd.nextBoolean();
                     }
                 }
-                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)]);
+                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)],params);
                 popu.add(arch);
             }
         } catch (Exception e) {
@@ -125,7 +126,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                         x[j][k] = rnd.nextBoolean();
                     }
                 }
-                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)]);
+                AbstractArchitecture arch = new Architecture(x, params.numSatellites[rnd.nextInt(params.numSatellites.length)],params);
                 popu.add(arch);
             }
         } catch (Exception e) {
@@ -136,7 +137,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
     }
 
     public AbstractArchitecture getMaxArch() { // SMAP 2 SSO orbits, 2 sats per orbit
-        Architecture arch = new Architecture("111111111111111111111111000000000000000000000000000000000000",1);
+        Architecture arch = new Architecture("111111111111111111111111000000000000000000000000000000000000",1,params);
         return arch; //{"SMAP_RAD","SMAP_MWR","CMIS","VIIRS","BIOMASS"};{"600polar","600AM","600DD","800AM","800PM"};
     }
 
@@ -147,6 +148,6 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                 mat[i][j] = false;
             }
         }
-        return new Architecture(mat, 1);
+        return new Architecture(mat, 1,params);
     }
 }

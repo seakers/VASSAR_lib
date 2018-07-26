@@ -7,15 +7,7 @@ import java.util.Random;
 
 public abstract class AbstractArchitectureGenerator {
 
-    protected static AbstractArchitectureGenerator instance = null;
-    protected BaseParams params;
-    protected Random rnd;
-
-    public abstract AbstractArchitectureGenerator getInstance();
-
-    protected AbstractArchitectureGenerator() {
-        rnd = new Random();
-    }
+    public abstract AbstractArchitectureGenerator getNewInstance(BaseParams params);
 
     public ArrayList<AbstractArchitecture> getInitialPopulation(int numArchs) {
         ArrayList<AbstractArchitecture> population = new ArrayList<>();
