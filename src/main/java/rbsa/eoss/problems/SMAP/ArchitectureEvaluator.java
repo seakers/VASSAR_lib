@@ -22,14 +22,14 @@ import java.util.*;
 
 public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
-    protected Params params;
+    protected BaseParams params;
 
-    public ArchitectureEvaluator(Params params){
+    public ArchitectureEvaluator(BaseParams params){
         super();
         this.params = params;
     }
 
-    public ArchitectureEvaluator(Params params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
+    public ArchitectureEvaluator(BaseParams params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         super(resourcePool, arch, type);
         this.params = params;
     }
