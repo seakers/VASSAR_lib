@@ -441,13 +441,28 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
         Architecture arch = (Architecture) inputArch;
 
-        boolean[][] mat = arch.getBitMatrix();
+        int[] instrumentPartitioning = arch.getInstrumentPartitioning();
+        int[] orbitAssignment = arch.getOrbitAssignment();
+
+        Map<Integer, Set<Integer>> orbit2Sat = new HashMap<>();
+        for(int i = 0; i < instrumentPartitioning.length; i++){
+            int satIndex = instrumentPartitioning[i];
+            int orbit = orbitAssignment[satIndex];
+            if(orbit2Sat.keySet().contains(orbit)){
+                Set<Integer> sat = orbit2Sat.get(orbit);
+                sat.add(i);
+            }else{
+                Set<Integer> sat = new HashSet<>();
+                sat.add(i);
+                orbit2Sat.put(orbit, sat);
+            }
+        }
+
         try {
             this.orbits = new ArrayList<>();
 
             for (int i = 0; i < params.numOrbits; i++) {
-                int ninstrs = m.sumRowBool(mat, i);
-                if (ninstrs > 0) {
+                if (orbit2Sat.keySet().contains(i)){
                     String orbitName = params.orbitList[i];
 
                     Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
@@ -455,11 +470,11 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
                     String payload = "";
                     String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
-                    for (int j = 0; j < params.numInstr; j++) {
-                        if (mat[i][j]) {
-                            payload += " " + params.instrumentList[j];
-                        }
+
+                    for (int instrIndex: orbit2Sat.get(i)) {
+                        payload += " " + params.instrumentList[instrIndex];
                     }
+
                     call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
