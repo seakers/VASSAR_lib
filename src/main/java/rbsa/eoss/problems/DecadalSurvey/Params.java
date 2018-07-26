@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.SMAP;
+package rbsa.eoss.problems.DecadalSurvey;
 
 import rbsa.eoss.local.BaseParams;
 

@@ -59,16 +59,6 @@ public abstract class BaseParams {
     public String critiquePerformanceInitializeFactsClp;
     public String critiqueCostInitializeFactsClp;
 
-    // Instruments
-    public String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};
-    public int numInstr;
-    public String[] orbitList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-AM","SSO-800-SSO-DD"};
-    public int numOrbits;
-    public HashMap<String, Integer> instrumentIndexes = new HashMap<>();
-    public HashMap<String, Integer> orbitIndexes = new HashMap<>();
-    public int[] numSatellites = {1};
-    public int MAX_TOTAL_INSTR;
-
     // Results
     public String pathSaveResults;
 
@@ -169,19 +159,6 @@ public abstract class BaseParams {
         this.critiqueCostPrecalculationClp         = this.path + "/clp/critique/critique_cost_precalculation.clp";
         this.critiquePerformanceInitializeFactsClp = this.path + "/clp/critique/critique_performance_initialize_facts.clp";
         this.critiqueCostInitializeFactsClp        = this.path + "/clp/critique/critique_cost_initialize_facts.clp";
-
-        // Instruments & Orbits
-        numInstr = instrumentList.length;
-        numOrbits = orbitList.length;
-
-        MAX_TOTAL_INSTR = numOrbits * numInstr;
-
-        for (int i = 0; i < numInstr; i++) {
-            instrumentIndexes.put(instrumentList[i], i);
-        }
-        for (int i = 0; i < numOrbits; i++) {
-            orbitIndexes.put(orbitList[i], i);
-        }
 
         // Intermediate results
         this.requirementRules = new HashMap<>();

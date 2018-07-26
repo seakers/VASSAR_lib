@@ -19,6 +19,4 @@ public abstract class AbstractArchitectureGenerator {
     protected abstract ArrayList<AbstractArchitecture> getManualArchitectures();
     public abstract ArrayList<AbstractArchitecture> generateRandomPopulation(int numArchs);
     public abstract ArrayList<AbstractArchitecture> generateBiasedRandomPopulation(int numArchs, double bias);
-    public abstract AbstractArchitecture getMaxArch();
-    public abstract AbstractArchitecture getMinArch();
 }
