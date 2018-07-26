@@ -18,7 +18,7 @@ public class DecadalSurveyEvaluationTest {
 
         Params params = new Params(path,"CRISP-ATTRIBUTES","test","normal","");
         AbstractArchitectureEvaluator eval = new ArchitectureEvaluator(params);
-        ArchitectureEvaluationManager AE = new ArchitectureEvaluationManager(params, eval);
+        ArchitectureEvaluationManager evalManager = new ArchitectureEvaluationManager(params, eval);
         AbstractArchitecture testArch;
 
         // List of instruments and orbits
@@ -48,8 +48,9 @@ public class DecadalSurveyEvaluationTest {
 
         System.out.println(testArch.toString());
 
-        AE.init(1);
-        Result resu = AE.evaluateArchitecture(testArch, "Slow");
+        evalManager.reset();
+        evalManager.init(1);
+        Result resu = evalManager.evaluateArchitecture(testArch, "Slow");
 
         System.out.println(resu.getScience());
         System.out.println(resu.getCost());
