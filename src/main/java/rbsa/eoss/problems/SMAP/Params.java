@@ -32,4 +32,17 @@ public class Params extends BaseParams {
             orbitIndexes.put(orbitList[i], i);
         }
     }
+
+    public String[] getInstrumentList(){
+        return this.instrumentList;
+    }
+    public String[] getOrbitList(){
+        return this.orbitList;
+    }
+    public int getNumInstr(){
+        return this.numInstr;
+    }
+    public int getNumOrbits(){
+        return this.numOrbits;
+    }
 }

@@ -213,4 +213,8 @@ public abstract class BaseParams {
     public String getName() {
         return name;
     }
+    public abstract String[] getInstrumentList();
+    public abstract String[] getOrbitList();
+    public abstract int getNumInstr();
+    public abstract int getNumOrbits();
 }

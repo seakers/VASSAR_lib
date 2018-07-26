@@ -218,8 +218,8 @@ public class JessInitializer {
 
     private void loadPrecomputeQueries(QueryBuilder qb) {
         HashMap<String,Fact> db_instruments = new HashMap<>();
-        for (int i = 0; i < params.numInstr; i++) {
-            String instr = params.instrumentList[i];
+        for (int i = 0; i < params.getNumInstr(); i++) {
+            String instr = params.getInstrumentList()[i];
             ArrayList<Fact> facts = qb.makeQuery("DATABASE::Instrument (Name " + instr + ")");
             Fact f = facts.get(0);
             db_instruments.put(instr, f);
@@ -1002,7 +1002,7 @@ public class JessInitializer {
     private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
         try {
             r.batch(clp);
-            for (String instrument: params.instrumentList) {
+            for (String instrument: params.getInstrumentList()) {
                 Sheet sh = xls.getSheet(instrument);
                 int numMeasurements = sh.getRows();
                 ArrayList<String> meas = new ArrayList<>();
