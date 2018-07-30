@@ -49,7 +49,7 @@ public class RandomPopulation {
         ResultCollection c = null;
 
         ArrayList<AbstractArchitecture> initialPopulation = archGenerator.generateRandomPopulation(POP_SIZE);
-        AEM.init(8);
+        AEM.init(1);
         AEM.setPopulation(initialPopulation);
         AEM.evaluatePopulation();
         c = new ResultCollection(params, AEM.getResults());

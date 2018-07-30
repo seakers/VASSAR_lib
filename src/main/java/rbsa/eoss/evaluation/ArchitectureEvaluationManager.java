@@ -47,16 +47,21 @@ public class ArchitectureEvaluationManager {
     }
 
     public void evaluatePopulation() {
+
+        int populationSize = this.population.size();
+
         for (AbstractArchitecture arch: population) {
             AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
             futures.add(executorService.submit(t));
         }
-
+        int cnt = 0;
         for (Future<Result> future: futures) {
             try {
                 Result resu = future.get(); // Do something with the results..
                 pushResult(resu);
-                System.out.println(resu.getScience() + " " + resu.getCost());
+                System.out.println("Evaluated " + cnt + "/" + populationSize + ": " + resu.getScience() + ", " + resu.getCost());
+                cnt++;
+
                 // TODO: Add a quality check to see if science < 1 and arch is not empty. Push only if it passes quality control
             }
             catch (Exception e) {

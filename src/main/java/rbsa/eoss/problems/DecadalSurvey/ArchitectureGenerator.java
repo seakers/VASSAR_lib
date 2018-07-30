@@ -35,7 +35,9 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                 int[] instrumentPartitioning = new int[params.getNumInstr()];
                 int[] orbitAssignment = new int[params.getNumInstr()];
 
-                int numSats = rnd.nextInt(params.getNumInstr());
+                // There must be at least one satellite
+                int numSats = rnd.nextInt(params.getNumInstr()-1) + 1;
+
                 for(int j = 0; j < params.getNumInstr(); j++){
                     instrumentPartitioning[j] = rnd.nextInt(numSats);
                 }
@@ -53,20 +55,32 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                     }
                 }
 
+                ArrayList<Integer> orbitOptions = new ArrayList<>();
+                for(int k = 0; k < params.getNumOrbits(); k++){
+                    orbitOptions.add(k);
+                }
+
                 for(int k = 0; k < params.getNumInstr(); k++){
                     if(k < numSats){
-                        orbitAssignment[k] = rnd.nextInt(params.getNumOrbits());
+                        int selectedInd = rnd.nextInt(orbitOptions.size());
+                        int selectedOrb = orbitOptions.get(selectedInd);
+                        orbitOptions.remove(selectedInd);
+                        orbitAssignment[k] = selectedOrb;
                     }else{
                         orbitAssignment[k] = -1;
                     }
                 }
 
+                //AbstractArchitecture arch = new Architecture(instrumentPartitioning, orbitAssignment,
+                //        params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
                 AbstractArchitecture arch = new Architecture(instrumentPartitioning, orbitAssignment,
-                        params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
+                        1,params);
+
                 popu.add(arch);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error in generating a random population: " + e.getMessage());
+            throw new IllegalStateException();
         }
         return popu;
     }
