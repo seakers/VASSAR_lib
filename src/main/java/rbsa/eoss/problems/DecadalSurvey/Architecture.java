@@ -125,7 +125,18 @@ public class Architecture extends AbstractArchitecture{
     public int[] getOrbitAssignment(){ return this.orbitAssignment; }
 
     @Override
-    public String toString(){
+    public String ppString(){
         return Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment);
+    }
+
+    public String toString(String delimiter){
+        StringJoiner sj = new StringJoiner(delimiter);
+        for(int i:this.instrumentPartitioning){
+            sj.add(""+i);
+        }
+        for(int i:this.orbitAssignment){
+            sj.add(""+i);
+        }
+        return sj.toString();
     }
 }

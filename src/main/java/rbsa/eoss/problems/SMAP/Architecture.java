@@ -93,4 +93,22 @@ public class Architecture extends AbstractArchitecture{
         }
         return x;
     }
+
+    @Override
+    public String toString(String delimiter){
+        StringJoiner sj = new StringJoiner(delimiter);
+
+        for(int i = 0; i < params.getNumOrbits(); i++){
+            for(int j = 0; j < params.getNumInstr(); j++){
+                String k;
+                if(bitMatrix[i][j]){
+                    k = "1";
+                }else{
+                    k = "0";
+                }
+                sj.add(k);
+            }
+        }
+        return sj.toString();
+    }
 }

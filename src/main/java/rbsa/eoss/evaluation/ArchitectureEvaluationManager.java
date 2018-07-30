@@ -54,7 +54,7 @@ public class ArchitectureEvaluationManager {
             AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
             futures.add(executorService.submit(t));
         }
-        int cnt = 0;
+        int cnt = 1;
         for (Future<Result> future: futures) {
             try {
                 Result resu = future.get(); // Do something with the results..

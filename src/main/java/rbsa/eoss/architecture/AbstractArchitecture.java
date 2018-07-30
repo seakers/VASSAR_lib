@@ -25,4 +25,10 @@ public abstract class AbstractArchitecture {
             return true;
         }
     }
+
+    public String ppString(){
+        return toString(",");
+    }
+
+    public abstract String toString(String delimiter);
 }

@@ -2,6 +2,7 @@ package rbsa.eoss.local.test;
 
 import rbsa.eoss.ResultCollection;
 import rbsa.eoss.ResultManager;
+import rbsa.eoss.io.ResultCollectionRecorder;
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
 import rbsa.eoss.evaluation.ArchitectureEvaluationManager;
@@ -15,7 +16,7 @@ public class RandomPopulation {
      */
     public static void main(String[] args) {
 
-        int POP_SIZE = 500;
+        int POP_SIZE = 40;
         String problem = "DecadalSurvey";
         String path = "./problems/";
 
@@ -32,6 +33,7 @@ public class RandomPopulation {
                 evaluator = new rbsa.eoss.problems.SMAP.ArchitectureEvaluator(params);
                 archGenerator = new rbsa.eoss.problems.SMAP.ArchitectureGenerator((rbsa.eoss.problems.SMAP.Params)params);
                 break;
+
             case "DecadalSurvey":
                 path = path + "SMAP";
                 params = new rbsa.eoss.problems.DecadalSurvey.Params(path,
@@ -49,11 +51,14 @@ public class RandomPopulation {
         ResultCollection c = null;
 
         ArrayList<AbstractArchitecture> initialPopulation = archGenerator.generateRandomPopulation(POP_SIZE);
-        AEM.init(1);
+        AEM.init(2);
         AEM.setPopulation(initialPopulation);
         AEM.evaluatePopulation();
         c = new ResultCollection(params, AEM.getResults());
-        RM.saveResultCollection(c);
+
+        //RM.saveResultCollection(c);
+        ResultCollectionRecorder writer = new ResultCollectionRecorder(params);
+        writer.write(c);
 
         AEM.clear();
         System.out.println("DONE");
