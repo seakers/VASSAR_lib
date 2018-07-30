@@ -13,7 +13,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
     private Params params;
     private Random rnd;
 
-    private ArchitectureGenerator(Params params) {
+    public ArchitectureGenerator(Params params) {
         this.params = params;
         this.rnd = new Random();
     }

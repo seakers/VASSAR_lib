@@ -115,11 +115,11 @@ public abstract class BaseParams {
         // Paths for common xls files
         this.templateDefinitionXls      = this.path + "/xls/AttributeSet.xls";
         this.missionAnalysisDatabaseXls = this.path + "/xls/Mission Analysis Database.xls";
-        this.capabilityRulesXls         = this.path + "/xls/SMAP Instrument Capability Definition.xls";
-        this.requirementSatisfactionXls = this.path + "/xls/SMAP Requirement Rules.xls";
-        this.aggregationXls             = this.path + "/xls/SMAP Aggregation Rules.xls";
+        this.capabilityRulesXls         = this.path + "/xls/Instrument Capability Definition.xls";
+        this.requirementSatisfactionXls = this.path + "/xls/Requirement Rules.xls";
+        this.aggregationXls             = this.path + "/xls/Aggregation Rules.xls";
 
-        this.revtimesDatFile            = this.path + "/dat/revtimes";
+        this.revtimesDatFile            = this.path + "/dat/revtimes.dat";
         this.scoresDatFile              = this.path + "/dat/scores2013-10-29-15-31-49.dat";
         this.dsmDatFile                 = this.path + "/dat/all_dsms2013-10-29-15-35-13.dat";
 

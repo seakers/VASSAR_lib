@@ -11,6 +11,27 @@ public class Architecture extends AbstractArchitecture{
     private int[] orbitAssignment;
     private int numSatellites;
 
+    public Architecture(int[] intArray, int numSatellites, Params params) {
+        super();
+
+        for(int i = 0; i < params.getNumInstr() * 2; i++){
+            if(i < params.getNumInstr()){
+                this.instrumentPartitioning[i] = intArray[i];
+            }
+            else{
+                this.orbitAssignment[i - params.getNumInstr()] = intArray[i];
+            }
+        }
+
+        this.params = params;
+        this.numSatellites = numSatellites;
+
+        if(!isFeasibleAssignment()){
+            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        }
+    }
+
     public Architecture(int[] instrumentPartitioning, int[] orbitAssignment, int numSatellites, Params params) {
         super();
         this.instrumentPartitioning = instrumentPartitioning;
@@ -76,7 +97,15 @@ public class Architecture extends AbstractArchitecture{
             }
             temp.add(p);
         }
+        Set<Integer> orbitUsed = new HashSet<>();
         for(int p:temp){
+            if(orbitUsed.contains(orbitAssignment[p])){
+                // Two sets assigned to the same orbit
+                return false;
+            }else{
+                orbitUsed.add(orbitAssignment[p]);
+            }
+
             if(orbitAssignment[p] == -1){
                 // Set not assigned to any orbit
                 return false;

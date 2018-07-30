@@ -1,12 +1,21 @@
-group 'seak.vassar'
-version '1.0'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
 
-apply plugin: 'java'
+group 'rbsa'
+version '1.0'
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'rbsa.eoss.local.test.RandomPopulation'
+    }
 }
 
 dependencies {
