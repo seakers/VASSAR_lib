@@ -8,6 +8,9 @@ import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
 import rbsa.eoss.evaluation.ArchitectureEvaluationManager;
 import rbsa.eoss.architecture.AbstractArchitectureGenerator;
 import rbsa.eoss.local.BaseParams;
+import rbsa.eoss.problems.Assigning.SMAPParams;
+import rbsa.eoss.problems.PartitioningAndAssigning.Decadal2017AerosolsParams;
+
 import java.util.ArrayList;
 
 public class RandomPopulation {
@@ -17,7 +20,7 @@ public class RandomPopulation {
     public static void main(String[] args) {
 
         int POP_SIZE = 1000;
-        String problem = "DecadalSurvey";
+        String problem = "Decadal2017Aerosols";
         String path = "./problems/";
 
         BaseParams params;
@@ -28,18 +31,18 @@ public class RandomPopulation {
         switch (problem){
             case "SMAP":
                 path = path + "SMAP";
-                params = new rbsa.eoss.problems.SMAP.Params(path,
+                params = new SMAPParams(path,
                         "CRISP-ATTRIBUTES","test","normal","");
-                evaluator = new rbsa.eoss.problems.SMAP.ArchitectureEvaluator(params);
-                archGenerator = new rbsa.eoss.problems.SMAP.ArchitectureGenerator((rbsa.eoss.problems.SMAP.Params)params);
+                evaluator = new rbsa.eoss.problems.Assigning.ArchitectureEvaluator(params);
+                archGenerator = new rbsa.eoss.problems.Assigning.ArchitectureGenerator((SMAPParams)params);
                 break;
 
-            case "DecadalSurvey":
+            case "Decadal2017Aerosols":
                 path = path + "SMAP";
-                params = new rbsa.eoss.problems.DecadalSurvey.Params(path,
+                params = new Decadal2017AerosolsParams(path,
                         "CRISP-ATTRIBUTES","test","normal","");
-                evaluator = new rbsa.eoss.problems.DecadalSurvey.ArchitectureEvaluator(params);
-                archGenerator = new rbsa.eoss.problems.DecadalSurvey.ArchitectureGenerator((rbsa.eoss.problems.DecadalSurvey.Params)params);
+                evaluator = new rbsa.eoss.problems.PartitioningAndAssigning.ArchitectureEvaluator(params);
+                archGenerator = new rbsa.eoss.problems.PartitioningAndAssigning.ArchitectureGenerator((Decadal2017AerosolsParams)params);
                 break;
             default:
                 throw new IllegalArgumentException();

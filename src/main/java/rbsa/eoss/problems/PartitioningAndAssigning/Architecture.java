@@ -1,17 +1,18 @@
-package rbsa.eoss.problems.DecadalSurvey;
+package rbsa.eoss.problems.PartitioningAndAssigning;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
+import rbsa.eoss.local.BaseParams;
 
 import java.util.*;
 
 public class Architecture extends AbstractArchitecture{
 
-    private Params params;
+    private BaseParams params;
     private int[] instrumentPartitioning;
     private int[] orbitAssignment;
     private int numSatellites;
 
-    public Architecture(int[] intArray, int numSatellites, Params params) {
+    public Architecture(int[] intArray, int numSatellites, BaseParams params) {
         super();
 
         for(int i = 0; i < params.getNumInstr() * 2; i++){
@@ -32,7 +33,7 @@ public class Architecture extends AbstractArchitecture{
         }
     }
 
-    public Architecture(int[] instrumentPartitioning, int[] orbitAssignment, int numSatellites, Params params) {
+    public Architecture(int[] instrumentPartitioning, int[] orbitAssignment, int numSatellites, BaseParams params) {
         super();
         this.instrumentPartitioning = instrumentPartitioning;
         this.orbitAssignment = orbitAssignment;
@@ -45,7 +46,7 @@ public class Architecture extends AbstractArchitecture{
         }
     }
 
-    public Architecture(List<Set<String>> instrumentPartitioning, Map<Set<String>, String> orbitAssignment, int numSatellites, Params params) {
+    public Architecture(List<Set<String>> instrumentPartitioning, Map<Set<String>, String> orbitAssignment, int numSatellites, BaseParams params) {
         super();
 
         String[] instrList = params.getInstrumentList();
@@ -66,7 +67,7 @@ public class Architecture extends AbstractArchitecture{
             if(orbitAssignment.keySet().contains(sat)){
                 orb = orbitAssignment.get(sat);
             }else{
-                throw new IllegalArgumentException("orbitAssignment does not contain a set: " + Arrays.asList(sat));
+                throw new IllegalArgumentException("orbitAssignment does not contain the set: " + Arrays.asList(sat));
             }
 
             for(int j = 0; j < params.getNumInstr(); j++){

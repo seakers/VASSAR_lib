@@ -1,18 +1,12 @@
-package rbsa.eoss.problems.DecadalSurvey;
+package rbsa.eoss.problems.Assigning;
 
 import jess.*;
-import org.hipparchus.util.FastMath;
-import org.orekit.errors.OrekitException;
-import org.orekit.frames.TopocentricFrame;
 import rbsa.eoss.*;
 import rbsa.eoss.architecture.AbstractArchitecture;
-import rbsa.eoss.coverage.CoverageAnalysis;
 import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
 import rbsa.eoss.local.BaseParams;
 import rbsa.eoss.spacecraft.Orbit;
 import rbsa.eoss.utils.MatlabFunctions;
-import seak.orekit.coverage.access.TimeIntervalArray;
-import seak.orekit.event.EventIntervalMerger;
 
 import java.util.*;
 
@@ -36,7 +30,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
     }
 
     public ArchitectureEvaluator getNewInstance(BaseParams params){
-        return new ArchitectureEvaluator((Params) params, super.resourcePool, super.arch, super.type);
+        return new ArchitectureEvaluator((SMAPParams) params, super.resourcePool, super.arch, super.type);
     }
 
     public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
@@ -51,40 +45,25 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
         Architecture arch = (Architecture) inputArch;
 
-        int[] instrumentPartitioning = arch.getInstrumentPartitioning();
-        int[] orbitAssignment = arch.getOrbitAssignment();
-
-        Map<Integer, Set<Integer>> orbit2Sat = new HashMap<>();
-        for(int i = 0; i < instrumentPartitioning.length; i++){
-            int satIndex = instrumentPartitioning[i];
-            int orbit = orbitAssignment[satIndex];
-            if(orbit2Sat.keySet().contains(orbit)){
-                Set<Integer> sat = orbit2Sat.get(orbit);
-                sat.add(i);
-            }else{
-                Set<Integer> sat = new HashSet<>();
-                sat.add(i);
-                orbit2Sat.put(orbit, sat);
-            }
-        }
-
+        boolean[][] mat = arch.getBitMatrix();
         try {
             this.orbitsUsed = new ArrayList<>();
 
             for (int i = 0; i < getParams().getNumOrbits(); i++) {
-                if (orbit2Sat.keySet().contains(i)){
+                int ninstrs = m.sumRowBool(mat, i);
+                if (ninstrs > 0) {
                     String orbitName = getParams().getOrbitList()[i];
 
                     Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
-                    orbitsUsed.add(orb);
+                    this.orbitsUsed.add(orb);
 
                     String payload = "";
                     String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
-
-                    for (int instrIndex: orbit2Sat.get(i)) {
-                        payload += " " + getParams().getInstrumentList()[instrIndex];
+                    for (int j = 0; j < getParams().getNumInstr(); j++) {
+                        if (mat[i][j]) {
+                            payload += " " + getParams().getInstrumentList()[j];
+                        }
                     }
-
                     call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + getParams().nof + ")))";
                     getParams().nof++;

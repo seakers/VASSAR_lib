@@ -4,6 +4,10 @@ import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
 import rbsa.eoss.evaluation.ArchitectureEvaluationManager;
 import rbsa.eoss.*;
+import rbsa.eoss.local.BaseParams;
+import rbsa.eoss.problems.Assigning.AssigningParams;
+import rbsa.eoss.problems.Assigning.SMAPParams;
+
 import java.util.HashMap;
 
 
@@ -14,9 +18,9 @@ public class SMAPEvaluationTest {
         //PATH
         String path = "./problems/SMAP";
 
-        rbsa.eoss.problems.SMAP.Params params = new rbsa.eoss.problems.SMAP.Params(path,
+        AssigningParams params = new SMAPParams(path,
                 "CRISP-ATTRIBUTES","test","normal","");
-        AbstractArchitectureEvaluator eval = new rbsa.eoss.problems.SMAP.ArchitectureEvaluator(params);
+        AbstractArchitectureEvaluator eval = new rbsa.eoss.problems.Assigning.ArchitectureEvaluator(params);
         ArchitectureEvaluationManager AE = new ArchitectureEvaluationManager(params, eval);
         AbstractArchitecture testArch;
 
@@ -31,7 +35,7 @@ public class SMAPEvaluationTest {
         String[] payl_600DD = {""};map.put("SSO-600-SSO-DD",payl_600DD);
         String[] payl_800AM = {"SMAP_MWR","VIIRS"};map.put("SSO-800-SSO-AM",payl_800AM);
         String[] payl_800DD = {""};map.put("SSO-800-SSO-DD",payl_800DD);
-        testArch = new rbsa.eoss.problems.SMAP.Architecture(map, 1, params);
+        testArch = new rbsa.eoss.problems.Assigning.Architecture(map, 1, params);
 
         AE.init(1);
         Result resu = AE.evaluateArchitecture(testArch, "Slow");

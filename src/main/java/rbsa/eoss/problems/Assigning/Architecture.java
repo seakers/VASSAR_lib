@@ -1,30 +1,29 @@
-package rbsa.eoss.problems.SMAP;
+package rbsa.eoss.problems.Assigning;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
-
 import java.util.*;
 
 public class Architecture extends AbstractArchitecture{
 
-    private Params params;
+    private AssigningParams params;
     private boolean[][] bitMatrix;
     private int numSatellites;
 
-    public Architecture(String bitString, int numSatellites, Params params) {
+    public Architecture(String bitString, int numSatellites, AssigningParams params) {
         super();
         this.params = params;
         this.bitMatrix = booleanString2Matrix(bitString);
         this.numSatellites = numSatellites;
     }
 
-    public Architecture(boolean[][] bitMatrix, int numSatellites, Params params) {
+    public Architecture(boolean[][] bitMatrix, int numSatellites, AssigningParams params) {
         super();
         this.params = params;
         this.bitMatrix = bitMatrix;
         this.numSatellites = numSatellites;
     }
 
-    public Architecture(HashMap<String, String[]> mapping, int numSatellites, Params params) {
+    public Architecture(HashMap<String, String[]> mapping, int numSatellites, AssigningParams params) {
         super();
         this.params = params;
         bitMatrix = new boolean[params.getNumOrbits()][params.getNumInstr()];

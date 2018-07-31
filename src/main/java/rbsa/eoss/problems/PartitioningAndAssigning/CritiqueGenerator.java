@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.DecadalSurvey;
+package rbsa.eoss.problems.PartitioningAndAssigning;
 
 import jess.Rete;
 import rbsa.eoss.QueryBuilder;
@@ -18,7 +18,7 @@ import java.util.Vector;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (Params params, ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (Decadal2017AerosolsParams params, ResourcePool resourcePool, AbstractArchitecture arch)
     {
         super(params, resourcePool, arch,"slow");
     }

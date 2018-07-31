@@ -1,10 +1,10 @@
-package rbsa.eoss.problems.SMAP;
+package rbsa.eoss.problems.PartitioningAndAssigning;
 
 import rbsa.eoss.local.BaseParams;
 
 import java.util.HashMap;
 
-public class Params extends BaseParams {
+public class Decadal2017AerosolsParams extends BaseParams {
 
     // Instruments
     private String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};
@@ -16,7 +16,7 @@ public class Params extends BaseParams {
     private int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
-    public Params(String path, String mode, String name, String runMode, String search_clp){
+    public Decadal2017AerosolsParams(String path, String mode, String name, String runMode, String search_clp){
         super(path, mode, name, runMode, search_clp);
         init();
     }

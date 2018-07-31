@@ -4,7 +4,7 @@ import rbsa.eoss.Result;
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.evaluation.AbstractArchitectureEvaluator;
 import rbsa.eoss.evaluation.ArchitectureEvaluationManager;
-import rbsa.eoss.problems.DecadalSurvey.*;
+import rbsa.eoss.local.BaseParams;
 
 import java.util.*;
 
@@ -16,8 +16,8 @@ public class DecadalSurveyEvaluationTest {
         //PATH
         String path = "./problems/SMAP";
 
-        Params params = new Params(path,"CRISP-ATTRIBUTES","test","normal","");
-        AbstractArchitectureEvaluator eval = new ArchitectureEvaluator(params);
+        BaseParams params = new rbsa.eoss.problems.PartitioningAndAssigning.Decadal2017AerosolsParams(path,"CRISP-ATTRIBUTES","test","normal","");
+        AbstractArchitectureEvaluator eval = new rbsa.eoss.problems.PartitioningAndAssigning.ArchitectureEvaluator(params);
         ArchitectureEvaluationManager evalManager = new ArchitectureEvaluationManager(params, eval);
         AbstractArchitecture testArch;
 
@@ -44,9 +44,7 @@ public class DecadalSurveyEvaluationTest {
         set3.add("VIIRS");
         instrumentPartitioning.add(set3);
         orbitAssignment.put(set3,"SSO-800-SSO-AM");
-        testArch = new Architecture(instrumentPartitioning, orbitAssignment, 1, params);
-
-        System.out.println(testArch.toString());
+        testArch = new rbsa.eoss.problems.PartitioningAndAssigning.Architecture(instrumentPartitioning, orbitAssignment, 1, params);
 
         evalManager.reset();
         evalManager.init(1);

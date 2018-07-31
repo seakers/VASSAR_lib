@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.SMAP;
+package rbsa.eoss.problems.Assigning;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import rbsa.eoss.utils.MatlabFunctions;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (Params params, ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (SMAPParams params, ResourcePool resourcePool, AbstractArchitecture arch)
     {
         super(params, resourcePool, arch,"slow");
     }

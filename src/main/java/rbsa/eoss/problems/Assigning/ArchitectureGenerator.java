@@ -1,4 +1,4 @@
-package rbsa.eoss.problems.SMAP;
+package rbsa.eoss.problems.Assigning;
 
 import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.architecture.AbstractArchitectureGenerator;
@@ -10,16 +10,16 @@ import java.util.Random;
 
 public class ArchitectureGenerator extends AbstractArchitectureGenerator{
 
-    private Params params;
+    private SMAPParams params;
     private Random rnd;
 
-    public ArchitectureGenerator(Params params) {
+    public ArchitectureGenerator(SMAPParams params) {
         this.params = params;
         this.rnd = new Random();
     }
 
     public ArchitectureGenerator getNewInstance(BaseParams params){
-        return new ArchitectureGenerator((Params) params);
+        return new ArchitectureGenerator((SMAPParams) params);
     }
 
     protected ArrayList<AbstractArchitecture> getManualArchitectures() {
