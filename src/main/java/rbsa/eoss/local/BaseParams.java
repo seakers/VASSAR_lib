@@ -120,8 +120,8 @@ public abstract class BaseParams {
         this.aggregationXls             = this.path + "/xls/Aggregation Rules.xls";
 
         this.revtimesDatFile            = this.path + "/dat/revtimes.dat";
-        this.scoresDatFile              = this.path + "/dat/scores2013-10-29-15-31-49.dat";
-        this.dsmDatFile                 = this.path + "/dat/all_dsms2013-10-29-15-35-13.dat";
+        this.scoresDatFile              = this.path + "/dat/scores.dat";
+        this.dsmDatFile                 = this.path + "/dat/all_dsms.dat";
 
         // Paths for common clp files
         this.moduleDefinitionClp            = this.path + "/clp/modules.clp";
