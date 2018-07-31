@@ -10,7 +10,6 @@ import java.util.*;
 
 public class ResultCollectionRecorder {
 
-    private boolean writeBinary;
     private BaseParams params;
 
     public ResultCollectionRecorder(BaseParams params){
@@ -19,13 +18,11 @@ public class ResultCollectionRecorder {
 
     public void write(ResultCollection results) {
 
-        //String filename = "/home/antoni/Programacio/daphne/VASSAR_clean/results/2018-05-18_22-52-16_test.rs";
-
         SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd_HH-mm-ss" );
         String stamp = dateFormat.format( new Date() );
 
         String name = params.getName();
-        String filePath = params.pathSaveResults + File.separator + stamp + "_" + name + ".tsv"; //tab-separated values
+        String filePath = params.pathSaveResults + File.separator + stamp + "_" + name + ".csv"; // comma-separated values
 
         int count = 0;
         try (BufferedWriter outputWriter = new BufferedWriter(new FileWriter(filePath))) {
@@ -36,7 +33,7 @@ public class ResultCollectionRecorder {
                     count++;
 
                 }else {
-                    StringJoiner sj = new StringJoiner("\t");
+                    StringJoiner sj = new StringJoiner(",");
                     String inputs = result.getArch().toString(",");
                     sj.add(inputs);
                     sj.add(Double.toString(result.getScience()));

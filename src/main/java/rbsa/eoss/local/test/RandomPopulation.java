@@ -16,7 +16,7 @@ public class RandomPopulation {
      */
     public static void main(String[] args) {
 
-        int POP_SIZE = 40;
+        int POP_SIZE = 1000;
         String problem = "DecadalSurvey";
         String path = "./problems/";
 
@@ -51,7 +51,7 @@ public class RandomPopulation {
         ResultCollection c = null;
 
         ArrayList<AbstractArchitecture> initialPopulation = archGenerator.generateRandomPopulation(POP_SIZE);
-        AEM.init(2);
+        AEM.init(6);
         AEM.setPopulation(initialPopulation);
         AEM.evaluatePopulation();
         c = new ResultCollection(params, AEM.getResults());
