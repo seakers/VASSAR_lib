@@ -55,27 +55,16 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                     }
                 }
 
-                ArrayList<Integer> orbitOptions = new ArrayList<>();
-                for(int k = 0; k < params.getNumOrbits(); k++){
-                    orbitOptions.add(k);
-                }
-
                 for(int k = 0; k < params.getNumInstr(); k++){
                     if(k < numSats){
-                        int selectedInd = rnd.nextInt(orbitOptions.size());
-                        int selectedOrb = orbitOptions.get(selectedInd);
-                        orbitOptions.remove(selectedInd);
-                        orbitAssignment[k] = selectedOrb;
+                        orbitAssignment[k] = rnd.nextInt(params.getNumOrbits());;
                     }else{
                         orbitAssignment[k] = -1;
                     }
                 }
 
-                //AbstractArchitecture arch = new Architecture(instrumentPartitioning, orbitAssignment,
-                //        params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
                 AbstractArchitecture arch = new Architecture(instrumentPartitioning, orbitAssignment,
                         1,params);
-
                 popu.add(arch);
             }
         } catch (Exception e) {

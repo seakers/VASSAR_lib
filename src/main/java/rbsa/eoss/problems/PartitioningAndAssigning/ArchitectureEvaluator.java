@@ -48,49 +48,55 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
         int[] instrumentPartitioning = arch.getInstrumentPartitioning();
         int[] orbitAssignment = arch.getOrbitAssignment();
 
-        Map<Integer, Set<Integer>> orbit2Sat = new HashMap<>();
+        Map<Integer, Integer> satIndex2Orbit = new HashMap<>();
+        Map<Integer, Set<Integer>> satIndex2InstrumentSet = new HashMap<>();
+
         for(int i = 0; i < instrumentPartitioning.length; i++){
             int satIndex = instrumentPartitioning[i];
             int orbit = orbitAssignment[satIndex];
-            if(orbit2Sat.keySet().contains(orbit)){
-                Set<Integer> sat = orbit2Sat.get(orbit);
-                sat.add(i);
-            }else{
-                Set<Integer> sat = new HashSet<>();
-                sat.add(i);
-                orbit2Sat.put(orbit, sat);
+
+            // Set orbit
+            if(!satIndex2Orbit.containsKey(satIndex)){
+                satIndex2Orbit.put(satIndex, orbit);
             }
+
+            // Add new instrument set
+            if(!satIndex2InstrumentSet.containsKey(satIndex)){
+                satIndex2InstrumentSet.put(satIndex, new HashSet<>());
+            }
+            // Add an instrument
+            Set<Integer> set = satIndex2InstrumentSet.get(satIndex);
+            set.add(i);
         }
 
         try {
-            this.orbitsUsed = new ArrayList<>();
+            this.orbitsUsed = new HashSet<>();
+            for (int index: satIndex2Orbit.keySet()) {
+                int orbIndex = satIndex2Orbit.get(index);
+                Set<Integer> instrumentSet = satIndex2InstrumentSet.get(index);
 
-            for (int i = 0; i < getParams().getNumOrbits(); i++) {
-                if (orbit2Sat.keySet().contains(i)){
-                    String orbitName = getParams().getOrbitList()[i];
+                String orbitName = getParams().getOrbitList()[orbIndex];
+                Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
+                orbitsUsed.add(orb);
 
-                    Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
-                    orbitsUsed.add(orb);
+                String payload = "";
+                String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
 
-                    String payload = "";
-                    String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
-
-                    for (int instrIndex: orbit2Sat.get(i)) {
-                        payload += " " + getParams().getInstrumentList()[instrIndex];
-                    }
-
-                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
-                            + "(factHistory F" + getParams().nof + ")))";
-                    getParams().nof++;
-
-                    call += "(assert (SYNERGIES::cross-registered-instruments " +
-                            " (instruments " + payload +
-                            ") (degree-of-cross-registration spacecraft) " +
-                            " (platform " + orbitName +  " )"
-                            + "(factHistory F" + getParams().nof + ")))";
-                    getParams().nof++;
-                    r.eval(call);
+                for (int instrIndex: instrumentSet) {
+                    payload += " " + getParams().getInstrumentList()[instrIndex];
                 }
+
+                call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
+                        + "(factHistory F" + getParams().nof + ")))";
+                getParams().nof++;
+
+                call += "(assert (SYNERGIES::cross-registered-instruments " +
+                        " (instruments " + payload +
+                        ") (degree-of-cross-registration spacecraft) " +
+                        " (platform " + orbitName +  " )"
+                        + "(factHistory F" + getParams().nof + ")))";
+                getParams().nof++;
+                r.eval(call);
             }
         }
         catch (Exception e) {

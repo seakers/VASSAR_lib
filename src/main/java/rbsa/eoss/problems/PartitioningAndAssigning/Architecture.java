@@ -91,22 +91,15 @@ public class Architecture extends AbstractArchitecture{
     @Override
     public boolean isFeasibleAssignment() {
         Set<Integer> temp = new HashSet<>();
-        for(int p:instrumentPartitioning){
+        for(int p: instrumentPartitioning){
             if(p == -1){
                 // Instrument not assigned to any set
                 return false;
             }
             temp.add(p);
         }
-        Set<Integer> orbitUsed = new HashSet<>();
-        for(int p:temp){
-            if(orbitUsed.contains(orbitAssignment[p])){
-                // Two sets assigned to the same orbit
-                return false;
-            }else{
-                orbitUsed.add(orbitAssignment[p]);
-            }
 
+        for(int p:temp){
             if(orbitAssignment[p] == -1){
                 // Set not assigned to any orbit
                 return false;

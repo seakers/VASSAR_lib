@@ -27,14 +27,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
     protected ResourcePool resourcePool;
     protected String type;
     protected boolean debug;
-    protected List<Orbit> orbitsUsed;
+    protected Set<Orbit> orbitsUsed;
 
     public AbstractArchitectureEvaluator() {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
         this.debug = false;
-        this.orbitsUsed = new ArrayList<>();
+        this.orbitsUsed = new HashSet<>();
     }
 
     public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
@@ -42,7 +42,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
         this.arch = arch;
         this.type = type;
         this.debug = false;
-        this.orbitsUsed = new ArrayList<>();
+        this.orbitsUsed = new HashSet<>();
     }
 
     public abstract AbstractArchitectureEvaluator getNewInstance(BaseParams params);
@@ -199,8 +199,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
                         List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
 
                         // For each fieldOfview-orbit combination
-                        for(int i = 0; i < this.orbitsUsed.size(); i++){
-                            Orbit orb = this.orbitsUsed.get(i);
+                        for(Orbit orb: this.orbitsUsed){
                             int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
 
                             if(fov <= 0){

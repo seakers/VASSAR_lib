@@ -47,7 +47,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
 
         boolean[][] mat = arch.getBitMatrix();
         try {
-            this.orbitsUsed = new ArrayList<>();
+            this.orbitsUsed = new HashSet<>();
 
             for (int i = 0; i < getParams().getNumOrbits(); i++) {
                 int ninstrs = m.sumRowBool(mat, i);
