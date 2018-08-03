@@ -18,7 +18,7 @@ import java.util.Vector;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (Decadal2017AerosolsParams params, ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (PartitioningAndAssigningParams params, ResourcePool resourcePool, AbstractArchitecture arch)
     {
         super(params, resourcePool, arch,"slow");
     }

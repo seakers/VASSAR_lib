@@ -10,10 +10,10 @@ import java.util.Random;
 
 public class ArchitectureGenerator extends AbstractArchitectureGenerator{
 
-    private Decadal2017AerosolsParams params;
+    private PartitioningAndAssigningParams params;
     private Random rnd;
 
-    public ArchitectureGenerator(Decadal2017AerosolsParams params) {
+    public ArchitectureGenerator(PartitioningAndAssigningParams params) {
         this.params = params;
         this.rnd = new Random();
     }
