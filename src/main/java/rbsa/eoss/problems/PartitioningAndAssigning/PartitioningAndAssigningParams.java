@@ -18,7 +18,6 @@ public class PartitioningAndAssigningParams extends BaseParams {
 
     public PartitioningAndAssigningParams(String path, String mode, String name, String runMode, String search_clp){
         super(path, mode, name, runMode, search_clp);
-        init();
     }
 
     protected void init(){

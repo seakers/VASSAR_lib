@@ -99,6 +99,17 @@ public class Architecture extends AbstractArchitecture{
             temp.add(p);
         }
 
+        int numOrbitUsed = 0;
+        for(int o: orbitAssignment){
+            if(o!=-1){
+                numOrbitUsed++;
+            }
+        }
+        if(numOrbitUsed != temp.size()){
+            // Number of orbits assigned does not match the number of satellites
+            return false;
+        }
+
         for(int p:temp){
             if(orbitAssignment[p] == -1){
                 // Set not assigned to any orbit

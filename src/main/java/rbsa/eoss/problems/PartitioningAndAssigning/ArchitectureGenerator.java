@@ -36,10 +36,10 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                 int[] orbitAssignment = new int[params.getNumInstr()];
 
                 // There must be at least one satellite
-                int numSats = rnd.nextInt(params.getNumInstr()-1) + 1;
+                int maxNumSats = rnd.nextInt(params.getNumInstr()) + 1;
 
                 for(int j = 0; j < params.getNumInstr(); j++){
-                    instrumentPartitioning[j] = rnd.nextInt(numSats);
+                    instrumentPartitioning[j] = rnd.nextInt(maxNumSats);
                 }
 
                 HashMap<Integer, Integer> map = new HashMap<>();
@@ -55,6 +55,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                     }
                 }
 
+                int numSats = map.keySet().size();
                 for(int k = 0; k < params.getNumInstr(); k++){
                     if(k < numSats){
                         orbitAssignment[k] = rnd.nextInt(params.getNumOrbits());;
