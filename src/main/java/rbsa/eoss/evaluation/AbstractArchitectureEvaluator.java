@@ -91,6 +91,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
         }
         this.freeResource(res);
 
+
+        System.out.println("Evaluated " + arch.ppString() + ": " + result.getScience() + ", " + result.getCost());
         return result;
     }
 

@@ -301,14 +301,14 @@ public class CoverageAnalysis {
         } catch (Exception ex) {
             Logger.getLogger(CoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
 
-            System.out.println("Fail: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
-                    ", nPlane: " + numPlanes + ", raan: " + raan );
+//            System.out.println("Fail: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
+//                    ", nPlane: " + numPlanes + ", raan: " + raan );
 
             throw new IllegalStateException("scenario failed to complete.");
         }
 
-        System.out.println("Success: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
-                ", nPlane: " + numPlanes + ", raan: " + raan );
+//        System.out.println("Success: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
+//                ", nPlane: " + numPlanes + ", raan: " + raan );
 
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scene));
 
