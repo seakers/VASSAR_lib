@@ -11,9 +11,21 @@ import java.util.*;
 public class ResultCollectionRecorder {
 
     private BaseParams params;
+    private int numInputs;
 
     public ResultCollectionRecorder(BaseParams params){
         this.params = params;
+
+        if(this.params instanceof rbsa.eoss.problems.Assigning.AssigningParams){
+            this.numInputs = this.params.getNumInstr() * this.params.getNumOrbits();
+
+        }else if(this.params instanceof rbsa.eoss.problems.PartitioningAndAssigning.PartitioningAndAssigningParams){
+            this.numInputs = this.params.getNumInstr() * 2;
+
+        }else{
+            throw new UnsupportedOperationException("ResultCollectionRecorder not implemented for this problem: " +
+                    this.params.getClass().getName());
+        }
     }
 
     public void write(ResultCollection results) {
@@ -28,9 +40,10 @@ public class ResultCollectionRecorder {
         try (BufferedWriter outputWriter = new BufferedWriter(new FileWriter(filePath))) {
 
             StringJoiner header = new StringJoiner(",");
-            for(int i = 0; i < 2 * this.params.getNumInstr(); i++){
+            for(int i = 0; i < this.numInputs; i++){
                 header.add("input" + i);
             }
+
             header.add("Science");
             header.add("Cost");
             outputWriter.write(header.toString() + "\n");
