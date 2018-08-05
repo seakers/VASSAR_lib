@@ -26,7 +26,14 @@ public class ResultCollectionRecorder {
 
         int count = 0;
         try (BufferedWriter outputWriter = new BufferedWriter(new FileWriter(filePath))) {
-            outputWriter.write("Inputs, Science, Cost\n");
+
+            StringJoiner header = new StringJoiner(",");
+            for(int i = 0; i < 2 * this.params.getNumInstr(); i++){
+                header.add("input" + i);
+            }
+            header.add("Science");
+            header.add("Cost");
+            outputWriter.write(header.toString() + "\n");
 
             for (Result result: results.getResults()) {
                 if (result.getScience() == 0.0) {
@@ -38,8 +45,7 @@ public class ResultCollectionRecorder {
                     sj.add(inputs);
                     sj.add(Double.toString(result.getScience()));
                     sj.add(Double.toString(result.getCost()));
-                    sj.add("\n");
-                    outputWriter.write(sj.toString());
+                    outputWriter.write(sj.toString() + "\n");
                 }
             }
         }

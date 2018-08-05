@@ -30,21 +30,23 @@ public class DecadalSurveyEvaluationTest {
 
         Set<String> set1 = new HashSet<>();
         set1.add("BIOMASS");
-        set1.add("SMAP_RAD");
         instrumentPartitioning.add(set1);
-        orbitAssignment.put(set1,"LEO-600-polar-NA");
+        orbitAssignment.put(set1,"SSO-800-SSO-DD");
 
         Set<String> set2 = new HashSet<>();
+        set2.add("SMAP_RAD");
         set2.add("SMAP_MWR");
-        set2.add("CMIS");
         instrumentPartitioning.add(set2);
-        orbitAssignment.put(set2,"SSO-600-SSO-DD");
+        orbitAssignment.put(set2,"LEO-600-polar-NA");
 
         Set<String> set3 = new HashSet<>();
+        set3.add("CMIS");
         set3.add("VIIRS");
         instrumentPartitioning.add(set3);
-        orbitAssignment.put(set3,"SSO-800-SSO-AM");
+        orbitAssignment.put(set3,"LEO-600-polar-NA");
         testArch = new rbsa.eoss.problems.PartitioningAndAssigning.Architecture(instrumentPartitioning, orbitAssignment, 1, params);
+
+        System.out.println(testArch.ppString());
 
         evalManager.reset();
         evalManager.init(1);

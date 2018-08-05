@@ -19,7 +19,7 @@ public class RandomPopulation {
      */
     public static void main(String[] args) {
 
-        int POP_SIZE = 1000;
+        int POP_SIZE = 1200;
         String problem = "Decadal2017Aerosols";
         String path = "./problems/";
 
