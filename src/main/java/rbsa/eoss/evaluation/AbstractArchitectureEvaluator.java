@@ -501,5 +501,9 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
     }
 
     protected abstract void assertMissions(Rete r, AbstractArchitecture arch, MatlabFunctions m);
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 }
 

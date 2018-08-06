@@ -71,7 +71,12 @@ public class ArchitectureEvaluationManager {
     }
 
     public Result evaluateArchitecture(AbstractArchitecture arch, String mode) {
+        return evaluateArchitecture(arch, mode, false);
+    }
+
+    public Result evaluateArchitecture(AbstractArchitecture arch, String mode, boolean debug) {
         AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
+        t.setDebug(debug);
 
         Future<Result> future = (Future<Result>) executorService.submit(t);
         Result result = null;
