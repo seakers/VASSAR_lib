@@ -39,6 +39,7 @@ public class SMAPEvaluationTest {
 
         AE.init(1);
         Result resu = AE.evaluateArchitecture(testArch, "Slow");
+        AE.clear();
 
         System.out.println(resu.getScience());
         System.out.println(resu.getCost());

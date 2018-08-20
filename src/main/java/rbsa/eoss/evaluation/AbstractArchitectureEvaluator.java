@@ -340,7 +340,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable {
                 String subobj = f.getSlotValue("id").stringValue(r.getGlobalContext());
                 Double subobj_score = f.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
                 Double current_subobj_score = subobj_scores_map.get(subobj);
-                if(current_subobj_score != null && subobj_score > current_subobj_score || current_subobj_score == null) {
+                if(current_subobj_score == null || subobj_score > current_subobj_score) {
                     subobj_scores_map.put(subobj, subobj_score);
                 }
                 explanations.put(subobj, qb.makeQuery("AGGREGATION::SUBOBJECTIVE (id " + subobj + ")"));

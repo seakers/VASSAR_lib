@@ -8,9 +8,13 @@ package rbsa.eoss;
  *
  * @author dani
  */
+import com.mitchellbosecke.pebble.PebbleEngine;
+import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import jess.*;
 import jxl.*;
 import java.io.File;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.*;
 
 import rbsa.eoss.attribute.AttributeBuilder;
@@ -21,6 +25,7 @@ import rbsa.eoss.jessUserFunction.Worsen;
 import rbsa.eoss.local.BaseParams;
 import org.apache.commons.lang3.StringUtils;
 import rbsa.eoss.spacecraft.LaunchVehicle;
+import rbsa.eoss.template.functions.JessExtension;
 import rbsa.eoss.utils.MatlabFunctions;
 
 public class JessInitializer {
@@ -396,9 +401,21 @@ public class JessInitializer {
             for (String clp: clps) {
                 r.batch(clp);
             }
-            r.eval("(deffunction update-objective-variable (?obj ?new-value) \"Update the value of the global variable with the new value only if it is better \" (bind ?obj (max ?obj ?new-value)))");
-            r.eval("(deffunction ContainsRegion (?observed-region ?desired-region)  \"Returns true if the observed region i.e. 1st param contains the desired region i.e. 2nd param \" (bind ?tmp1 (eq ?observed-region Global)) (bind ?tmp2 (eq ?desired-region ?observed-region)) (if (or ?tmp1 ?tmp2) then (return TRUE) else (return FALSE)))");
-            r.eval("(deffunction ContainsBands (?list-bands ?desired-bands)  \"Returns true if the list of bands contains the desired bands \" (if (subsetp ?desired-bands ?list-bands) then (return TRUE) else (return FALSE)))");
+
+            PebbleEngine engine = new PebbleEngine.Builder().build();
+            StringWriter writer = new StringWriter();
+
+            engine.getTemplate("./templates/functions/update-objective-variable.clp").evaluate(writer);
+            r.eval(writer.toString());
+            writer.getBuffer().setLength(0);
+
+            engine.getTemplate("./templates/functions/ContainsRegion.clp").evaluate(writer);
+            r.eval(writer.toString());
+            writer.getBuffer().setLength(0);
+
+            engine.getTemplate("./templates/functions/ContainsBands.clp").evaluate(writer);
+            r.eval(writer.toString());
+            writer.getBuffer().setLength(0);
 
             r.eval("(deffunction numerical-to-fuzzy (?num ?values ?mins ?maxs)"  +
                     "(bind ?ind 1)"  +
@@ -490,38 +507,47 @@ public class JessInitializer {
         }
         catch (Exception e) {
             System.out.println("EXC in loadFunctions " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
     private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
         try {
+            PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
+            StringWriter writer = new StringWriter();
+
+            Map<String, Object> context = new HashMap<>();
+            context.put("name", name);
+            context.put("template", template);
+
+            ArrayList<ArrayList<String>> facts = new ArrayList<>();
             Sheet meas = xls.getSheet(sheet);
-            String call = "(deffacts " + name + " ";
             int numFacts = meas.getRows();
             int numSlots = meas.getColumns();
-            Cell[] slotNameCells = meas.getRow(0);
-            String[] slotNames = new String[numSlots];
-            for (int i = 0; i < numSlots; i++) {
-                slotNames[i] = slotNameCells[i].getContents();
-            }
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);
-                call = call.concat(" (" + template + " ");
+                ArrayList<String> slots = new ArrayList<>();
                 for (int j = 0; j < numSlots; j++) {
                     String slot_value = row[j].getContents();
-                    if (slot_value.matches("\\[(.+)(,(.+))+\\]")) {
-                        call = call.concat( " (" + slotNames[j] + " " + createJessList(slot_value) + ") ");
-                    }
-                    else {
-                        call = call.concat( " (" + slotNames[j] + " " + slot_value + ") ");
-                    }
+                    slots.add(slot_value);
                 }
-                call = call.concat("(factHistory F" + params.nof + ")");
-                params.nof++;
-                call = call.concat(") ");
+                facts.add(slots);
             }
-            call = call.concat(")");
-            r.eval(call);
+            context.put("facts", facts);
+
+            ArrayList<String> slotNames = new ArrayList<>();
+            Cell[] slotNameCells = meas.getRow(0);
+            for (int i = 0; i < numSlots; i++) {
+                slotNames.add(slotNameCells[i].getContents());
+            }
+            context.put("slotNames", slotNames);
+
+            context.put("startingNof", params.nof);
+
+            engine.getTemplate("./templates/orderedDeffacts.clp").evaluate(writer, context);
+            params.nof += (numFacts - 1);
+            r.eval(writer.toString());
         }
         catch (Exception e) {
             System.out.println("EXC in loadOrderedDeffacts " + e.getMessage());
