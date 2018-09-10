@@ -117,7 +117,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
-            r.eval("(watch rules)");
+            //r.eval("(watch rules)");
             //r.eval("(facts)");
 
             r.setFocus("MANIFEST0");
