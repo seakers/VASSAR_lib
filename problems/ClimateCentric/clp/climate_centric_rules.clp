@@ -279,7 +279,7 @@
 (REQUIREMENTS::Measurement (Parameter ?p) (diurnal-cycle PM-only) (Id ?id2) (taken-by ?ins2) (factHistory ?fh))
 
 =>
-(printout t (str-cat ?id1 "-syn-" ?id2) " // " (str-cat ?ins1 "-syn-" ?ins2) " // " (str-cat "{R" (?*rulesMap* get SYNERGIES-ACROSS-ORBITS::AM-PM-diurnal-cycle) " " ?fh "}") crlf)
+;(printout t (str-cat ?id1 "-syn-" ?id2) " // " (str-cat ?ins1 "-syn-" ?ins2) " // " (str-cat "{R" (?*rulesMap* get SYNERGIES-ACROSS-ORBITS::AM-PM-diurnal-cycle) " " ?fh "}") crlf)
 (modify ?m1 (diurnal-cycle AM-PM) (Id (str-cat ?id1 "-syn-" ?id2)) (taken-by (str-cat ?ins1 "-syn-" ?ins2)) (factHistory (str-cat "{R" (?*rulesMap* get SYNERGIES-ACROSS-ORBITS::AM-PM-diurnal-cycle) " " ?fh "}")))
 )
 (defrule SYNERGIES::ozone

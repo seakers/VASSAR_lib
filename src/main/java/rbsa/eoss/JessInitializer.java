@@ -25,6 +25,7 @@ import rbsa.eoss.jessUserFunction.Worsen;
 import rbsa.eoss.local.BaseParams;
 import org.apache.commons.lang3.StringUtils;
 import rbsa.eoss.spacecraft.LaunchVehicle;
+import rbsa.eoss.template.classes.SlotInfo;
 import rbsa.eoss.template.functions.JessExtension;
 import rbsa.eoss.utils.MatlabFunctions;
 
@@ -267,9 +268,15 @@ public class JessInitializer {
             HashMap<String, String> attribsToTypes = new HashMap<>();
             HashMap<String, EOAttribute> attribSet = new HashMap<>();
             params.parameterList = new ArrayList<>();
-            Sheet meas = xls.getSheet("Measurement");    
-            String call = "(deftemplate REQUIREMENTS::Measurement ";
+
+            Sheet meas = xls.getSheet("Measurement");
+
+            PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
+            StringWriter writer = new StringWriter();
+            Map<String, Object> context = new HashMap<>();
+
             int numSlots = meas.getRows();
+            ArrayList<SlotInfo> slots = new ArrayList<>();
             for (int i = 1; i < numSlots; i++) {
                 Cell[] row = meas.getRow(i);
                 String slotType = row[0].getContents();
@@ -299,12 +306,14 @@ public class JessInitializer {
                     EOAttribute attrib = AttributeBuilder.make(type, name, "N/A");
                     attribSet.put(name, attrib);
                 }
-                call = call.concat(" (" + slotType + " " + name + ") ");
+
+                slots.add(new SlotInfo(slotType, name));
             }
+            context.put("slots", slots);
             GlobalVariables.defineMeasurement(attribsToKeys, keysToAttribs, attribsToTypes, attribSet);
-            
-            call = call.concat(")");
-            r.eval(call);         
+
+            engine.getTemplate("./templates/measurementTemplate.clp").evaluate(writer, context);
+            r.eval(writer.toString());
         }
         catch (Exception e) {
             System.out.println("EXC in loadMeasurementTemplate " + e.getMessage());
@@ -664,52 +673,43 @@ public class JessInitializer {
 
             int numRules = meas.getRows();
 
+            PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
+            StringWriter writer = new StringWriter();
+            PebbleTemplate fuzzyAttributeRules = engine.getTemplate("./templates/fuzzyAttributeRules.clp");
+
             for (int i = 1; i < numRules; i++) {
+                Map<String, Object> context = new HashMap<>();
+                writer.getBuffer().setLength(0);
+
+                context.put("template", template);
+
                 Cell[] row = meas.getRow(i);
-                String att = row[0].getContents();
-                String param = row[1].getContents();
+                String attribute = row[0].getContents();
+                context.put("attribute", attribute);
+                context.put("shortenedAttribute", attribute.substring(0, attribute.length()-1));
+                context.put("parameter", row[1].getContents());
                 int numValues = Integer.parseInt(row[3].getContents());
                 String[] fuzzyValues = new String[numValues];
                 String[] mins = new String[numValues];
                 String[] means = new String[numValues];
                 String[] maxs = new String[numValues];
-                String callValues = "(create$ ";
-                String callMins = "(create$ ";
-                String callMaxs = "(create$ ";
                 for (int j = 1; j <= numValues; j++) {
                     fuzzyValues[j-1] = row[4*j].getContents();
-                    callValues += fuzzyValues[j-1] + " ";
                     mins[j-1] = Double.toString(((NumberCell)row[1+4*j]).getValue());
-                    callMins += mins[j-1] +   " ";
                     means[j-1] = Double.toString(((NumberCell)row[2+4*j]).getValue());
                     maxs[j-1] = Double.toString(((NumberCell)row[3+4*j]).getValue());
-                    callMaxs += maxs[j-1] + " ";
                 }
-                callValues += ")";
-                callMins += ")";
-                callMaxs += ")";
+                context.put("fuzzyValues", fuzzyValues);
+                context.put("mins", mins);
+                context.put("maxs", maxs);
 
-                String call = "(defrule FUZZY::numerical-to-fuzzy-" + att + " ";
-                String ruleName = "FUZZY::numerical-to-fuzzy-" + att;
-                if (param.equalsIgnoreCase("all")) {
-                    call += "?m <- (" + template + " (" + att + "# ?num&~nil) (" + att + " nil) (factHistory ?fh)) => " ;
-                    call += "(bind ?value (numerical-to-fuzzy ?num " + callValues + " " + callMins + " " + callMaxs + " )) (modify ?m (" + att  + " ?value)"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" \" ?fh \"}\"))"
-                            + ")) ";
-                }
-                else {
-                    String att2 = att.substring(0, att.length()-1);
-                    call += "?m <- (" + template + " (Parameter \"" + param + "\") (" + att2 + "# ?num&~nil) (" + att + " nil) (factHistory ?fh)) => " ;
-                    call += "(bind ?value (numerical-to-fuzzy ?num " + callValues + " " + callMins + " " + callMaxs + " )) (modify ?m (" + att  + " ?value)"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" \" ?fh \"}\"))"
-                            + ")) ";
-                }
-
-                r.eval(call);
+                fuzzyAttributeRules.evaluate(writer, context);
+                r.eval(writer.toString());
             }
         }
         catch (Exception e) {
             System.out.println("EXC in loadAttributeInheritanceRules " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
