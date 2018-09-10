@@ -9,6 +9,7 @@ import rbsa.eoss.problems.Assigning.AssigningParams;
 import rbsa.eoss.problems.Assigning.SMAPParams;
 
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 
 public class SMAPEvaluationTest {
@@ -38,11 +39,11 @@ public class SMAPEvaluationTest {
         testArch = new rbsa.eoss.problems.Assigning.Architecture(map, 1, params);
 
         AE.init(1);
-        Result resu = AE.evaluateArchitecture(testArch, "Slow");
+        Result result = AE.evaluateArchitectureSync(testArch, "Slow");
         AE.clear();
 
-        System.out.println(resu.getScience());
-        System.out.println(resu.getCost());
+        System.out.println(result.getScience());
+        System.out.println(result.getCost());
         System.out.println("DONE");
     }
 }

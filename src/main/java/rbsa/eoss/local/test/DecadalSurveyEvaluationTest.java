@@ -50,7 +50,7 @@ public class DecadalSurveyEvaluationTest {
 
         evalManager.reset();
         evalManager.init(1);
-        Result resu = evalManager.evaluateArchitecture(testArch, "Slow");
+        Result resu = evalManager.evaluateArchitectureSync(testArch, "Slow");
 
         System.out.println(resu.getScience());
         System.out.println(resu.getCost());

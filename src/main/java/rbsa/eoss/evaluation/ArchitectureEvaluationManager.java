@@ -6,6 +6,7 @@ import rbsa.eoss.architecture.AbstractArchitecture;
 import rbsa.eoss.local.BaseParams;
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -70,24 +71,44 @@ public class ArchitectureEvaluationManager {
         }
     }
 
-    public Result evaluateArchitecture(AbstractArchitecture arch, String mode) {
-        return evaluateArchitecture(arch, mode, false);
+    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode) {
+        return evaluateArchitectureSync(arch, mode, false);
     }
 
-    public Result evaluateArchitecture(AbstractArchitecture arch, String mode, boolean debug) {
+    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, boolean debug) {
         AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
         t.setDebug(debug);
 
-        Future<Result> future = (Future<Result>) executorService.submit(t);
+        Future<Result> future = executorService.submit(t);
+
         Result result = null;
         try {
             result = future.get();
         }
-        catch (Exception e) {
-            System.out.println("Exc in evaluating an architecture");
-            System.out.println(e.getClass() + " : " + e.getMessage());
+        catch (ExecutionException e) {
+            System.out.println("Exception when evaluating an architecture");
+            e.printStackTrace();
+            this.clear();
+            System.exit(-1);
+        }
+        catch (InterruptedException e) {
+            System.out.println("Execution got interrupted while evaluating an architecture");
+            e.printStackTrace();
+            this.clear();
+            System.exit(-1);
         }
         return result;
+    }
+
+    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode) {
+        return evaluateArchitectureAsync(arch, mode, false);
+    }
+
+    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, boolean debug) {
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
+        t.setDebug(debug);
+
+        return executorService.submit(t);
     }
 
     public void clearResults() {
