@@ -2,20 +2,6 @@
 ; Payload cost (salience 20)
 ; ********************
 
-;(defrule COST-ESTIMATION::estimate-payload-cost
-;    "This rule estimates payload cost using a very simplified version of the 
-;    NASA Instrument Cost Model available on-line"
-;    (declare (salience 20))
-;    ?miss <- (MANIFEST::Mission (payload-cost# nil) (payload-mass# ?m&~nil)
-;        (payload-power# ?p&~nil) (payload-data-rate# ?rb&~nil) (developed-by ?whom)
-;        )
-;    =>
-;    (bind ?cost (* 25600 (** (/ ?p 61.5) 0.32) (** (/ ?m 53.8) 0.26) 
-;            (** (/ (* 1000 ?rb) 40.4) 0.11))); in FY04$
-;    (bind ?cost (/ ?cost 1.097)); correct for inflation from FY04 to FY00, from http://oregonstate.edu/cla/polisci/faculty-research/sahr/cv2000.pdf
-;    (modify ?miss (payload-cost# ?cost))
-;    )
-
 (deffunction is-domestic (?who)
     (return (eq (sub-string 1 3 ?who) "DOM"))
     )
@@ -26,10 +12,7 @@
     )
 
 
-(deffunction apply-NICM (?instr)
-    (bind ?m (get-instrument-mass ?instr))
-    (bind ?p (get-instrument-power ?instr))
-    (bind ?rb (get-instrument-datarate ?instr))
+(deffunction apply-NICM (?m ?p ?rb)
     
     (bind ?cost (* 25600 (** (/ ?p 61.5) 0.32) (** (/ ?m 53.8) 0.26) 
             (** (/ (* 1000 ?rb) 40.4) 0.11))); in FY04$
@@ -42,12 +25,12 @@
     "This rule estimates payload cost using a very simplified version of the 
     NASA Instrument Cost Model available on-line"
     (declare (salience 25) (no-loop TRUE))
-    ?instr <- (DATABASE::Instrument (cost# nil) (Name ?name) 
-        (developed-by ?whom)
-        )
+    ?instr <- (CAPABILITIES::Manifested-instrument (cost# nil) (mass# ?m&~nil) (average-power# ?p&~nil) (average-data-rate# ?rb&~nil)
+            (developed-by ?whom) (factHistory ?fh))
     =>  
-     (if (is-domestic ?whom) then (modify ?instr (cost# (apply-NICM ?name))) 
-        else (modify ?instr (cost# 0)))
+    (bind ?c0 (apply-NICM ?m ?p ?rb))
+    (if (is-domestic ?whom) then (modify ?instr (cost# ?c0) (factHistory (str-cat "{R" (?*rulesMap* get COST-ESTIMATION::estimate-instrument-cost) " " ?fh "}")))
+        else (modify ?instr (cost# 0) (factHistory (str-cat "{R" (?*rulesMap* get COST-ESTIMATION::estimate-instrument-cost) " " ?fh "}"))))
     )
 
 
@@ -59,7 +42,7 @@
     ?miss <- (MANIFEST::Mission (payload-cost# nil) (instruments $?payload)
         )
     =>
-    (bind ?costs (map get-instrument-cost ?payload)); in FY04$
+    (bind ?costs (map get-instrument-cost-manifest ?payload)); in FY04$
     ;(printout t "estimate payload cost: instrument costs = " ?costs crlf)
     (bind ?cost (sum$ ?costs)); correct for inflation from FY04 to FY00, from http://oregonstate.edu/cla/polisci/faculty-research/sahr/cv2000.pdf
     

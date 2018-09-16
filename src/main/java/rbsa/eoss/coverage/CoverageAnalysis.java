@@ -155,16 +155,16 @@ public class CoverageAnalysis {
 
         CoverageAnalysisIO.AccessDataDefinition definition = new CoverageAnalysisIO.AccessDataDefinition(fieldOfView, inclination, altitude, numSats, numPlanes, this.coverageGridGranularity, raanLabel);
 
-        if(this.coverageAnalysisIO.getAccessDataFile(definition).exists()){
+        if (this.coverageAnalysisIO.getAccessDataFile(definition).exists()) {
             // The access data exists
             //System.out.println("Corresponding data file found");
             return this.coverageAnalysisIO.readAccessData(definition);
-
-        }else{
+        }
+        else {
             // Newly compute the accesses
             Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
 
-            if(this.saveAccessData){
+            if (this.saveAccessData) {
                 this.coverageAnalysisIO.writeAccessData(definition, fovEvents);
             }
 
@@ -297,8 +297,8 @@ public class CoverageAnalysis {
             Logger.getGlobal().finer(String.format("Number of points:     %d", coverageDefinition.getNumberOfPoints()));
             Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
             scene.call();
-
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             Logger.getLogger(CoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
 
 //            System.out.println("Fail: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +

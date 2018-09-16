@@ -13,7 +13,6 @@ public class ClimateCentricParams extends AssigningParams {
         super.orbitList = orbitList;
 
         this.adhocRulesClp = this.path + "/clp/climate_centric_rules.clp";
-        this.fuzzyCostEstimationRulesClp = this.path + "/clp/fuzzy_cost_estimation_rules.clp";
 
         super.init();
     }

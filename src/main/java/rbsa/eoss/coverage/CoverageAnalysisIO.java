@@ -14,6 +14,8 @@ import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.object.CoveragePoint;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -37,6 +39,12 @@ public class CoverageAnalysisIO {
 
     private boolean binaryEncoding;
     private TimeScale timeScale;
+
+    private static ReentrantLock fileLock;
+
+    static {
+        fileLock = new ReentrantLock();
+    }
 
     public CoverageAnalysisIO(boolean binaryEncoding, TimeScale timeScale){
         this.binaryEncoding = binaryEncoding;
@@ -65,6 +73,8 @@ public class CoverageAnalysisIO {
     }
 
     public Map<TopocentricFrame, TimeIntervalArray> readAccessDataCSV(AccessDataDefinition definition) {
+
+        CoverageAnalysisIO.fileLock.lock();
 
         File file = getAccessDataFile(definition);
 
@@ -120,10 +130,15 @@ public class CoverageAnalysisIO {
         } catch (OrekitException e) {
             e.printStackTrace();
         }
+        finally {
+            CoverageAnalysisIO.fileLock.unlock();
+        }
         return out;
     } 
     
     public void writeAccessDataCSV(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> fovEvents){
+
+        CoverageAnalysisIO.fileLock.lock();
 
         File file = getAccessDataFile(definition);
 
@@ -159,7 +174,9 @@ public class CoverageAnalysisIO {
         } catch (IOException exc) {
             System.out.println("Exc in writing access data in csv: " + exc.getMessage());
             exc.printStackTrace();
-
+        }
+        finally {
+            CoverageAnalysisIO.fileLock.unlock();
         }
     }
 
@@ -215,6 +232,8 @@ public class CoverageAnalysisIO {
 
     public Map<TopocentricFrame, TimeIntervalArray> readAccessDataBinary(AccessDataDefinition definition) {
 
+        CoverageAnalysisIO.fileLock.lock();
+
         File file = getAccessDataFile(definition);
 
         Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
@@ -233,11 +252,16 @@ public class CoverageAnalysisIO {
         } catch (ClassNotFoundException exc) {
             exc.printStackTrace();
         }
+        finally {
+            CoverageAnalysisIO.fileLock.unlock();
+        }
 
         return out;
     }
 
     public void writeAccessDataBinary(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> accesses) {
+
+        CoverageAnalysisIO.fileLock.lock();
 
         File file = getAccessDataFile(definition);
 
@@ -252,7 +276,9 @@ public class CoverageAnalysisIO {
         } catch (IOException exc) {
             System.out.println("Exc in writing binary access data: " + exc.getMessage());
             exc.printStackTrace();
-
+        }
+        finally {
+            CoverageAnalysisIO.fileLock.unlock();
         }
     }
 

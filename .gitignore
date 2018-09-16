@@ -9,3 +9,4 @@ nbproject/
 *.iml
 .gradle
 problems/*/results/*
+CoverageDatabase/

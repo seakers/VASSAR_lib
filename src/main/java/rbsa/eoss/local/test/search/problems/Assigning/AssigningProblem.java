@@ -70,7 +70,6 @@ public class AssigningProblem extends AbstractProblem implements SystemArchitect
             if (problem.equalsIgnoreCase("SMAP") || problem.equalsIgnoreCase("ClimateCentric")) {
                 // Generate a new architecture
                 arch_old = new rbsa.eoss.problems.Assigning.Architecture(bitString, 1, (rbsa.eoss.problems.Assigning.AssigningParams)params);
-
             }
             else {
                 throw new IllegalArgumentException("Unrecorgnizable problem type: " + problem);

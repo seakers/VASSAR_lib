@@ -91,8 +91,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         }
         this.freeResource(res);
 
-
-        System.out.println("Evaluated " + arch.ppString() + ": " + result.getScience() + ", " + result.getCost());
         return result;
     }
 
@@ -195,7 +193,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
                         //Revisit times
                         CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true);
-                        double[] latBounds = new double[]{FastMath.toRadians(-90), FastMath.toRadians(90)};
+                        double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
                         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 
                         List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
@@ -343,7 +341,9 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 if(current_subobj_score == null || subobj_score > current_subobj_score) {
                     subobj_scores_map.put(subobj, subobj_score);
                 }
-                explanations.put(subobj, qb.makeQuery("AGGREGATION::SUBOBJECTIVE (id " + subobj + ")"));
+                if (!explanations.containsKey(subobj)) {
+                    explanations.put(subobj, qb.makeQuery("AGGREGATION::SUBOBJECTIVE (id " + subobj + ")"));
+                }
             }
 
             //Subobjective scores
@@ -435,8 +435,9 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             for (Fact mission: missions)  {
                 cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
-                if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES"))
+                if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
+                }
             }
 
             res.setCost(cost);
@@ -447,7 +448,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             }
 
         }
-        catch (Exception e) {
+        catch (JessException e) {
+            System.out.println(e.toString());
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }

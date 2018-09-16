@@ -125,6 +125,12 @@ public class JessInitializer {
             loadSpacecraftDesignRules(r, params.propulsionDesignRulesClp);
             
             // Load cost estimation rules;
+            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+                loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
+            }
+            else {
+                loadCostEstimationRules(r, new String[]{params.costEstimationRulesClp});
+            }
             loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
 
             // Load launch vehicle selection rules
@@ -1367,6 +1373,7 @@ public class JessInitializer {
         }
         catch (Exception e) {
             System.out.println("EXC in loadCostEstimationRules " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

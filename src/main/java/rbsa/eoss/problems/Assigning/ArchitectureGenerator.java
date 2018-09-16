@@ -8,20 +8,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-public class ArchitectureGenerator extends AbstractArchitectureGenerator{
+public class ArchitectureGenerator extends AbstractArchitectureGenerator {
 
-    private SMAPParams params;
+    private AssigningParams params;
     private Random rnd;
 
-    public ArchitectureGenerator(SMAPParams params) {
+    public ArchitectureGenerator(AssigningParams params) {
         this.params = params;
         this.rnd = new Random();
     }
 
     public ArchitectureGenerator getNewInstance(BaseParams params){
-        return new ArchitectureGenerator((SMAPParams) params);
+        return new ArchitectureGenerator((AssigningParams) params);
     }
 
+    @Override
     protected ArrayList<AbstractArchitecture> getManualArchitectures() {
         ArrayList<AbstractArchitecture> man_archs = new ArrayList<>();
         man_archs.add(new Architecture("000000000000000000000000000000000000000000000000000000000000",1, params));
@@ -96,6 +97,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         return man_archs;
     }
 
+    @Override
     public ArrayList<AbstractArchitecture> generateRandomPopulation(int numArchs) {
         ArrayList<AbstractArchitecture> popu = new ArrayList<>(numArchs);
         try {
@@ -106,7 +108,7 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
                         x[j][k] = rnd.nextBoolean();
                     }
                 }
-                AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
+                AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)], params);
                 popu.add(arch);
             }
         } catch (Exception e) {
@@ -115,24 +117,20 @@ public class ArchitectureGenerator extends AbstractArchitectureGenerator{
         return popu;
     }
 
+    @Override
     public ArrayList<AbstractArchitecture> generateBiasedRandomPopulation(int numArchs, double bias) {
         int genomeLength = params.getNumInstr() * params.getNumOrbits();
         ArrayList<AbstractArchitecture> popu = new ArrayList<>(numArchs);
-        try {
-            for (int i = 0; i < numArchs; i++) {
-                boolean[][] x = new boolean[params.getNumOrbits()][params.getNumInstr()];
-                for (int j = 0; j < params.getNumInstr(); j++) {
-                    for(int k = 0; k < params.getNumInstr(); k++){
-                        x[j][k] = rnd.nextBoolean();
-                    }
+        for (int i = 0; i < numArchs; i++) {
+            boolean[][] x = new boolean[params.getNumOrbits()][params.getNumInstr()];
+            for (int j = 0; j < params.getNumOrbits(); j++) {
+                for(int k = 0; k < params.getNumInstr(); k++){
+                    x[j][k] = rnd.nextDouble() < bias;
                 }
-                AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)],params);
-                popu.add(arch);
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            AbstractArchitecture arch = new Architecture(x, params.getNumSatellites()[rnd.nextInt(params.getNumSatellites().length)], params);
+            popu.add(arch);
         }
-
         return popu;
     }
 

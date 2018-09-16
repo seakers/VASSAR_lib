@@ -17,6 +17,5 @@
                     (create${% for value in fuzzyValues %} {{value}}{% endfor %})
                     (create${% for min in mins %} {{min}}{% endfor %})
                     (create${% for max in maxs %} {{max}}{% endfor %})))
-    ;(printout t ?num " // " ?value " // " ?fh crlf)
     (modify ?m ({{attribute}} ?value) (factHistory (str-cat "{R" (?*rulesMap* get FUZZY::numerical-to-fuzzy-{{attribute}}) " " ?fh "}")))
 )

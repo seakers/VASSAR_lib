@@ -40,6 +40,7 @@ public abstract class BaseParams {
     public String epsDesignRulesClp;
     public String adcsDesignRulesClp;
     public String propulsionDesignRulesClp;
+    public String costEstimationRulesClp;
     public String fuzzyCostEstimationRulesClp;
     public String launchVehicleSelectionRulesClp;
     public String capabilityRulesClp;
@@ -136,7 +137,8 @@ public abstract class BaseParams {
         this.epsDesignRulesClp              = this.path + "/clp/eps_design_rules.clp";
         this.adcsDesignRulesClp             = this.path + "/clp/adcs_design_rules.clp";
         this.propulsionDesignRulesClp       = this.path + "/clp/propulsion_design_rules.clp";
-        this.fuzzyCostEstimationRulesClp    = this.path + "/clp/cost_estimation_rules.clp";
+        this.costEstimationRulesClp         = this.path + "/clp/cost_estimation_rules.clp";
+        this.fuzzyCostEstimationRulesClp    = this.path + "/clp/fuzzy_cost_estimation_rules.clp";
         this.launchVehicleSelectionRulesClp = this.path + "/clp/launch_cost_estimation_rules.clp";
         this.capabilityRulesClp             = this.path + "/clp/capability_rules.clp";
         this.synergyRulesClp                = this.path + "/clp/synergy_rules.clp";
