@@ -10,3 +10,4 @@ nbproject/
 .gradle
 problems/*/results/*
 CoverageDatabase/
+backup/
