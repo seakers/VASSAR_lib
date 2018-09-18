@@ -639,7 +639,7 @@ global ref_arch ref_label
 
 [FileName,PathName,FilterIndex] = uigetfile( './*.rs*' );
 
-resMngr = rbsa.eoss.ResultManager.getInstance();
+resMngr = ResultManager.getInstance();
 resCol = resMngr.loadResultCollectionFromFile( [PathName FileName] );
 
 %load in the reference files and push results in resCol

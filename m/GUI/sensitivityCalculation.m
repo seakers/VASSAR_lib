@@ -114,11 +114,11 @@ end
 %     throw(baseException)
 % end
 
-rescoredCol = rbsa.eoss.ResultCollection;
+rescoredCol = ResultCollection;
 for i=1:resultStack.size
     res = results{i};
     if ~isempty(rescoredSci{i})
-        rescoredCol.pushResult(rbsa.eoss.Result(res.getArch,rescoredSci{i},res.getCost));        
+        rescoredCol.pushResult(Result(res.getArch,rescoredSci{i},res.getCost));
     else
         %if no change, just push original result
         rescoredCol.pushResult(res);

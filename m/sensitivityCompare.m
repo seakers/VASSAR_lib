@@ -20,7 +20,7 @@ end
 [FileName,PathName,FilterIndex] = uigetfile( './*.rs*','Pick results files to compare','MultiSelect','on' );
 [~,b]=size(FileName);
 
-resMngr = rbsa.eoss.ResultManager.getInstance();
+resMngr = ResultManager.getInstance();
 resCol1 = resMngr.loadResultCollectionFromFile( [PathName '2014-10-12_17-53-53_test.rs'] );
 results1 = resCol1.getResults;
 narch = results1.size;

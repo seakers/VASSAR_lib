@@ -1,6 +1,6 @@
 function createDiscoverDVxls
 
-resMngr = rbsa.eoss.ResultManager.getInstance();
+resMngr = ResultManager.getInstance();
 currentDir = cd;
 
 %open all results files that need to analyzed

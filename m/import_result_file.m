@@ -1,6 +1,6 @@
 %% import_result_file.m
 function [results,archs] = import_result_file(file)
-    resMngr = rbsa.eoss.ResultManager.getInstance();
+    resMngr = ResultManager.getInstance();
     rc = resMngr.loadResultCollectionFromFile(file);
     resus = rc.getResults;
     narc = resus.size;

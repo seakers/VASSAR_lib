@@ -1,6 +1,6 @@
 function [data,PF_ind,feature_inds,keyCol] = load_result_features
 
-resMngr = rbsa.eoss.ResultManager.getInstance();
+resMngr = ResultManager.getInstance();
 ATE = rbsa.eoss.ArchTradespaceExplorer.getInstance();
 
 %open all results files that need to analyzed

@@ -9,7 +9,7 @@ function [keySet,dist2PFMat] = dist_to_parteofront()
 %is a null value (ie []) then it means that the architecture did not exist
 %in the population in that result file.
 
-resMngr = rbsa.eoss.ResultManager.getInstance();
+resMngr = ResultManager.getInstance();
 ATE = rbsa.eoss.ArchTradespaceExplorer.getInstance();
 currentDir = cd;
 

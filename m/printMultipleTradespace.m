@@ -21,7 +21,7 @@ end
 [FileName,PathName,FilterIndex] = uigetfile( './*.rs*','Pick results file','MultiSelect','on' );
 
 for z=1:length(FileName)
-    resMngr = rbsa.eoss.ResultManager.getInstance();
+    resMngr = ResultManager.getInstance();
     resCol = resMngr.loadResultCollectionFromFile( [PathName FileName{z}] );
     
     results = resCol.getResults;

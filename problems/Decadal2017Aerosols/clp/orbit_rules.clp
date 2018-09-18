@@ -83,6 +83,6 @@
 
 	
 (deffunction get-orbit-altitude (?orbit-str)
-	(bind ?orb (new rbsa.eoss.Orbit ?orbit-str))
+	(bind ?orb (new seakers.vassar.Orbit ?orbit-str))
 	(return (?orb getAltitude))
     )

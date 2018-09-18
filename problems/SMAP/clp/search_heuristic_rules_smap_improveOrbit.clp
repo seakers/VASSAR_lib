@@ -5,7 +5,7 @@
 	;(printout t improve-orbit crlf)
     (bind ?N 1)
     (for (bind ?i 0) (< ?i ?N) (++ ?i) 
-		(bind ?arch ((new rbsa.eoss.Architecture ?orig ?ns) improveOrbit))
+		(bind ?arch ((new seakers.vassar.Architecture ?orig ?ns) improveOrbit))
     	(assert-string (?arch toFactString)))
 	(modify ?arch0 (improve no) (factHistory (str-cat "{R" (?*rulesMap* get SEARCH-HEURISTICS::improve-orbit) " " ?fh "}")))
     )
