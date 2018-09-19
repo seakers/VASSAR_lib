@@ -75,7 +75,11 @@ public class CoverageAnalysis {
         this(numThreads, coverageGridGranularity, true, true);
     }
 
-    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException{
+    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
+        this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
+    }
+
+    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
 
         //setup logger
         Level level = Level.ALL;
@@ -83,7 +87,7 @@ public class CoverageAnalysis {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(level);
         Logger.getGlobal().addHandler(handler);
-        this.cwd = System.getProperty("user.dir");
+        this.cwd = cwd;
 
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
@@ -101,7 +105,7 @@ public class CoverageAnalysis {
 
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
-        this.startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
+        this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
         this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;

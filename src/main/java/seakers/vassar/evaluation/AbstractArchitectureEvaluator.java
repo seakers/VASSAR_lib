@@ -192,7 +192,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         int coverageGranularity = 20;
 
                         //Revisit times
-                        CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true);
+                        CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
                         double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
                         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 

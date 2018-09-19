@@ -47,7 +47,7 @@ public class JessInitializer {
             this.params = params;
 
             // Create global variable path
-            String tmp = params.path.replaceAll("\\\\", "\\\\\\\\");
+            String tmp = params.problemPath.replaceAll("\\\\", "\\\\\\\\");
             r.eval("(defglobal ?*app_path* = \"" + tmp + "\")");
             r.eval("(import seakers.vassar.*)");
             r.eval("(import java.util.*)");
@@ -317,7 +317,7 @@ public class JessInitializer {
             context.put("slots", slots);
             GlobalVariables.defineMeasurement(attribsToKeys, keysToAttribs, attribsToTypes, attribSet);
 
-            engine.getTemplate("./templates/measurementTemplate.clp").evaluate(writer, context);
+            engine.getTemplate(params.resourcesPath + "/templates/measurementTemplate.clp").evaluate(writer, context);
             r.eval(writer.toString());
         }
         catch (Exception e) {
@@ -419,15 +419,15 @@ public class JessInitializer {
             PebbleEngine engine = new PebbleEngine.Builder().build();
             StringWriter writer = new StringWriter();
 
-            engine.getTemplate("./templates/functions/update-objective-variable.clp").evaluate(writer);
+            engine.getTemplate(params.resourcesPath + "/templates/functions/update-objective-variable.clp").evaluate(writer);
             r.eval(writer.toString());
             writer.getBuffer().setLength(0);
 
-            engine.getTemplate("./templates/functions/ContainsRegion.clp").evaluate(writer);
+            engine.getTemplate(params.resourcesPath + "/templates/functions/ContainsRegion.clp").evaluate(writer);
             r.eval(writer.toString());
             writer.getBuffer().setLength(0);
 
-            engine.getTemplate("./templates/functions/ContainsBands.clp").evaluate(writer);
+            engine.getTemplate(params.resourcesPath + "/templates/functions/ContainsBands.clp").evaluate(writer);
             r.eval(writer.toString());
             writer.getBuffer().setLength(0);
 
@@ -559,7 +559,7 @@ public class JessInitializer {
 
             context.put("startingNof", params.nof);
 
-            engine.getTemplate("./templates/orderedDeffacts.clp").evaluate(writer, context);
+            engine.getTemplate(params.resourcesPath + "/templates/orderedDeffacts.clp").evaluate(writer, context);
             params.nof += (numFacts - 1);
             r.eval(writer.toString());
         }
@@ -680,7 +680,7 @@ public class JessInitializer {
 
             PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
             StringWriter writer = new StringWriter();
-            PebbleTemplate fuzzyAttributeRules = engine.getTemplate("./templates/fuzzyAttributeRules.clp");
+            PebbleTemplate fuzzyAttributeRules = engine.getTemplate(params.resourcesPath + "/templates/fuzzyAttributeRules.clp");
 
             for (int i = 1; i < numRules; i++) {
                 Map<String, Object> context = new HashMap<>();

@@ -2,8 +2,8 @@ package seakers.vassar.problems.Assigning;
 
 public class SMAPParams extends AssigningParams {
 
-    public SMAPParams(String path, String mode, String name, String runMode, String search_clp){
-        super(path, mode, name, runMode, search_clp);
+    public SMAPParams(String resourcesPath, String mode, String name, String runMode, String search_clp){
+        super(resourcesPath, "SMAP", mode, name, runMode, search_clp);
 
         // Instruments
         String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};

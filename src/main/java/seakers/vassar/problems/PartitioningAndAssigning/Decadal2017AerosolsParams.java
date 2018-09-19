@@ -2,8 +2,8 @@ package seakers.vassar.problems.PartitioningAndAssigning;
 
 public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
 
-    public Decadal2017AerosolsParams(String path, String mode, String name, String runMode, String search_clp){
-        super(path, mode, name, runMode, search_clp);
+    public Decadal2017AerosolsParams(String resourcesPath, String mode, String name, String runMode, String search_clp){
+        super(resourcesPath, "Decadal2017Aerosols", mode, name, runMode, search_clp);
 
         // Instruments
         String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};

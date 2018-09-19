@@ -16,8 +16,8 @@ public abstract class AssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
-    public AssigningParams(String path, String mode, String name, String runMode, String search_clp){
-        super(path, mode, name, runMode, search_clp);
+    public AssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp){
+        super(resourcesPath, problemName, mode, name, runMode, search_clp);
     }
 
     protected void init(){

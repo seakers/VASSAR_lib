@@ -6,6 +6,7 @@ package seakers.vassar.local;
  */
 import jess.Defrule;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -13,7 +14,10 @@ import java.util.HashMap;
 
 public abstract class BaseParams {
 
-    public String path;
+    public String resourcesPath;
+    public String problemName;
+    public String orekitResourcesPath;
+    public String problemPath;
     public String reqMode;
     public String name;
     public String runMode;
@@ -105,62 +109,66 @@ public abstract class BaseParams {
 
     public HashMap<String, String> subobjMeasurementParams;
 
-    protected BaseParams(String path, String mode, String name, String runMode, String search_clp) {
-        this.path = path;
+    protected BaseParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp) {
+        this.resourcesPath = resourcesPath;
+        this.problemName = problemName;
         this.reqMode = mode;
         this.name = name;
         this.runMode = runMode;
         this.initialPop = "";
-        this.pathSaveResults = this.path + "/results";
+
+        this.problemPath = this.resourcesPath + File.separator + "problems" + File.separator + this.problemName;
+        this.orekitResourcesPath = this.resourcesPath + File.separator + "orekit";
+        this.pathSaveResults = problemPath + File.separator + "results";
 
         // Paths for common xls files
-        this.templateDefinitionXls      = this.path + "/xls/AttributeSet.xls";
-        this.missionAnalysisDatabaseXls = this.path + "/xls/Mission Analysis Database.xls";
-        this.capabilityRulesXls         = this.path + "/xls/Instrument Capability Definition.xls";
-        this.requirementSatisfactionXls = this.path + "/xls/Requirement Rules.xls";
-        this.aggregationXls             = this.path + "/xls/Aggregation Rules.xls";
+        this.templateDefinitionXls      = problemPath + "/xls/AttributeSet.xls";
+        this.missionAnalysisDatabaseXls = problemPath + "/xls/Mission Analysis Database.xls";
+        this.capabilityRulesXls         = problemPath + "/xls/Instrument Capability Definition.xls";
+        this.requirementSatisfactionXls = problemPath + "/xls/Requirement Rules.xls";
+        this.aggregationXls             = problemPath + "/xls/Aggregation Rules.xls";
 
-        this.revtimesDatFile            = this.path + "/dat/revtimes.dat";
-        this.scoresDatFile              = this.path + "/dat/scores.dat";
-        this.dsmDatFile                 = this.path + "/dat/all_dsms.dat";
+        this.revtimesDatFile            = problemPath + "/dat/revtimes.dat";
+        this.scoresDatFile              = problemPath + "/dat/scores.dat";
+        this.dsmDatFile                 = problemPath + "/dat/all_dsms.dat";
 
         // Paths for common clp files
-        this.moduleDefinitionClp            = this.path + "/clp/modules.clp";
-        this.templateDefinitionClp          = this.path + "/clp/templates.clp";
-        this.functionsClp[0]                = this.path + "/clp/jess_functions.clp";
-        this.functionsClp[1]                = this.path + "/clp/functions.clp";
-        this.attributeInheritanceClp        = this.path + "/clp/attribute_inheritance_rules.clp";
-        this.orbitRulesClp                  = this.path + "/clp/orbit_rules.clp";
-        this.massBudgetRulesClp             = this.path + "/clp/mass_budget_rules.clp";
-        this.subsystemMassBudgetRulesClp    = this.path + "/clp/subsystem_mass_budget_rules.clp";
-        this.deltaVBudgetRulesClp           = this.path + "/clp/deltaV_budget_rules.clp";
-        this.epsDesignRulesClp              = this.path + "/clp/eps_design_rules.clp";
-        this.adcsDesignRulesClp             = this.path + "/clp/adcs_design_rules.clp";
-        this.propulsionDesignRulesClp       = this.path + "/clp/propulsion_design_rules.clp";
-        this.costEstimationRulesClp         = this.path + "/clp/cost_estimation_rules.clp";
-        this.fuzzyCostEstimationRulesClp    = this.path + "/clp/fuzzy_cost_estimation_rules.clp";
-        this.launchVehicleSelectionRulesClp = this.path + "/clp/launch_cost_estimation_rules.clp";
-        this.capabilityRulesClp             = this.path + "/clp/capability_rules.clp";
-        this.synergyRulesClp                = this.path + "/clp/synergy_rules.clp";
-        this.assimilationRulesClp           = this.path + "/clp/assimilation_rules.clp";
-        this.adhocRulesClp                  = this.path + "/clp/smap_rules_test.clp";
-        this.downSelectionRulesClp          = this.path + "/clp/down_selection_rules_smap.clp";
+        this.moduleDefinitionClp            = problemPath + "/clp/modules.clp";
+        this.templateDefinitionClp          = problemPath + "/clp/templates.clp";
+        this.functionsClp[0]                = problemPath + "/clp/jess_functions.clp";
+        this.functionsClp[1]                = problemPath + "/clp/functions.clp";
+        this.attributeInheritanceClp        = problemPath + "/clp/attribute_inheritance_rules.clp";
+        this.orbitRulesClp                  = problemPath + "/clp/orbit_rules.clp";
+        this.massBudgetRulesClp             = problemPath + "/clp/mass_budget_rules.clp";
+        this.subsystemMassBudgetRulesClp    = problemPath + "/clp/subsystem_mass_budget_rules.clp";
+        this.deltaVBudgetRulesClp           = problemPath + "/clp/deltaV_budget_rules.clp";
+        this.epsDesignRulesClp              = problemPath + "/clp/eps_design_rules.clp";
+        this.adcsDesignRulesClp             = problemPath + "/clp/adcs_design_rules.clp";
+        this.propulsionDesignRulesClp       = problemPath + "/clp/propulsion_design_rules.clp";
+        this.costEstimationRulesClp         = problemPath + "/clp/cost_estimation_rules.clp";
+        this.fuzzyCostEstimationRulesClp    = problemPath + "/clp/fuzzy_cost_estimation_rules.clp";
+        this.launchVehicleSelectionRulesClp = problemPath + "/clp/launch_cost_estimation_rules.clp";
+        this.capabilityRulesClp             = problemPath + "/clp/capability_rules.clp";
+        this.synergyRulesClp                = problemPath + "/clp/synergy_rules.clp";
+        this.assimilationRulesClp           = problemPath + "/clp/assimilation_rules.clp";
+        this.adhocRulesClp                  = problemPath + "/clp/smap_rules_test.clp";
+        this.downSelectionRulesClp          = problemPath + "/clp/down_selection_rules_smap.clp";
         if (search_clp.isEmpty()) {
-            this.searchHeuristicRulesClp    = this.path + "/clp/search_heuristic_rules_smap_improveOrbit.clp";
+            this.searchHeuristicRulesClp    = problemPath + "/clp/search_heuristic_rules_smap_improveOrbit.clp";
         }
         else {
-            this.searchHeuristicRulesClp    = this.path + "/clp/" + search_clp + ".clp";
+            this.searchHeuristicRulesClp    = problemPath + "/clp/" + search_clp + ".clp";
         }
-        this.explanationRulesClp            = this.path + "/clp/explanation_rules.clp";
-        this.aggregationRulesClp            = this.path + "/clp/aggregation_rules.clp";
-        this.fuzzyAggregationRulesClp       = this.path + "/clp/fuzzy_aggregation_rules.clp";
+        this.explanationRulesClp            = problemPath + "/clp/explanation_rules.clp";
+        this.aggregationRulesClp            = problemPath + "/clp/aggregation_rules.clp";
+        this.fuzzyAggregationRulesClp       = problemPath + "/clp/fuzzy_aggregation_rules.clp";
 
-        this.critiqueCostClp                       = this.path + "/clp/critique/critique_cost.clp";
-        this.critiquePerformanceClp                = this.path + "/clp/critique/critique_performance.clp";
-        this.critiquePerformancePrecalculationClp  = this.path + "/clp/critique/critique_performance_precalculation.clp";
-        this.critiqueCostPrecalculationClp         = this.path + "/clp/critique/critique_cost_precalculation.clp";
-        this.critiquePerformanceInitializeFactsClp = this.path + "/clp/critique/critique_performance_initialize_facts.clp";
-        this.critiqueCostInitializeFactsClp        = this.path + "/clp/critique/critique_cost_initialize_facts.clp";
+        this.critiqueCostClp                       = problemPath + "/clp/critique/critique_cost.clp";
+        this.critiquePerformanceClp                = problemPath + "/clp/critique/critique_performance.clp";
+        this.critiquePerformancePrecalculationClp  = problemPath + "/clp/critique/critique_performance_precalculation.clp";
+        this.critiqueCostPrecalculationClp         = problemPath + "/clp/critique/critique_cost_precalculation.clp";
+        this.critiquePerformanceInitializeFactsClp = problemPath + "/clp/critique/critique_performance_initialize_facts.clp";
+        this.critiqueCostInitializeFactsClp        = problemPath + "/clp/critique/critique_cost_initialize_facts.clp";
 
         // Intermediate results
         this.requirementRules = new HashMap<>();

@@ -16,8 +16,8 @@ public class PartitioningAndAssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
-    public PartitioningAndAssigningParams(String path, String mode, String name, String runMode, String search_clp){
-        super(path, mode, name, runMode, search_clp);
+    public PartitioningAndAssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp){
+        super(resourcesPath, problemName, mode, name, runMode, search_clp);
     }
 
     protected void init(){
