@@ -16,6 +16,8 @@ import java.util.Arrays;
  * @author Ana-Dani
  */
 public class Nto1pair implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String[] base;
     private String added;
 

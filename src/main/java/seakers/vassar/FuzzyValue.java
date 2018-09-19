@@ -7,7 +7,8 @@ import java.util.Set;
 import java.io.*;
 
 public class FuzzyValue implements Serializable {
-    //private static final long serialVersionUID = 9032778100864812066L;
+    private static final long serialVersionUID = 1L;
+
     private String param;
     private double num_val;
     private Interval interv;

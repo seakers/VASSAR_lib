@@ -187,8 +187,8 @@ public class JessInitializer {
             
             ///////////////////////////////////////////////////////////////////////////// 
 
-            Iterator ruleIter = r.listDefrules();
-            Iterator ruleIterCheck = r.listDefrules();
+            Iterator<Defrule> ruleIter = RawSafety.castType(r.listDefrules());
+            Iterator<Defrule> ruleIterCheck = RawSafety.castType(r.listDefrules());
             params.rulesDefruleMap = new HashMap<>();
             params.rulesNametoIDMap = new HashMap<>();
             params.rulesIDtoNameMap = new HashMap<>();
@@ -203,7 +203,7 @@ public class JessInitializer {
                 }
                 else {
                     cnt++;
-                    Defrule currentRule = ((Defrule) ruleIter.next());
+                    Defrule currentRule = ruleIter.next();
                     String ruleName = currentRule.getName();
                     params.rulesDefruleMap.put(ruleName, currentRule);
                     params.rulesNametoIDMap.put(ruleName, cnt);

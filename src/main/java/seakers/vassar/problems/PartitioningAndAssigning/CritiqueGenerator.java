@@ -1,10 +1,7 @@
 package seakers.vassar.problems.PartitioningAndAssigning;
 
 import jess.Rete;
-import seakers.vassar.QueryBuilder;
-import seakers.vassar.Resource;
-import seakers.vassar.ResourcePool;
-import seakers.vassar.Result;
+import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.utils.MatlabFunctions;
 
@@ -50,7 +47,7 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
             
             //Fetch the results for performance
             Vector<String> list1;
-            list1 = (Vector<String>) r.getGlobalContext().getVariable("*p*").externalAddressValue(null);
+            list1 = RawSafety.castVector(r.getGlobalContext().getVariable("*p*").javaObjectValue(null));
 
             r.reset();
             
@@ -69,7 +66,7 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
                         
             //Fetch the results for cost
             Vector<String> list2;
-            list2 = (Vector<String>) r.getGlobalContext().getVariable("*q*").externalAddressValue(null);
+            list2 = RawSafety.castVector(r.getGlobalContext().getVariable("*q*").javaObjectValue(null));
             
             //Combine results and save to result
             list.addAll(list1);

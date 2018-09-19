@@ -13,10 +13,13 @@ import seakers.vassar.architecture.AbstractArchitecture;
 
 import jess.*;
 
+import java.io.Serializable;
 import java.util.TreeMap;
 import java.util.ArrayList;
 
-public class Result implements java.io.Serializable {
+public class Result implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private double science;
     private double cost;
     private ArrayList<ArrayList<ArrayList<Double>>> subobjectiveScores;

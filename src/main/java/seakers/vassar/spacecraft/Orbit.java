@@ -68,27 +68,29 @@ public class Orbit {
     public void saveOrbitalParamInNumbers(String altitude, String inclination){
 //    "LEO-600-polar-NA","SSO-600-SSO-AM"
 
-        if(inclination != null && StringUtils.isNumeric(altitude)){
-            this.altitudeNum = Double.parseDouble(altitude) * 1000;  // [m]
+        if (inclination != null) {
+            if (StringUtils.isNumeric(altitude)) {
+                this.altitudeNum = Double.parseDouble(altitude) * 1000;  // [m]
+            }
 
-        }
+            if (StringUtils.isNumeric(inclination)) {
+                this.inclinationNum = Double.parseDouble(inclination); // [deg]
+            }
+            else {
+                switch (inclination) {
+                    case "polar":
+                        this.inclinationNum = 90;
+                        break;
 
-        if(inclination != null && StringUtils.isNumeric(inclination)){
-            this.inclinationNum = Double.parseDouble(inclination); // [deg]
+                    case "SSO":
+                        // Calculate the inclination
+                        double semimajoraxis = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + altitudeNum;
+                        this.inclinationNum = FastMath.toDegrees(OrbitWizard.SSOinc(semimajoraxis, 0.0)); // [deg]
+                        break;
 
-        }else{
-            switch (inclination){
-                case "polar":
-                    this.inclinationNum = 90;
-                    break;
-
-                case "SSO":
-                    // Calculate the inclination
-                    double semimajoraxis = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + altitudeNum;
-                    this.inclinationNum = FastMath.toDegrees(OrbitWizard.SSOinc(semimajoraxis, 0.0)); // [deg]
-
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
         }
     }

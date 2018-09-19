@@ -28,6 +28,7 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seak.orekit.coverage.access.TimeIntervalArray;
+import seakers.vassar.RawSafety;
 
 /**
  * Class that computes coverage metrics for each satellite in the constellation
@@ -136,14 +137,8 @@ public class CoverageAnalysisIO {
                 
                 out.put(topos, timeInterval);
             }
-
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (OrekitException e) {
+        }
+        catch (IOException | OrekitException e) {
             e.printStackTrace();
         }
         finally {
@@ -263,7 +258,7 @@ public class CoverageAnalysisIO {
         Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            out = (HashMap<TopocentricFrame, TimeIntervalArray>) ois.readObject();
+            out = RawSafety.castHashMap(ois.readObject());
 
         } catch (FileNotFoundException exc) {
             System.out.println("Exc in finding the file: " + exc.getMessage());

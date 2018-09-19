@@ -8,6 +8,10 @@ version '1.0'
 
 sourceCompatibility = 1.8
 
+compileJava {
+    options.compilerArgs += ["-Xlint"]
+}
+
 repositories {
     mavenCentral()
     mavenLocal()

@@ -9,13 +9,16 @@ import seakers.vassar.architecture.AbstractArchitecture;
 
 import seakers.vassar.local.BaseParams;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Stack;
 
-public class ResultCollection implements java.io.Serializable {
+public class ResultCollection implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String stamp;
     private String filePath;
     private String name;

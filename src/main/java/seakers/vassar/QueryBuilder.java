@@ -7,14 +7,14 @@ import java.util.HashMap;
 public class QueryBuilder {
     
     private Rete r;
-    private HashMap<String, HashMap> precomputedQueries;
+    private HashMap<String, HashMap<String, Fact>> precomputedQueries;
 
     public QueryBuilder(Rete r) {
         this.r = r;
         this.precomputedQueries = new HashMap<>();
     }
 
-    public void addPrecomputedQuery(String key, HashMap hm) {
+    public void addPrecomputedQuery(String key, HashMap<String, Fact> hm) {
         this.precomputedQueries.put(key, hm);
     }
     

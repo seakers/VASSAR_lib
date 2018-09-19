@@ -5,6 +5,7 @@ package seakers.vassar.local;
  * @author dani
  */
 import jess.Defrule;
+import seakers.vassar.RawSafety;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -197,14 +198,14 @@ public abstract class BaseParams {
                 FileInputStream fis = new FileInputStream(revtimesDatFile);
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 //this.revtimes = (HashMap<String, HashMap<String, Double>>) ois.readObject();
-                this.revtimes = (HashMap<String, Double>) ois.readObject();
+                this.revtimes = RawSafety.castHashMap(ois.readObject());
                 ois.close();
             }
             if (!this.runMode.equalsIgnoreCase("update_scores")) {
                 FileInputStream fis = new FileInputStream(scoresDatFile);
                 ObjectInputStream ois = new ObjectInputStream(fis);
-                this.scores = (HashMap<ArrayList<String>, HashMap<String, Double>>) ois.readObject();
-                this.subobjScores = (HashMap<ArrayList<String>, HashMap<String, ArrayList<ArrayList<ArrayList<Double>>>>>) ois.readObject();
+                this.scores = RawSafety.castHashMap(ois.readObject());
+                this.subobjScores = RawSafety.castHashMap(ois.readObject());
                 ois.close();
             }
             if (!this.runMode.equalsIgnoreCase("update_dsms")) {
