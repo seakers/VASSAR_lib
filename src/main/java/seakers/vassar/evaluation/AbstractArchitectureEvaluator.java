@@ -10,8 +10,8 @@ import seakers.vassar.coverage.CoverageAnalysis;
 import seakers.vassar.local.BaseParams;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
-import seak.orekit.coverage.access.TimeIntervalArray;
-import seak.orekit.event.EventIntervalMerger;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.event.EventIntervalMerger;
 
 import java.util.*;
 import java.util.concurrent.Callable;

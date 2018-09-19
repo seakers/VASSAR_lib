@@ -3,7 +3,7 @@ package seakers.vassar.spacecraft;
 import org.apache.commons.lang3.StringUtils;
 import org.hipparchus.util.FastMath;
 import org.orekit.utils.Constants;
-import seak.orekit.object.OrbitWizard;
+import seakers.orekit.object.OrbitWizard;
 
 import java.util.Objects;
 
