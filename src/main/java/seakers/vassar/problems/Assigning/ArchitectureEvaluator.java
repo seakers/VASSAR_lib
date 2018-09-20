@@ -15,22 +15,22 @@ import java.util.*;
  * @author Ana-Dani
  */
 
-public class ArchitectureEvaluator extends AbstractArchitectureEvaluator{
+public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
 
-    protected AssigningParams params;
+    protected BaseParams params;
 
-    public ArchitectureEvaluator(AssigningParams params){
+    public ArchitectureEvaluator(BaseParams params){
         super();
         this.params = params;
     }
 
-    public ArchitectureEvaluator(AssigningParams params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
+    public ArchitectureEvaluator(BaseParams params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         super(resourcePool, arch, type);
         this.params = params;
     }
 
     public ArchitectureEvaluator getNewInstance(BaseParams params){
-        return new ArchitectureEvaluator((AssigningParams) params, super.resourcePool, super.arch, super.type);
+        return new ArchitectureEvaluator(params, super.resourcePool, super.arch, super.type);
     }
 
     public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){

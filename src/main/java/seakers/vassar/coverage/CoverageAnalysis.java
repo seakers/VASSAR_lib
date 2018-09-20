@@ -287,7 +287,7 @@ public class CoverageAnalysis {
         eventanalyses.add(fovEventAnalysis);
 
         //set the analyses
-        ArrayList<Analysis> analyses = new ArrayList<>();
+        ArrayList<Analysis<?>> analyses = new ArrayList<>();
 
         Scenario scene = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).

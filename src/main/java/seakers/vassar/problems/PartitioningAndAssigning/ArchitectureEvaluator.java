@@ -30,7 +30,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
     }
 
     public ArchitectureEvaluator getNewInstance(BaseParams params){
-        return new ArchitectureEvaluator((Decadal2017AerosolsParams) params, super.resourcePool, super.arch, super.type);
+        return new ArchitectureEvaluator(params, super.resourcePool, super.arch, super.type);
     }
 
     public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
