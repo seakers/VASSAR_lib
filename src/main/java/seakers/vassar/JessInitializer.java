@@ -187,8 +187,8 @@ public class JessInitializer {
             
             ///////////////////////////////////////////////////////////////////////////// 
 
-            Iterator<Defrule> ruleIter = RawSafety.castType(r.listDefrules());
-            Iterator<Defrule> ruleIterCheck = RawSafety.castType(r.listDefrules());
+            Iterator<HasLHS> ruleIter = RawSafety.castType(r.listDefrules());
+            Iterator<HasLHS> ruleIterCheck = RawSafety.castType(r.listDefrules());
             params.rulesDefruleMap = new HashMap<>();
             params.rulesNametoIDMap = new HashMap<>();
             params.rulesIDtoNameMap = new HashMap<>();
@@ -197,13 +197,14 @@ public class JessInitializer {
             int cnt = 0;
 
             while (ruleIter.hasNext()) {
-                if (ruleIterCheck.next().getClass().getName().equalsIgnoreCase("jess.Defquery")){
+                HasLHS ruleCheck = ruleIterCheck.next();
+                if (ruleCheck instanceof Defquery) {
                     ruleIter.next();
                     ruleIter.remove();
                 }
-                else {
+                else if (ruleCheck instanceof Defrule) {
                     cnt++;
-                    Defrule currentRule = ruleIter.next();
+                    Defrule currentRule = (Defrule)ruleIter.next();
                     String ruleName = currentRule.getName();
                     params.rulesDefruleMap.put(ruleName, currentRule);
                     params.rulesNametoIDMap.put(ruleName, cnt);
