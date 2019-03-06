@@ -112,7 +112,7 @@ public class MatlabFunctions implements Userfunction {
         
         String[] tmp = factors.split(",");
         for( int i = 1930, j = 0; i<= 2019; i++, j++ )
-            infFactors.put(new Integer(i), new Double(tmp[j]));
+            infFactors.put(i, Double.parseDouble(tmp[j]));
     }
 
     public String toJessList(String str) {

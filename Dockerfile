@@ -1,4 +1,4 @@
-FROM gradle:jdk8 as builder
+FROM gradle:jdk11 as builder
 ARG java_libs=./lib
 COPY --chown=gradle:gradle ./src /home/gradle/src
 COPY --chown=gradle:gradle $java_libs /home/gradle/lib
