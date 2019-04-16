@@ -16,11 +16,15 @@ public abstract class AssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
-    public AssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp){
-        super(resourcesPath, problemName, mode, name, runMode, search_clp);
+    public AssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode){
+        super(resourcesPath, problemName, mode, name, runMode);
     }
 
-    protected void init(){
+    @Override
+    public void init(){
+
+        super.init();
+
         // Instruments & Orbits
         numInstr = instrumentList.length;
         numOrbits = orbitList.length;
@@ -40,12 +44,12 @@ public abstract class AssigningParams extends BaseParams {
 
     public void setInstrumentList(String[] instrumentList){
         this.instrumentList = instrumentList;
-        init();
+        this.init();
     }
 
     public void setOrbitList(String[] orbitList){
         this.orbitList = orbitList;
-        init();
+        this.init();
     }
 
     public String[] getInstrumentList(){

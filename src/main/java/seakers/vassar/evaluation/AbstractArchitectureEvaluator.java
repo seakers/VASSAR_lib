@@ -45,9 +45,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         this.orbitsUsed = new HashSet<>();
     }
 
-    public abstract AbstractArchitectureEvaluator getNewInstance(BaseParams params);
+    public abstract AbstractArchitectureEvaluator getNewInstance();
     public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type);
-    protected abstract BaseParams getParams();
 
     public void checkInit(){
         if(this.resourcePool == null || this.arch == null || this.type == null){
@@ -66,7 +65,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             return new Result(arch, 0.0, 1E5);
         }
 
-        Resource res = this.getResource();
+        Resource res = this.resourcePool.getResource();
+        BaseParams params = res.getParams();
         Rete r = res.getRete();
         QueryBuilder qb = res.getQueryBuilder();
         MatlabFunctions m = res.getM();
@@ -74,42 +74,32 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
         try {
             if (type.equalsIgnoreCase("Slow")) {
-                result = evaluatePerformance(r, arch, qb, m);
+                result = evaluatePerformance(params, r, arch, qb, m);
                 r.eval("(reset)");
-                assertMissions(r, arch, m);
+                assertMissions(params, r, arch, m);
             }
             else {
                 throw new Exception("Wrong type of task");
             }
-            evaluateCost(r, arch, result, qb, m);
+            evaluateCost(params, r, arch, result, qb, m);
             result.setTaskType(type);
         }
         catch (Exception e) {
             System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
-            this.freeResource(res);
+            this.resourcePool.freeResource(res);
         }
-        this.freeResource(res);
+        this.resourcePool.freeResource(res);
 
         return result;
     }
 
-    public Resource getResource() {
-        return this.resourcePool.getResource();
-    }
-
-    public void freeResource(Resource res) {
-        this.resourcePool.freeResource(res);
-    }
-
-    protected Result evaluatePerformance(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
-
-        BaseParams params = getParams();
+    protected Result evaluatePerformance(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
 
         Result result = new Result();
         try {
             r.reset();
-            assertMissions(r, arch, m);
+            assertMissions(params, r, arch, m);
 
             r.eval("(bind ?*science-multiplier* 1.0)");
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
@@ -146,7 +136,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             // Check if all of the orbits in the original formulation are used
             int[] precompIndex = new int[params.getOrbitList().length];
-            String[] precompList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-AM","SSO-800-SSO-DD"};
+            String[] precompList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
             for(int i = 0; i < params.getOrbitList().length; i++){
                 String orb = params.getOrbitList()[i];
@@ -182,7 +172,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         }
                     }
 
-                    Double therevtimes;
+                    Double therevtimesGlobal;
+                    Double therevtimesUS;
 
                     recalculateRevisitTime = true;
 
@@ -226,10 +217,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                             mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
                         }
 
-                        therevtimes = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
+                        therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
+                        therevtimesUS = therevtimesGlobal;
 
                     }else{
-
                         // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
                         if (thefovs.size() < 5) {
                             String[] new_fovs = new String[5];
@@ -238,15 +229,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                             }
                             fovs = new_fovs;
                         }
-
-                        //String key = arch.getNumSatellites() + " x " + m.stringArraytoStringWith(fovs, "  ");
-                        String key = m.stringArraytoStringWith(fovs, "  ");
-                        therevtimes = params.revtimes.get(key); //key: 'Global' or 'US', value Double
+                        String key = "1" + " x " + m.stringArraytoStringWith(fovs, "  ");
+                        therevtimesUS = params.revtimes.get(key).get("US"); //key: 'Global' or 'US', value Double
+                        therevtimesGlobal = params.revtimes.get(key).get("Global");
                     }
 
                     String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " +  param + ") "
-                            + "(avg-revisit-time-global# " + therevtimes + ") "
-                            + "(avg-revisit-time-US# " + therevtimes + ")"
+                            + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
+                            + "(avg-revisit-time-US# " + therevtimesUS + ")"
                             + "(factHistory J" + javaAssertedFactID + ")))";
                     javaAssertedFactID++;
                     r.eval(call);
@@ -285,7 +275,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.run();
 
             if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                result = aggregate_performance_score_facts(r, m, qb);
+                result = aggregate_performance_score_facts(params, r, m, qb);
             }
 
             //////////////////////////////////////////////////////////////
@@ -308,9 +298,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         return result;
     }
 
-    protected Result aggregate_performance_score_facts(Rete r, MatlabFunctions m, QueryBuilder qb) {
-
-        BaseParams params = getParams();
+    protected Result aggregate_performance_score_facts(BaseParams params, Rete r, MatlabFunctions m, QueryBuilder qb) {
 
         ArrayList<ArrayList<ArrayList<Double>>> subobj_scores = new ArrayList<>();
         ArrayList<ArrayList<Double>> obj_scores = new ArrayList<>();
@@ -396,9 +384,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         return theresult;
     }
 
-    protected void evaluateCost(Rete r, AbstractArchitecture arch, Result res, QueryBuilder qb, MatlabFunctions m) {
-
-        BaseParams params = getParams();
+    protected void evaluateCost(BaseParams params, Rete r, AbstractArchitecture arch, Result res, QueryBuilder qb, MatlabFunctions m) {
 
         try {
             long t0 = System.currentTimeMillis();
@@ -502,7 +488,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         }
     }
 
-    protected abstract void assertMissions(Rete r, AbstractArchitecture arch, MatlabFunctions m);
+    protected abstract void assertMissions(BaseParams params, Rete r, AbstractArchitecture arch, MatlabFunctions m);
 
     public void setDebug(boolean debug) {
         this.debug = debug;

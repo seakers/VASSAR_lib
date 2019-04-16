@@ -17,13 +17,16 @@ public class Resource {
     
     public Resource(BaseParams params) {
         this.params = params;
-        r = new Rete();
-        qb = new QueryBuilder(r);
-        m = new MatlabFunctions(this);
-        r.addUserfunction(m);
+        this.params.init();
+        this.r = new Rete();
+        this.qb = new QueryBuilder(this.r);
+        this.m = new MatlabFunctions(this);
+        this.r.addUserfunction(this.m);
         
-        JessInitializer.getInstance().initializeJess(params, r, qb, m);
+        JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m);
     }
+
+    public BaseParams getParams(){ return params; }
     
     public Rete getRete() {
         return r;

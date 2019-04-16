@@ -17,31 +17,23 @@ import java.util.*;
 
 public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
 
-    protected BaseParams params;
-
-    public ArchitectureEvaluator(BaseParams params){
+    public ArchitectureEvaluator(){
         super();
-        this.params = params;
     }
 
-    public ArchitectureEvaluator(BaseParams params, ResourcePool resourcePool, AbstractArchitecture arch, String type) {
+    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
         super(resourcePool, arch, type);
-        this.params = params;
     }
 
-    public ArchitectureEvaluator getNewInstance(BaseParams params){
-        return new ArchitectureEvaluator(params, super.resourcePool, super.arch, super.type);
+    public ArchitectureEvaluator getNewInstance(){
+        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type);
     }
 
     public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
-        return new ArchitectureEvaluator(this.params, resourcePool, arch, type);
+        return new ArchitectureEvaluator(resourcePool, arch, type);
     }
 
-    protected BaseParams getParams(){
-        return this.params;
-    }
-
-    protected void assertMissions(Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
+    protected void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
 
         Architecture arch = (Architecture) inputArch;
 
@@ -75,7 +67,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                 int orbIndex = satIndex2Orbit.get(index);
                 Set<Integer> instrumentSet = satIndex2InstrumentSet.get(index);
 
-                String orbitName = getParams().getOrbitList()[orbIndex];
+                String orbitName = params.getOrbitList()[orbIndex];
                 Orbit orb = new Orbit(orbitName, 1, arch.getNumSatellites());
                 orbitsUsed.add(orb);
 
@@ -83,19 +75,19 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                 String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
 
                 for (int instrIndex: instrumentSet) {
-                    payload += " " + getParams().getInstrumentList()[instrIndex];
+                    payload += " " + params.getInstrumentList()[instrIndex];
                 }
 
                 call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
-                        + "(factHistory F" + getParams().nof + ")))";
-                getParams().nof++;
+                        + "(factHistory F" + params.nof + ")))";
+                params.nof++;
 
                 call += "(assert (SYNERGIES::cross-registered-instruments " +
                         " (instruments " + payload +
                         ") (degree-of-cross-registration spacecraft) " +
                         " (platform " + orbitName +  " )"
-                        + "(factHistory F" + getParams().nof + ")))";
-                getParams().nof++;
+                        + "(factHistory F" + params.nof + ")))";
+                params.nof++;
                 r.eval(call);
             }
         }

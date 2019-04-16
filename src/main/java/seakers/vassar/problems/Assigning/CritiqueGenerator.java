@@ -7,6 +7,7 @@ import java.util.Vector;
 import jess.Rete;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
+import seakers.vassar.local.BaseParams;
 import seakers.vassar.utils.MatlabFunctions;
 
 /**
@@ -15,14 +16,15 @@ import seakers.vassar.utils.MatlabFunctions;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (AssigningParams params, ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch)
     {
-        super(params, resourcePool, arch,"slow");
+        super(resourcePool, arch,"slow");
     }
 
     public List<String> getCritique() {
 
-        Resource res = super.getResource();
+        Resource res = super.resourcePool.getResource();
+        BaseParams params = res.getParams();
         Rete r = res.getRete();
         QueryBuilder qb = res.getQueryBuilder();
         MatlabFunctions m = res.getM();
@@ -33,12 +35,12 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
         // Criticize using rules
         try {
             // First evaluate performance
-            Result result = super.evaluatePerformance(r, arch, qb, m);
+            Result result = super.evaluatePerformance(params, r, arch, qb, m);
 
             // Criticize performance rules
-            r.batch(super.params.critiquePerformanceInitializeFactsClp);
-            r.batch(super.params.critiquePerformanceClp);
-            r.batch(super.params.critiquePerformancePrecalculationClp);
+            r.batch(params.critiquePerformanceInitializeFactsClp);
+            r.batch(params.critiquePerformanceClp);
+            r.batch(params.critiquePerformancePrecalculationClp);
             
             r.setFocus("CRITIQUE-PERFORMANCE-PRECALCULATION");
             r.run();
@@ -52,12 +54,12 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
             r.reset();
             
             // First evaluate cost
-            evaluateCost(r, arch, result, qb, m);
+            evaluateCost(params, r, arch, result, qb, m);
             
             // Criticize cost rules
-            r.batch(super.params.critiqueCostInitializeFactsClp);
-            r.batch(super.params.critiqueCostClp);
-            r.batch(super.params.critiqueCostPrecalculationClp);
+            r.batch(params.critiqueCostInitializeFactsClp);
+            r.batch(params.critiqueCostClp);
+            r.batch(params.critiqueCostPrecalculationClp);
             
             r.setFocus("CRITIQUE-COST-PRECALCULATION");
             r.run();
@@ -78,7 +80,7 @@ public class CritiqueGenerator extends ArchitectureEvaluator {
             e.printStackTrace();
         }
         
-        super.freeResource(res);
+        super.resourcePool.freeResource(res);
         return list;
     }
     

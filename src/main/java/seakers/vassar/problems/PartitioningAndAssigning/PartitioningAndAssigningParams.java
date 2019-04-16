@@ -4,7 +4,7 @@ import seakers.vassar.local.BaseParams;
 
 import java.util.HashMap;
 
-public class PartitioningAndAssigningParams extends BaseParams {
+public abstract class PartitioningAndAssigningParams extends BaseParams {
 
     // Instruments
     protected String[] instrumentList;
@@ -16,11 +16,15 @@ public class PartitioningAndAssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
-    public PartitioningAndAssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp){
-        super(resourcesPath, problemName, mode, name, runMode, search_clp);
+    public PartitioningAndAssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode){
+        super(resourcesPath, problemName, mode, name, runMode);
     }
 
-    protected void init(){
+    @Override
+    public void init(){
+
+        super.init();
+
         // Instruments & Orbits
         numInstr = instrumentList.length;
         numOrbits = orbitList.length;

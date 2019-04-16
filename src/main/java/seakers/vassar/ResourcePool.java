@@ -4,21 +4,20 @@
  */
 package seakers.vassar;
 
+import jess.JessException;
 import seakers.vassar.local.BaseParams;
 
 import java.util.Stack;
 
 public class ResourcePool 
 {
-    BaseParams params;
     private Stack<Resource> pool;
     
     public ResourcePool(BaseParams params, int numCPU) {
-        this.params = params;
         pool = new Stack<>();
         
         for (int i = 0; i < numCPU; i++) {
-            Resource res = new Resource(params);
+            Resource res = new Resource(params.copy());
             
             pool.push( res );
             System.out.println("Resource " + i + " initialized.");
@@ -26,8 +25,16 @@ public class ResourcePool
     }
     
     public synchronized void freeResource(Resource res) {
-        if(!pool.contains(res))
+        if(!pool.contains(res)){
+            try{
+                res.getRete().eval("(reset)");
+
+            } catch (JessException e){
+                e.printStackTrace();
+            }
+
             pool.push(res);
+        }
     }
     
     public synchronized Resource getResource() {

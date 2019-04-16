@@ -68,7 +68,7 @@ public abstract class BaseParams {
     // Results
     public String pathSaveResults;
 
-    // Intermediate results
+    // Jess-initialization data
     public int nof; //number of facts
     public int nor; //number of rules
     public HashMap<String, Defrule> rulesDefruleMap;
@@ -103,23 +103,25 @@ public abstract class BaseParams {
     public HashMap<String, String> subobjDescriptions;
     public HashMap<String, Double> subobjWeightsMap;
 
-    //public HashMap<String, HashMap<String, Double>> revtimes;
-    public HashMap<String, Double> revtimes;
+//    public HashMap<String, Double> revtimes;
+    public HashMap<String, HashMap<String, Double>> revtimes;
     public HashMap<ArrayList<String>, HashMap<String, Double>> scores;
     public HashMap<ArrayList<String>, HashMap<String, ArrayList<ArrayList<ArrayList<Double>>>>> subobjScores;
-
     public HashMap<String, String> subobjMeasurementParams;
 
-    protected BaseParams(String resourcesPath, String problemName, String mode, String name, String runMode, String search_clp) {
+    protected BaseParams(String resourcesPath, String problemName, String mode, String name, String runMode) {
         this.resourcesPath = resourcesPath;
         this.problemName = problemName;
         this.reqMode = mode;
         this.name = name;
         this.runMode = runMode;
         this.initialPop = "";
+        this.configurePath(resourcesPath, problemName);
+    }
 
-        this.problemPath = this.resourcesPath + File.separator + "problems" + File.separator + this.problemName;
-        this.orekitResourcesPath = this.resourcesPath + File.separator + "orekit";
+    private void configurePath(String resourcesPath, String problemName){
+        this.problemPath = resourcesPath + File.separator + "problems" + File.separator + problemName;
+        this.orekitResourcesPath = resourcesPath + File.separator + "orekit";
         this.pathSaveResults = problemPath + File.separator + "results";
 
         // Paths for common xls files
@@ -154,12 +156,7 @@ public abstract class BaseParams {
         this.assimilationRulesClp           = problemPath + "/clp/assimilation_rules.clp";
         this.adhocRulesClp                  = problemPath + "/clp/smap_rules_test.clp";
         this.downSelectionRulesClp          = problemPath + "/clp/down_selection_rules_smap.clp";
-        if (search_clp.isEmpty()) {
-            this.searchHeuristicRulesClp    = problemPath + "/clp/search_heuristic_rules_smap_improveOrbit.clp";
-        }
-        else {
-            this.searchHeuristicRulesClp    = problemPath + "/clp/" + search_clp + ".clp";
-        }
+        this.searchHeuristicRulesClp    = problemPath + "/clp/search_heuristic_rules_smap_improveOrbit.clp";
         this.explanationRulesClp            = problemPath + "/clp/explanation_rules.clp";
         this.aggregationRulesClp            = problemPath + "/clp/aggregation_rules.clp";
         this.fuzzyAggregationRulesClp       = problemPath + "/clp/fuzzy_aggregation_rules.clp";
@@ -170,9 +167,18 @@ public abstract class BaseParams {
         this.critiqueCostPrecalculationClp         = problemPath + "/clp/critique/critique_cost_precalculation.clp";
         this.critiquePerformanceInitializeFactsClp = problemPath + "/clp/critique/critique_performance_initialize_facts.clp";
         this.critiqueCostInitializeFactsClp        = problemPath + "/clp/critique/critique_cost_initialize_facts.clp";
+    }
+
+    /**
+     * Resets all jess-initialization data
+     */
+    public void init(){
 
         // Intermediate results
+        this.rulesDefruleMap = new HashMap<>();
+        this.rulesNametoIDMap = new HashMap<>();
         this.requirementRules = new HashMap<>();
+        this.parameterList = new ArrayList<>();
         this.measurementsToSubobjectives = new HashMap<>();
         this.measurementsToObjectives = new HashMap<>();
         this.measurementsToPanels = new HashMap<>();
@@ -190,27 +196,31 @@ public abstract class BaseParams {
         this.subobjectivesToMeasurements = new HashMap<>();
         this.objectivesToMeasurements = new HashMap<>();
         this.panelsToMeasurements = new HashMap<>();
-
         this.subobjMeasurementParams = new HashMap<>();
 
+        FileInputStream fis;
+        ObjectInputStream ois;
         try {
             if (!this.runMode.equalsIgnoreCase("update_revtimes")) {
-                FileInputStream fis = new FileInputStream(revtimesDatFile);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                //this.revtimes = (HashMap<String, HashMap<String, Double>>) ois.readObject();
-                this.revtimes = RawSafety.castHashMap(ois.readObject());
+                fis = new FileInputStream(revtimesDatFile);
+                ois = new ObjectInputStream(fis);
+                this.revtimes = (HashMap<String, HashMap<String, Double>>) ois.readObject();
+//                this.revtimes = RawSafety.castHashMap(ois.readObject());
+                fis.close();
                 ois.close();
             }
             if (!this.runMode.equalsIgnoreCase("update_scores")) {
-                FileInputStream fis = new FileInputStream(scoresDatFile);
-                ObjectInputStream ois = new ObjectInputStream(fis);
+                fis = new FileInputStream(scoresDatFile);
+                ois = new ObjectInputStream(fis);
                 this.scores = RawSafety.castHashMap(ois.readObject());
                 this.subobjScores = RawSafety.castHashMap(ois.readObject());
+                fis.close();
                 ois.close();
             }
             if (!this.runMode.equalsIgnoreCase("update_dsms")) {
-                FileInputStream fis = new FileInputStream(dsmDatFile);
-                ObjectInputStream ois = new ObjectInputStream(fis);
+                fis = new FileInputStream(dsmDatFile);
+                ois = new ObjectInputStream(fis);
+                fis.close();
                 ois.close();
             }
         }
@@ -218,12 +228,13 @@ public abstract class BaseParams {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
-
     }
 
     public String getName() {
         return name;
     }
+
+    public abstract BaseParams copy();
     public abstract String[] getInstrumentList();
     public abstract String[] getOrbitList();
     public abstract int getNumInstr();

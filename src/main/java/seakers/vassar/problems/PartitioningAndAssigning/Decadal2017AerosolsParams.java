@@ -1,9 +1,11 @@
 package seakers.vassar.problems.PartitioningAndAssigning;
 
+import seakers.vassar.local.BaseParams;
+
 public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
 
-    public Decadal2017AerosolsParams(String resourcesPath, String mode, String name, String runMode, String search_clp){
-        super(resourcesPath, "Decadal2017Aerosols", mode, name, runMode, search_clp);
+    public Decadal2017AerosolsParams(String resourcesPath, String mode, String name, String runMode){
+        super(resourcesPath, "Decadal2017Aerosols", mode, name, runMode);
 
         // Instruments
         String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};
@@ -11,5 +13,10 @@ public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
         super.instrumentList = instrumentList;
         super.orbitList = orbitList;
         super.init();
+    }
+
+    @Override
+    public BaseParams copy(){
+        return new Decadal2017AerosolsParams(super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
 }

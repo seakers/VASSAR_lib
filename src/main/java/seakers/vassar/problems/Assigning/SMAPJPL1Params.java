@@ -1,9 +1,11 @@
 package seakers.vassar.problems.Assigning;
 
+import seakers.vassar.local.BaseParams;
+
 public class SMAPJPL1Params extends AssigningParams {
 
-    public SMAPJPL1Params(String resourcesPath, String mode, String name, String runMode, String search_clp){
-        super(resourcesPath, "SMAP_JPL1", mode, name, runMode, search_clp);
+    public SMAPJPL1Params(String resourcesPath, String mode, String name, String runMode){
+        super(resourcesPath, "SMAP_JPL1", mode, name, runMode);
 
         // Instruments
         String[] instrumentList = {"BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"};
@@ -12,5 +14,10 @@ public class SMAPJPL1Params extends AssigningParams {
         super.instrumentList = instrumentList;
         super.orbitList = orbitList;
         super.init();
+    }
+
+    @Override
+    public BaseParams copy(){
+        return new SMAPJPL1Params(super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
 }

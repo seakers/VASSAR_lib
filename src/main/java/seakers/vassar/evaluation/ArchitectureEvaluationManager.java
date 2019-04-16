@@ -15,8 +15,8 @@ import java.util.concurrent.Future;
 public class ArchitectureEvaluationManager {
 
     private BaseParams params;
+    private int numCPU;
     private AbstractArchitectureEvaluator evaluator;
-    private ArrayList<AbstractArchitecture> population;
     private ResourcePool resourcePool;
     private ExecutorService executorService;
     private Stack<Result> results;
@@ -24,11 +24,23 @@ public class ArchitectureEvaluationManager {
 
     public ArchitectureEvaluationManager(BaseParams params, AbstractArchitectureEvaluator evaluator) {
         this.params = params;
+        this.numCPU = -1;
         this.evaluator = evaluator;
         reset();
     }
 
     public void init(int numCPU) {
+        this.numCPU = numCPU;
+        resourcePool = new ResourcePool(this.params, numCPU);
+        executorService = Executors.newFixedThreadPool(numCPU);
+        results.clear();
+        futures.clear();
+    }
+
+    public void init() {
+        if(this.numCPU == -1){
+            throw new IllegalStateException("numCPU must be specified!");
+        }
         resourcePool = new ResourcePool(this.params, numCPU);
         executorService = Executors.newFixedThreadPool(numCPU);
         results.clear();
@@ -36,7 +48,6 @@ public class ArchitectureEvaluationManager {
     }
 
     public void reset() {
-        population = null;
         results = new Stack<>();
         resourcePool = null;
         executorService = null;
@@ -48,9 +59,9 @@ public class ArchitectureEvaluationManager {
         reset();
     }
 
-    public void evaluatePopulation() {
+    public void evaluatePopulation(ArrayList<AbstractArchitecture> population) {
 
-        int populationSize = this.population.size();
+        int populationSize = population.size();
 
         for (AbstractArchitecture arch: population) {
             AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow");
@@ -128,14 +139,5 @@ public class ArchitectureEvaluationManager {
 
     public synchronized void pushResult(Result result) {
         this.results.push(result);
-    }
-
-    public ArrayList<AbstractArchitecture> getPopulation()
-    {
-        return population;
-    }
-
-    public void setPopulation(ArrayList<AbstractArchitecture> population) {
-        this.population = population;
     }
 }

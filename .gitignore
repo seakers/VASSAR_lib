@@ -11,3 +11,6 @@ nbproject/
 problems/*/results/*
 CoverageDatabase/
 backup/
+classes/
+lib/
+gradle/
