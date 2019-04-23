@@ -7,8 +7,6 @@ package seakers.vassar;
 
 import seakers.vassar.architecture.AbstractArchitecture;
 
-import seakers.vassar.local.BaseParams;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

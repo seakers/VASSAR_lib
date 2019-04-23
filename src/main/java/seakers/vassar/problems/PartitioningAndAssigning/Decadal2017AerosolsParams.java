@@ -1,6 +1,6 @@
 package seakers.vassar.problems.PartitioningAndAssigning;
 
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
 

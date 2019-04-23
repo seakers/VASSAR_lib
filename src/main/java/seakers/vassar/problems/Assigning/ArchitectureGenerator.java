@@ -2,7 +2,7 @@ package seakers.vassar.problems.Assigning;
 
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.architecture.AbstractArchitectureGenerator;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 import java.util.ArrayList;
 import java.util.HashMap;

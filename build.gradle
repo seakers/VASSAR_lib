@@ -6,8 +6,6 @@ plugins {
 group 'seakers'
 version '1.0'
 
-sourceCompatibility = 11
-
 compileJava {
     options.compilerArgs += ["-Xlint"]
 }

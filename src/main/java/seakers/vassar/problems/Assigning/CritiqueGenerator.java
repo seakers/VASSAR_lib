@@ -7,7 +7,7 @@ import java.util.Vector;
 import jess.Rete;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 import seakers.vassar.utils.MatlabFunctions;
 
 /**

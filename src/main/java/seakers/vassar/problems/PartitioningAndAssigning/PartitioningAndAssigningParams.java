@@ -1,6 +1,6 @@
 package seakers.vassar.problems.PartitioningAndAssigning;
 
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 import java.util.HashMap;
 

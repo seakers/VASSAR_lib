@@ -1,6 +1,6 @@
 package seakers.vassar.architecture;
 
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 import java.util.ArrayList;
 

@@ -7,7 +7,7 @@ import org.orekit.frames.TopocentricFrame;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
 import seakers.orekit.coverage.access.TimeIntervalArray;
@@ -135,21 +135,21 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             int javaAssertedFactID = 1;
 
             // Check if all of the orbits in the original formulation are used
-            int[] precompIndex = new int[params.getOrbitList().length];
-            String[] precompList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
+            int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
+            String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
             for(int i = 0; i < params.getOrbitList().length; i++){
                 String orb = params.getOrbitList()[i];
                 int matchedIndex = -1;
-                for(int j = 0; j < precompList.length; j++){
-                    if(precompList[j].equalsIgnoreCase(orb)){
+                for(int j = 0; j < revTimePrecomputedOrbitList.length; j++){
+                    if(revTimePrecomputedOrbitList[j].equalsIgnoreCase(orb)){
                         matchedIndex = j;
                         break;
                     }
                 }
 
                 // Assign -1 if unmatched. Otherwise, assign the corresponding index
-                precompIndex[i] = matchedIndex;
+                revTimePrecomputedIndex[i] = matchedIndex;
             }
 
             for (String param: params.measurementsToInstruments.keySet()) {
@@ -166,7 +166,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
                     boolean recalculateRevisitTime = false;
                     for(int i = 0; i < fovs.length; i++){
-                        if(precompIndex[i] == -1){
+                        if(revTimePrecomputedIndex[i] == -1){
                             // If there exists a single orbit that is different from pre-calculated ones, re-calculate
                             recalculateRevisitTime = true;
                         }
@@ -175,7 +175,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                     Double therevtimesGlobal;
                     Double therevtimesUS;
 
-                    recalculateRevisitTime = true;
+//                    recalculateRevisitTime = true;
 
                     if(recalculateRevisitTime){
                         // Do the re-calculation of the revisit times
@@ -225,7 +225,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         if (thefovs.size() < 5) {
                             String[] new_fovs = new String[5];
                             for (int i = 0; i < 5; i++) {
-                                new_fovs[i] = fovs[precompIndex[i]];
+                                new_fovs[i] = fovs[revTimePrecomputedIndex[i]];
                             }
                             fovs = new_fovs;
                         }

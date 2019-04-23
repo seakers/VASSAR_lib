@@ -1,6 +1,6 @@
 package seakers.vassar.problems.Assigning;
 
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 public class SMAPJPL2Params extends AssigningParams {
 

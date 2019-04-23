@@ -5,9 +5,6 @@
  */
 package seakers.vassar.coverage;
 
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Locale;
@@ -82,11 +79,11 @@ public class CoverageAnalysis {
     public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
 
         //setup logger
-        Level level = Level.ALL;
-        Logger.getGlobal().setLevel(level);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(level);
-        Logger.getGlobal().addHandler(handler);
+//        Level level = Level.ALL;
+//        Logger.getGlobal().setLevel(level);
+//        ConsoleHandler handler = new ConsoleHandler();
+//        handler.setLevel(level);
+//        Logger.getGlobal().addHandler(handler);
         this.cwd = cwd;
 
         //if running on a non-US machine, need the line below
@@ -295,13 +292,13 @@ public class CoverageAnalysis {
                 propagatorFactory(propFactory).build();
 
         try {
-            Logger.getGlobal().finer(String.format("Running Scenario %s", scene));
-            Logger.getGlobal().finer(String.format("Number of points:     %d", coverageDefinition.getNumberOfPoints()));
-            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
+//            Logger.getGlobal().finer(String.format("Running Scenario %s", scene));
+//            Logger.getGlobal().finer(String.format("Number of points:     %d", coverageDefinition.getNumberOfPoints()));
+//            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
             scene.call();
         }
         catch (Exception ex) {
-            Logger.getLogger(CoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(CoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
 
 //            System.out.println("Fail: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
 //                    ", nPlane: " + numPlanes + ", raan: " + raan );
@@ -312,13 +309,13 @@ public class CoverageAnalysis {
 //        System.out.println("Success: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
 //                ", nPlane: " + numPlanes + ", raan: " + raan );
 
-        Logger.getGlobal().finer(String.format("Done Running Scenario %s", scene));
+//        Logger.getGlobal().finer(String.format("Done Running Scenario %s", scene));
 
         Map<TopocentricFrame, TimeIntervalArray> accesses = fovEventAnalysis.getEvents(coverageDefinition);
 
         //output the time
         long end = System.nanoTime();
-        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+//        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
 
         return accesses;
     }
@@ -418,8 +415,8 @@ public class CoverageAnalysis {
             }
         }
 
-        Logger.getGlobal().finest(String.format("ANGLE Diff=%.4f", minAngle));
-        Logger.getGlobal().finest(String.format("RAAN=%.4f", optRaan));
+//        Logger.getGlobal().finest(String.format("ANGLE Diff=%.4f", minAngle));
+//        Logger.getGlobal().finest(String.format("RAAN=%.4f", optRaan));
 
         return optRaan;
     }

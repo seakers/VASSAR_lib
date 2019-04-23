@@ -5,7 +5,6 @@
 package seakers.vassar;
 
 import jess.JessException;
-import seakers.vassar.local.BaseParams;
 
 import java.util.Stack;
 

@@ -265,7 +265,7 @@ public class CoverageAnalysisIO {
             exc.printStackTrace();
 
         } catch (IOException exc) {
-            System.out.println("Exc in reading binary access data: " + exc.getMessage());
+            System.out.println("Exc in reading binary access data: " + filename + "\n"+ exc.getMessage());
             exc.printStackTrace();
 
         } catch (ClassNotFoundException exc) {

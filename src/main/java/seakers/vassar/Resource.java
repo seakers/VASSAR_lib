@@ -5,7 +5,6 @@
 package seakers.vassar;
 
 import jess.*;
-import seakers.vassar.local.BaseParams;
 import seakers.vassar.utils.MatlabFunctions;
 
 public class Resource {

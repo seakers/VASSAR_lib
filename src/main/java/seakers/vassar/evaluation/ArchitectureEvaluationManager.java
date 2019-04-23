@@ -3,9 +3,10 @@ package seakers.vassar.evaluation;
 import seakers.vassar.ResourcePool;
 import seakers.vassar.Result;
 import seakers.vassar.architecture.AbstractArchitecture;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -59,7 +60,7 @@ public class ArchitectureEvaluationManager {
         reset();
     }
 
-    public void evaluatePopulation(ArrayList<AbstractArchitecture> population) {
+    public void evaluatePopulation(List<AbstractArchitecture> population) {
 
         int populationSize = population.size();
 

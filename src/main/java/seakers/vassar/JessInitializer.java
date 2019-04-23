@@ -21,7 +21,6 @@ import seakers.vassar.attribute.EOAttribute;
 import seakers.vassar.jessUserFunction.Improve;
 import seakers.vassar.jessUserFunction.SameOrBetter;
 import seakers.vassar.jessUserFunction.Worsen;
-import seakers.vassar.local.BaseParams;
 import org.apache.commons.lang3.StringUtils;
 import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.template.classes.SlotInfo;

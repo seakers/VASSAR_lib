@@ -4,7 +4,7 @@ import jess.*;
 import seakers.vassar.ResourcePool;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
 

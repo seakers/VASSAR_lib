@@ -1,11 +1,10 @@
-package seakers.vassar.local;
+package seakers.vassar;
 
 /**
  *
  * @author dani
  */
 import jess.Defrule;
-import seakers.vassar.RawSafety;
 
 import java.io.File;
 import java.io.FileInputStream;

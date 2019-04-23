@@ -2,7 +2,7 @@ package seakers.vassar.io;
 
 import seakers.vassar.Result;
 import seakers.vassar.ResultCollection;
-import seakers.vassar.local.BaseParams;
+import seakers.vassar.BaseParams;
 import seakers.vassar.problems.Assigning.AssigningParams;
 import seakers.vassar.problems.PartitioningAndAssigning.PartitioningAndAssigningParams;
 
