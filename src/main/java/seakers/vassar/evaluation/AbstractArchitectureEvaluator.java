@@ -175,8 +175,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                     Double therevtimesGlobal;
                     Double therevtimesUS;
 
-//                    recalculateRevisitTime = true;
-
                     if(recalculateRevisitTime){
                         // Do the re-calculation of the revisit times
 
