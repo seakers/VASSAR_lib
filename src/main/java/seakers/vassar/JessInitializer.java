@@ -256,7 +256,7 @@ public class JessInitializer {
             System.out.println("EXC in loadOrbitRules " +e.getMessage());
         }
     }
-    
+    // -------------------------------------------------------------------------
     private void loadTemplates(Rete r, Workbook xls, String clp) {
         loadMeasurementTemplate(r, xls);
         loadInstrumentTemplate(r, xls);
@@ -266,7 +266,8 @@ public class JessInitializer {
         loadTemplatesCLP(r, clp);
     }
     
-    private void loadMeasurementTemplate(Rete r, Workbook xls) {
+    // Finished
+    private void loadMeasurementTemplate(Rete r, Workbook xls) { 
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
             HashMap<Integer, String> keysToAttribs = new HashMap<>();
@@ -325,6 +326,7 @@ public class JessInitializer {
         }
     }
 
+    // Finished
     private void loadInstrumentTemplate(Rete r, Workbook xls) {
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
@@ -378,6 +380,7 @@ public class JessInitializer {
         }
     }
 
+    // Finished for: mission, orbitl, launch vehicle pages on attributeset.xls
     private void loadSimpleTemplate(Rete r, Workbook xls, String sheet, String templateName) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -398,6 +401,7 @@ public class JessInitializer {
         }
     }
 
+    // Finished
     private void loadTemplatesCLP(Rete r, String clp) {
         try {
             r.batch(clp);
@@ -406,7 +410,7 @@ public class JessInitializer {
             System.out.println("EXC in loadTemplatesCLP " + e.getClass() + " : " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadFunctions(Rete r, String[] clps) {
         try {
             r.addUserfunction(new SameOrBetter());
@@ -525,7 +529,7 @@ public class JessInitializer {
             System.exit(1);
         }
     }
-
+    // Finished
     private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
         try {
             PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
@@ -567,7 +571,7 @@ public class JessInitializer {
             System.out.println("EXC in loadOrderedDeffacts " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadUnorderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -613,7 +617,7 @@ public class JessInitializer {
             System.out.println("EXC in loadUnorderedDeffacts " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadAttributeInheritanceRules(Rete r, Workbook xls, String sheet, String clp) {
         try {
             r.batch(clp);
@@ -671,7 +675,7 @@ public class JessInitializer {
             System.out.println("EXC in loadAttributeInheritanceRules " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadFuzzyAttributeRules(Rete r, Workbook xls, String sheet, String template) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -717,7 +721,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-
+    // Finished
     private void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -869,7 +873,7 @@ public class JessInitializer {
             System.out.println("EXC in loadRequirementRulesAttribs " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadFuzzyRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -1029,7 +1033,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-
+    // Working
     private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
         try {
             r.batch(clp);
