@@ -136,7 +136,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             // Check if all of the orbits in the original formulation are used
             int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
-            String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
+            String[] revTimePrecomputedOrbitList = {""};
 
             for(int i = 0; i < params.getOrbitList().length; i++){
                 String orb = params.getOrbitList()[i];
@@ -154,7 +154,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             for (String param: params.measurementsToInstruments.keySet()) {
                 Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
-
                 if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
 
                     ValueVector thefovs = v.listValue(r.getGlobalContext());

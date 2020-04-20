@@ -139,18 +139,19 @@ public class JessInitializer {
 
             // Load requirement rules
             Workbook requirementsXls = Workbook.getWorkbook(new File(params.requirementSatisfactionXls));
-            if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
+            if (params.reqMode.equalsIgnoreCase("CRISP-CASES")) {
+                loadRequirementRules(r, requirementsXls, "Requirement rules");
+            } else if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
                 loadRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
             } else if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) {
                 loadFuzzyRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
             }
-
             // Load capability rules
             loadCapabilityRules(r, instrumentXls, params.capabilityRulesClp);
 
             // Load synergy rules
             loadSynergyRules(r, params.synergyRulesClp);
-            
+
             // Load assimilation rules
             loadAssimilationRules(r, params.assimilationRulesClp);
             
@@ -577,7 +578,6 @@ public class JessInitializer {
 
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);
-
                 call = call.concat(" (" + template + " ");
                 for (int j = 0; j < numSlots; j++) {
                     String cell_value = row[j].getContents();
@@ -717,7 +717,148 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
+    private void loadRequirementRules(Rete r, Workbook xls, String sheet) {
+     try {
+        Sheet meas = xls.getSheet(sheet);
+        int nrules = meas.getRows();
+        int nobj = 0;
+        int nsubobj = 0;
+        String current_obj = "";
+        String current_subobj = "";
+        String var_name = "";
+        for (int i = 1;i<nrules;i++) {
+            Cell[] row = meas.getRow(i);
+            String obj = row[0].getContents();
+            String explan = row[1].getContents();
+            params.subobjMeasurementParams.put(obj, explan);
+            if(!obj.equalsIgnoreCase(current_obj)) {
+                nobj++;
+                nsubobj = 0;
+                var_name = "?*obj-" + obj + "*";
+                r.eval("(defglobal " + var_name + " = 0)");
+                current_obj = obj;
+            }
+            String subobj = row[2].getContents();
+            if(!subobj.equalsIgnoreCase(current_subobj)) {
+                nsubobj++;
+                var_name = "?*subobj-" + subobj + "*";
+                r.eval("(defglobal " + var_name + " = 0)");
+                current_subobj = subobj;
+            }
+            String type = row[3].getContents();
+            String value = row[4].getContents();
+            String desc = row[5].getContents();
+            String param = row[6].getContents();
 
+            String tmp = "?*subobj-" + subobj + "*";
+
+            if (params.measurementsToSubobjectives.containsKey(param)) {
+                ArrayList list = (ArrayList) params.measurementsToSubobjectives.get(param);
+                if(!list.contains(tmp)) {
+                    list.add(tmp);
+                    params.measurementsToSubobjectives.put(param,list);
+                }
+            } else {
+                ArrayList list = new ArrayList();
+                list.add(tmp);
+                params.measurementsToSubobjectives.put(param,list);
+            }
+
+            if (params.measurementsToObjectives.containsKey(param)) {
+                ArrayList list = (ArrayList) params.measurementsToObjectives.get(param);
+                if(!list.contains(obj)) {
+                    list.add(obj);
+                    params.measurementsToObjectives.put(param,list);
+                }
+            } else {
+                ArrayList list = new ArrayList();
+                list.add(obj);
+                params.measurementsToObjectives.put(param,list);
+            }
+            String pan = obj.substring(0,2);
+            if (params.measurementsToPanels.containsKey(param)) {
+                ArrayList list = (ArrayList) params.measurementsToPanels.get(param);
+                if(!list.contains(pan)) {
+                    list.add(pan);
+                    params.measurementsToPanels.put(param,list);
+                }
+            } else {
+                ArrayList list = new ArrayList();
+                list.add(pan);
+                params.measurementsToPanels.put(param,list);
+            }
+            //String ruleName = "REQUIREMENTS::subobjective-" + subobj + "-" + type + " " + desc;
+            String ruleName = "REQUIREMENTS::subobjective-"  + subobj + "-attrib";
+
+            String call = "(defrule REQUIREMENTS::subobjective-" + subobj + "-attrib ?mea <- (REQUIREMENTS::Measurement (Parameter " + param + ") ";
+            //String call = "(defrule REQUIREMENTS::"  + subobj + "-attrib ?m <- (REQUIREMENTS::Measurement (taken-by ?whom) (power-duty-cycle# ?pc) (data-rate-duty-cycle# ?dc)  (Parameter " + param + ")";
+            //boolean more_attributes = true;
+            int ntests = 0;
+            String calls_for_later = "";
+            for (int j = 7;j<row.length;j++) {
+                if (row[j].getType().toString().equalsIgnoreCase("Empty")) {
+                    break;
+                }
+                String attrib = row[j].getContents();
+
+                String[] tokens = attrib.split(" ",2);// limit = 2 so that remain contains RegionofInterest Global
+                String header = tokens[0];
+                String remain = tokens[1];
+                if (attrib.equalsIgnoreCase("")) {
+                    call = call + " (taken-by ?who))";
+                    //more_attributes = false;
+                } else if (header.startsWith("SameOrBetter")) {
+                    ntests++;
+                    String[] tokens2 = remain.split(" ");
+                    String att = tokens2[0];
+                    String val = tokens2[1];
+                    String new_var_name = "?x" + ntests;
+                    String match = att + " " +  new_var_name + "&~nil";
+                    call = call + "(" + match + ")";
+                    calls_for_later = calls_for_later + " (test (>= (SameOrBetter " + att + " " + new_var_name + " " + val + ") 0))";
+                } else if (header.startsWith("ContainsRegion")) {
+                    ntests++;
+                    String[] tokens2 = remain.split(" ");
+                    String att = tokens2[0];
+                    String val = tokens2[1];
+                    String new_var_name = "?x" + ntests;
+                    String match = att + " " +  new_var_name + "&~nil";
+                    call = call + "(" + match + ")";
+                    calls_for_later = calls_for_later + " (test (ContainsRegion " + new_var_name + " " + val + "))";
+                } else if (header.startsWith("ContainsBands")) {
+                    ntests++;
+                    String new_var_name = "?x" + ntests;
+                    String match = " spectral-bands $" +  new_var_name;
+                    call = call + "(" + match + ")";
+                    calls_for_later = calls_for_later + " (test (ContainsBands  (create$ " + remain + ") $" + new_var_name + "))";
+                } else {
+                    call = call + "(" + attrib + ")";
+                }
+            }
+            call = call + "(taken-by ?who)) " + calls_for_later + " => ";
+            var_name = "?*subobj-" + subobj + "*";
+
+            if (type.startsWith("nominal")) {
+                call = call + "(assert (REASONING::fully-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (taken-by ?who)"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+                        + "))" ;
+            } else {
+                call = call + "(assert (REASONING::partially-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (attribute " + desc + ") (taken-by ?who)"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?mea getFactId) \"}\"))"
+                        + "))" ;
+            }
+            call = call + "(bind " + var_name + " (max " + var_name + " " + value + " )))";
+            r.eval(call);
+            r.eval("(defglobal ?*num-soundings-per-day* = 0)");
+        }
+            params.measurementsToSubobjectives = getInverseHashMapSSToSAL(params.subobjectivesToMeasurements);
+            params.measurementsToObjectives = getInverseHashMapSALToSAL(params.objectivesToMeasurements);
+            params.measurementsToPanels = getInverseHashMapSALToSAL(params.panelsToMeasurements);
+     }catch (Exception e) {
+        e.printStackTrace();
+        System.out.println( "EXC in loadRequirementRules " +e.getMessage() );
+    }
+    }
     private void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -1271,7 +1412,6 @@ public class JessInitializer {
                 i += 4;
             }
             params.objectiveDescriptions = objDescriptions;
-
             // Subobjectives
             p = 0;
             params.subobjectives = new ArrayList<>();
