@@ -1,0 +1,12 @@
+query MissionAnalysis($group_id: Int, $limit: Int!) {
+  Orbit(where: {Group: {id: {_eq: 1}}}) {
+    id
+    name
+    Join__Orbit_Attributes(where: {problem_id: {_eq: 1}}) {
+      value
+      Orbit_Attribute {
+        name
+      }
+    }
+  }
+}
