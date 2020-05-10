@@ -14,6 +14,10 @@ import jess.*;
 import jxl.*;
 import java.io.File;
 import java.io.StringWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.PrintWriter; 
 import java.util.*;
 
 import seakers.vassar.attribute.AttributeBuilder;
@@ -27,10 +31,32 @@ import seakers.vassar.template.classes.SlotInfo;
 import seakers.vassar.template.functions.JessExtension;
 import seakers.vassar.utils.MatlabFunctions;
 
+// JSON
+import org.json.simple.JSONArray; 
+import org.json.simple.JSONObject; 
+import com.google.gson.*;
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken; 
+import com.google.common.collect.Maps;
+
+
+// PARSING
+import seakers.vassar.DatabaseAPI;
+
+
 public class JessInitializer {
 
     private static JessInitializer instance = null;
-    private BaseParams params;
+
+    private BaseParams  params;
+    private DatabaseAPI connection;
+    private String      filepath;
+
+    private JSONObject  json;
+    private FileWriter  jsonWriter;
+
+
+    
 
     private JessInitializer() { }
 
@@ -40,9 +66,23 @@ public class JessInitializer {
         }
         return instance;
     }
+
     
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
+            this.filepath = "/app/logs/jessInitXLS.json";
+            File logFile = new File(this.filepath);
+            if(!logFile.createNewFile()){
+                logFile.delete();
+                logFile.createNewFile();
+            }
+            this.json       = new JSONObject();
+            this.jsonWriter = new FileWriter(this.filepath);
+
+            this.connection = new DatabaseAPI(1, 1);
+
+
+
             this.params = params;
 
             // Create global variable path
@@ -68,13 +108,23 @@ public class JessInitializer {
             // Load functions
             loadFunctions(r, params.functionsClp);
             
+
+
             // Load mission analysis database
             Workbook missionAnalysisXls = Workbook.getWorkbook(new File(params.missionAnalysisDatabaseXls));
             loadOrderedDeffacts(r, missionAnalysisXls, "Walker", "Walker-revisit-time-facts","DATABASE::Revisit-time-of");
-            loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit");
 
-            // Load launch vehicle database
+            loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit");
+            this.connection.loadOrbitFacts();
+            
             loadOrderedDeffacts(r, missionAnalysisXls, "Launch Vehicles", "DATABASE::launch-vehicle-information-facts", "DATABASE::Launch-vehicle");
+            this.connection.loadLaunchVehicleFacts();
+
+
+
+            this.connection.writeJson();
+
+
             r.reset();
             ArrayList<Fact> facts = qb.makeQuery("DATABASE::Launch-vehicle");
 
@@ -90,14 +140,12 @@ public class JessInitializer {
                 ValueVector payload_MEO = lv.getSlotValue("payload-MEO").listValue(r.getGlobalContext());
                 ValueVector payload_GEO = lv.getSlotValue("payload-GEO").listValue(r.getGlobalContext());
                 ValueVector payload_HEO = lv.getSlotValue("payload-HEO").listValue(r.getGlobalContext());
-//                ValueVector payload_ISS = lv.getSlotValue("payload-ISS").listValue(r.getGlobalContext());
                 payload_coeffs.put("LEO-polar", payload_LEO_polar);
                 payload_coeffs.put("SSO-SSO", payload_SSO);
                 payload_coeffs.put("LEO-equat", payload_LEO_equat);
                 payload_coeffs.put("MEO-polar", payload_MEO);
                 payload_coeffs.put("GEO-equat", payload_GEO);
                 payload_coeffs.put("HEO-polar", payload_HEO);
-//                payload_coeffs.put("LEO-ISS", payload_ISS);
                 LaunchVehicle lvh = new LaunchVehicle(id, payload_coeffs, diam, height, cost);
                 m.addLaunchVehicletoDB(id, lvh);
             }
@@ -219,13 +267,47 @@ public class JessInitializer {
             
             //Create precomputed queries;
             loadPrecomputeQueries(qb);
-        
+
+
+
+            // -----> COMPARE JSON
+            Gson converter = new Gson();
+            Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
+
+            // JSONObjects
+            JSONObject dbJson = this.connection.getJsonObject();
+            // this.json
+
+            String xlsString = this.json.toJSONString();
+            String dbString  = dbJson.toJSONString();
+
+            Map<String, Object> xlsMap = converter.fromJson(xlsString, mapType);
+            Map<String, Object> dbMap = converter.fromJson(dbString, mapType);
+
+            System.out.println("--------------------> COMPARISON RESULTS");
+            System.out.println(Maps.difference(xlsMap, dbMap));
+
+            // JsonParser compareParser = new JsonParser();
+            // System.out.println("--------------------> COMPARISON RESULTS");
+            // System.out.println( assertEquals(compareParser.parse(dbJson), compareParser.parse(this.json)) );
+
+            this.jsonWriter.write(this.json.toJSONString());
+            this.jsonWriter.flush();
         }
         catch (Exception e) {
             System.out.println("EXC in InitializerJess " +e.getClass() + " : " + e.getMessage());
             e.printStackTrace();
         }
     }
+
+
+
+
+
+
+
+
+
 
     private void loadPrecomputeQueries(QueryBuilder qb) {
         HashMap<String,Fact> db_instruments = new HashMap<>();
@@ -256,6 +338,145 @@ public class JessInitializer {
             System.out.println("EXC in loadOrbitRules " +e.getMessage());
         }
     }
+
+    // Finished -- json finished
+    private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
+        try {
+            String jsonLabel      = "";
+            String jsonLabelSlots = "";
+            if(sheet == "Launch Vehicles"){
+                jsonLabel      = "launch vehicle attribute values";
+                jsonLabelSlots = "launch vehicle attribute names";
+            }
+            else if(sheet == "Power"){
+                jsonLabel      = "orbit attribute values";
+                jsonLabelSlots = "orbit attribute names";
+            }
+            
+
+
+
+
+
+            PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
+            StringWriter writer = new StringWriter();
+
+            Map<String, Object> context = new HashMap<>();
+            context.put("name", name);
+            context.put("template", template);
+
+            ArrayList<ArrayList<String>> facts = new ArrayList<>();
+            Sheet meas = xls.getSheet(sheet);
+            int numFacts = meas.getRows();
+            int numSlots = meas.getColumns();
+            for (int i = 1; i < numFacts; i++) {
+                Cell[] row = meas.getRow(i);
+                ArrayList<String> slots = new ArrayList<>();
+                for (int j = 0; j < numSlots; j++) {
+                    String slot_value = row[j].getContents();
+                    slots.add(slot_value);
+                }
+                facts.add(slots);
+            }
+            context.put("facts", facts);
+
+            
+            
+
+
+            ArrayList<String> slotNames = new ArrayList<>();
+            Cell[] slotNameCells = meas.getRow(0);
+            for (int i = 0; i < numSlots; i++) {
+                slotNames.add(slotNameCells[i].getContents());
+            }
+            context.put("slotNames", slotNames);
+
+            context.put("startingNof", params.nof);
+
+            engine.getTemplate(params.resourcesPath + "/templates/orderedDeffacts.clp").evaluate(writer, context);
+            params.nof += (numFacts - 1);
+            r.eval(writer.toString());
+
+
+
+
+            JsonArray jsonArray = new Gson().toJsonTree(facts).getAsJsonArray();
+            JsonArray jsonArraySlots = new Gson().toJsonTree(slotNames).getAsJsonArray();
+            if(sheet == "Launch Vehicles"){
+                this.json.put(jsonLabel, jsonArray);
+                this.json.put(jsonLabelSlots, jsonArraySlots);
+            }
+            else if(sheet == "Power"){
+                this.json.put(jsonLabel, jsonArray);
+                this.json.put(jsonLabelSlots, jsonArraySlots);
+            }
+        }
+        catch (Exception e) {
+            System.out.println("EXC in loadOrderedDeffacts " + e.getMessage());
+        }
+    }
+    // Finished -- json finished
+    private void loadUnorderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
+        try {
+            String jsonLabel = "loadUnorderedDeffacts" + sheet;
+            ArrayList<ArrayList<String>> rows = new ArrayList<>();
+            
+            Sheet meas = xls.getSheet(sheet);
+            String call = "(deffacts " + name + " ";
+            int numFacts = meas.getRows();
+            int numSlots = meas.getColumns();
+
+            for (int i = 1; i < numFacts; i++) { // iterate over rows
+                Cell[] row = meas.getRow(i);
+                ArrayList<String> columns = new ArrayList<>();
+
+                call = call.concat(" (" + template + " ");
+                for (int j = 0; j < numSlots; j++) {     // iterate over cols
+                    
+
+                    String cell_value = row[j].getContents();
+                    String[] splitted = cell_value.split(" ");
+                    int len = splitted.length;
+                    String slot_name;
+                    String slot_value;
+                    if (len < 2) {
+                        System.out.println("EXC in loadUnorderedDeffacts, expected format is slot_name slot_value. Space not found.");
+                    }
+                    if (len == 2) {
+                        slot_name = splitted[0];
+                        slot_value = splitted[1];
+                    }
+                    else {
+                        slot_name = splitted[0];
+                        slot_value = splitted[1];
+                        for (int k = 2; k < len; k++) {
+                            slot_value += " " + splitted[k];
+                        }
+                    }
+                    String col_value = slot_name + " " + slot_value;
+                    columns.add(col_value);
+                    call = call.concat( " (" + slot_name + " " + slot_value + ") ");
+                }
+                call = call.concat("(factHistory F" + params.nof + ")");
+                params.nof++;
+                call = call.concat(") ");
+
+                rows.add(columns);
+            }
+            call = call.concat(")");
+            r.eval(call);
+
+            JsonArray jsonArrayRows = new Gson().toJsonTree(rows).getAsJsonArray();
+            // this.json.put(jsonLabel, jsonArrayRows);
+        }
+        catch (Exception e) {
+            System.out.println("EXC in loadUnorderedDeffacts " + e.getMessage());
+        }
+    }
+
+
+
+    
     // -------------------------------------------------------------------------
     private void loadTemplates(Rete r, Workbook xls, String clp) {
         loadMeasurementTemplate(r, xls);
@@ -265,8 +486,10 @@ public class JessInitializer {
         loadSimpleTemplate(r, xls, "Launch-vehicle","DATABASE::Launch-vehicle");
         loadTemplatesCLP(r, clp);
     }
+
+
     
-    // Finished
+    // Finished ---
     private void loadMeasurementTemplate(Rete r, Workbook xls) { 
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
@@ -283,18 +506,19 @@ public class JessInitializer {
 
             int numSlots = meas.getRows();
             ArrayList<SlotInfo> slots = new ArrayList<>();
-            for (int i = 1; i < numSlots; i++) {
-                Cell[] row = meas.getRow(i);
+            for (int i = 1; i < numSlots; i++) {             // FOR EACH: row
+
+                Cell[] row      = meas.getRow(i);
                 String slotType = row[0].getContents();
-                String name = row[1].getContents();
-                String strId = row[2].getContents();
-                int id = Integer.parseInt(strId);
-                String type = row[3].getContents();
+                String name     = row[1].getContents();
+                String strId    = row[2].getContents(); int id          = Integer.parseInt(strId);
+                String type     = row[3].getContents();
                                 
                 attribsToKeys.put(name, id);
                 keysToAttribs.put(id, name);
                 attribsToTypes.put(name, type);
-                if (type.equalsIgnoreCase("NL") || type.equalsIgnoreCase("OL")) {
+
+                if (type.equalsIgnoreCase("NL") || type.equalsIgnoreCase("OL")) { // ACCEPTED VALUES
                     String strNumAtts = row[4].getContents();
                     int numVals = Integer.parseInt(strNumAtts);
                     Hashtable<String, Integer> acceptedValues = new Hashtable<>();
@@ -307,7 +531,7 @@ public class JessInitializer {
                     if (name.equalsIgnoreCase("Parameter")) {
                         params.parameterList.addAll(acceptedValues.keySet());
                     }
-                }
+                } // NO ACCEPTED VALUES
                 else {
                     EOAttribute attrib = AttributeBuilder.make(type, name, "N/A");
                     attribSet.put(name, attrib);
@@ -527,94 +751,6 @@ public class JessInitializer {
             System.out.println("EXC in loadFunctions " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
-        }
-    }
-    // Finished
-    private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
-        try {
-            PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
-            StringWriter writer = new StringWriter();
-
-            Map<String, Object> context = new HashMap<>();
-            context.put("name", name);
-            context.put("template", template);
-
-            ArrayList<ArrayList<String>> facts = new ArrayList<>();
-            Sheet meas = xls.getSheet(sheet);
-            int numFacts = meas.getRows();
-            int numSlots = meas.getColumns();
-            for (int i = 1; i < numFacts; i++) {
-                Cell[] row = meas.getRow(i);
-                ArrayList<String> slots = new ArrayList<>();
-                for (int j = 0; j < numSlots; j++) {
-                    String slot_value = row[j].getContents();
-                    slots.add(slot_value);
-                }
-                facts.add(slots);
-            }
-            context.put("facts", facts);
-
-            ArrayList<String> slotNames = new ArrayList<>();
-            Cell[] slotNameCells = meas.getRow(0);
-            for (int i = 0; i < numSlots; i++) {
-                slotNames.add(slotNameCells[i].getContents());
-            }
-            context.put("slotNames", slotNames);
-
-            context.put("startingNof", params.nof);
-
-            engine.getTemplate(params.resourcesPath + "/templates/orderedDeffacts.clp").evaluate(writer, context);
-            params.nof += (numFacts - 1);
-            r.eval(writer.toString());
-        }
-        catch (Exception e) {
-            System.out.println("EXC in loadOrderedDeffacts " + e.getMessage());
-        }
-    }
-    // Finished
-    private void loadUnorderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
-        try {
-            Sheet meas = xls.getSheet(sheet);
-            String call = "(deffacts " + name + " ";
-            int numFacts = meas.getRows();
-            int numSlots = meas.getColumns();
-
-            for (int i = 1; i < numFacts; i++) {
-                Cell[] row = meas.getRow(i);
-
-                call = call.concat(" (" + template + " ");
-                for (int j = 0; j < numSlots; j++) {
-                    String cell_value = row[j].getContents();
-                    String[] splitted = cell_value.split(" ");
-                    int len = splitted.length;
-                    String slot_name;
-                    String slot_value;
-                    if (len < 2) {
-                        System.out.println("EXC in loadUnorderedDeffacts, expected format is slot_name slot_value. Space not found.");
-                    }
-                    if (len == 2) {
-                        slot_name = splitted[0];
-                        slot_value = splitted[1];
-                    }
-                    else {
-                        slot_name = splitted[0];
-                        slot_value = splitted[1];
-                        for (int k = 2; k < len; k++) {
-                            slot_value += " " + splitted[k];
-                        }
-                    }
-
-                    call = call.concat( " (" + slot_name + " " + slot_value + ") ");
-                }
-                call = call.concat("(factHistory F" + params.nof + ")");
-                params.nof++;
-                call = call.concat(") ");
-            }
-            call = call.concat(")");
-            r.eval(call);
-        }
-        catch (Exception e) {
-            System.out.println("EXC in loadUnorderedDeffacts " + e.getMessage());
         }
     }
     // Finished
@@ -1033,7 +1169,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-    // Working
+    // Finished
     private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
         try {
             r.batch(clp);
@@ -1189,7 +1325,7 @@ public class JessInitializer {
         }
         return inverse;
     }
-
+    // Finished
     private void loadSynergyRules(Rete r, String clp) {
         try {
             r.batch(clp);
@@ -1211,7 +1347,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-
+    // Finished
     private void loadAggregationRules(Rete r, Workbook xls, String sheet, String[] clps) {
         try {
             for (String clp: clps) {
@@ -1221,6 +1357,8 @@ public class JessInitializer {
 
             //Stakeholders or panels
             Cell[] col = meas.getColumn(1);
+
+            // Get number of panels
             params.numPanels = col.length - 3;
             String call = "(deffacts AGGREGATION::init-aggregation-facts ";
             params.panelNames = new ArrayList<>(params.numPanels);
@@ -1340,7 +1478,7 @@ public class JessInitializer {
         call += ")";
         return call;
     }
-
+    // Finished
     private void loadAssimilationRules(Rete r, String clp) {
         try {
             r.batch(clp);
@@ -1388,7 +1526,7 @@ public class JessInitializer {
             System.out.println("EXC in loadLaunchVehicleSelectionRules " + e.getMessage());
         }
     }
-
+    // Finished
     private void loadSearchRules(Rete r, String clp) {
         try {
             r.batch(clp);
@@ -1401,7 +1539,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-
+    // Finished
     private void loadDownSelectionRules(Rete r, String clp) {
         try {
             r.batch(clp);
@@ -1411,7 +1549,7 @@ public class JessInitializer {
             e.printStackTrace();
         }
     }
-
+    // Finished
     private void loadExplanationRules(Rete r, String clp) {
         try {
             r.batch(clp);
