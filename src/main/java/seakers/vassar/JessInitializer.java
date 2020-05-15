@@ -64,7 +64,7 @@ public class JessInitializer {
         if (instance == null) {
             instance = new JessInitializer();
         }
-        return instance;
+        return instance; 
     }
 
     
@@ -365,10 +365,15 @@ public class JessInitializer {
             context.put("name", name);
             context.put("template", template);
 
-            ArrayList<ArrayList<String>> facts = new ArrayList<>();
+            
             Sheet meas = xls.getSheet(sheet);
             int numFacts = meas.getRows();
             int numSlots = meas.getColumns();
+
+
+            ArrayList<ArrayList<String>> facts = new ArrayList<>();
+
+
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);
                 ArrayList<String> slots = new ArrayList<>();
@@ -378,11 +383,13 @@ public class JessInitializer {
                 }
                 facts.add(slots);
             }
+
+
             context.put("facts", facts);
 
             
             
-
+            // slotNames --> list of things in top row ()
 
             ArrayList<String> slotNames = new ArrayList<>();
             Cell[] slotNameCells = meas.getRow(0);
@@ -394,6 +401,8 @@ public class JessInitializer {
             context.put("startingNof", params.nof);
 
             engine.getTemplate(params.resourcesPath + "/templates/orderedDeffacts.clp").evaluate(writer, context);
+
+
             params.nof += (numFacts - 1);
             r.eval(writer.toString());
 
@@ -409,6 +418,7 @@ public class JessInitializer {
             else if(sheet == "Power"){
                 this.json.put(jsonLabel, jsonArray);
                 this.json.put(jsonLabelSlots, jsonArraySlots);
+                this.json.put("writer", writer.toString());
             }
         }
         catch (Exception e) {
@@ -489,7 +499,7 @@ public class JessInitializer {
 
 
     
-    // Finished ---
+    // Finished --- JSON
     private void loadMeasurementTemplate(Rete r, Workbook xls) { 
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
@@ -509,7 +519,7 @@ public class JessInitializer {
             for (int i = 1; i < numSlots; i++) {             // FOR EACH: row
 
                 Cell[] row      = meas.getRow(i);
-                String slotType = row[0].getContents();
+                String slotType = row[0].getContents(); // ATTRIBUTE
                 String name     = row[1].getContents();
                 String strId    = row[2].getContents(); int id          = Integer.parseInt(strId);
                 String type     = row[3].getContents();
@@ -544,13 +554,22 @@ public class JessInitializer {
 
             engine.getTemplate(params.resourcesPath + "/templates/measurementTemplate.clp").evaluate(writer, context);
             r.eval(writer.toString());
+
+            ArrayList<String> slots_debug = new ArrayList<>();
+            slots.forEach( item -> slots_debug.add(item.name));
+            JsonArray json_value  = new Gson().toJsonTree(slots_debug).getAsJsonArray();
+            this.json.put("Measurement Attributes", json_value);
+
+
+
+
         }
         catch (Exception e) {
             System.out.println("EXC in loadMeasurementTemplate " + e.getMessage());
         }
     }
 
-    // Finished
+    // Finished -- JSON
     private void loadInstrumentTemplate(Rete r, Workbook xls) {
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
@@ -604,7 +623,7 @@ public class JessInitializer {
         }
     }
 
-    // Finished for: mission, orbitl, launch vehicle pages on attributeset.xls
+    // Finishe
     private void loadSimpleTemplate(Rete r, Workbook xls, String sheet, String templateName) {
         try {
             Sheet meas = xls.getSheet(sheet);
@@ -762,17 +781,38 @@ public class JessInitializer {
             int numRules = meas.getRows();
             for (int i = 1; i < numRules; i++) {
                 Cell[] row = meas.getRow(i);
-                String template1 = row[0].getContents();
-                String copySlotType1 = row[1].getContents();
-                String copySlotName1 = row[2].getContents();
+                String template1         = row[0].getContents();
+                String copySlotType1     = row[1].getContents();
+                String copySlotName1     = row[2].getContents();
                 String matchingSlotType1 = row[3].getContents();
                 String matchingSlotName1 = row[4].getContents();
-                String template2 = row[5].getContents();
+                String template2         = row[5].getContents();
                 String matchingSlotName2 = row[6].getContents();
-                String copySlotName2 = row[7].getContents();
-                String module = row[8].getContents();
-                String call = "(defrule " + module + "::inherit-" + template1.split("::")[1] + "-" + copySlotName1 + "-TO-" + template2.split("::")[1].trim() + " ";
-                String ruleName = (module + "::inherit-" + template1.split("::")[1] + "-" + copySlotName1 + "-TO-" + template2.split("::")[1]).trim();
+                String copySlotName2     = row[7].getContents();
+                String module            = row[8].getContents();
+
+                String call = "(defrule " 
+                                + module + "::inherit-" 
+                                + template1.split("::")[1] + "-" 
+                                + copySlotName1 + "-TO-" 
+                                + template2.split("::")[1].trim() + " ";
+
+
+
+
+                String ruleNameBefore = module 
+                                + "::inherit-" 
+                                + template1.split("::")[1] 
+                                + "-" 
+                                + copySlotName1 
+                                + "-TO-" 
+                                + template2.split("::")[1]
+
+
+                String ruleName = ruleNameBefore.trim();
+
+
+
                 call += "(declare (no-loop TRUE))";
                 if (copySlotType1.equalsIgnoreCase("slot")) {
                     call += " ?sub <- (" + template1 + " (" + copySlotName1 + " ?x&~nil) ";
@@ -780,12 +820,14 @@ public class JessInitializer {
                 else {
                     call += " ?sub <- (" + template1 + " (" + copySlotName1 + " $?x&:(> (length$ $?x) 0)) ";
                 }
+
                 if (matchingSlotType1.equalsIgnoreCase("slot")) {
                     call += " (" + matchingSlotName1 + " ?id&~nil) )  ";
                 }
                 else {
                     call += " (" + matchingSlotName1 + " $?id&:(> (length$ $?id) 0)) ) ";
                 }
+
                 call += " ?old <- (" + template2 + " ";
                 if (matchingSlotType1.equalsIgnoreCase("slot")) {
                     call += " (" + matchingSlotName2 + " ?id) (factHistory ?fh) ";
@@ -793,6 +835,7 @@ public class JessInitializer {
                 else {
                     call += " (" + matchingSlotName2 + " $?id) (factHistory ?fh)";
                 }
+                
                 if (copySlotType1.equalsIgnoreCase("slot")) {
                     call += " (" + copySlotName2 + " nil) ";
                 }
