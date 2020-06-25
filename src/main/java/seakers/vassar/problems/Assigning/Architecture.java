@@ -110,4 +110,6 @@ public class Architecture extends AbstractArchitecture{
         }
         return sj.toString();
     }
+
+    public AssigningParams getParams(){ return this.params; }
 }

@@ -10,8 +10,8 @@ import java.util.Random;
 
 public class ArchitectureGenerator extends AbstractArchitectureGenerator {
 
-    private AssigningParams params;
-    private Random rnd;
+    protected AssigningParams params;
+    protected Random rnd;
 
     public ArchitectureGenerator(AssigningParams params) {
         this.params = params;

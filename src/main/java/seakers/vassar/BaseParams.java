@@ -102,8 +102,8 @@ public abstract class BaseParams {
     public HashMap<String, String> subobjDescriptions;
     public HashMap<String, Double> subobjWeightsMap;
 
-//    public HashMap<String, Double> revtimes;
-    public HashMap<String, HashMap<String, Double>> revtimes;
+    public HashMap<String, Double> revtimes;
+//    public HashMap<String, HashMap<String, Double>> revtimes;
     public HashMap<ArrayList<String>, HashMap<String, Double>> scores;
     public HashMap<ArrayList<String>, HashMap<String, ArrayList<ArrayList<ArrayList<Double>>>>> subobjScores;
     public HashMap<String, String> subobjMeasurementParams;
@@ -203,8 +203,8 @@ public abstract class BaseParams {
             if (!this.runMode.equalsIgnoreCase("update_revtimes")) {
                 fis = new FileInputStream(revtimesDatFile);
                 ois = new ObjectInputStream(fis);
-                this.revtimes = (HashMap<String, HashMap<String, Double>>) ois.readObject();
-//                this.revtimes = RawSafety.castHashMap(ois.readObject());
+//                this.revtimes = (HashMap<String, HashMap<String, Double>>) ois.readObject();
+                this.revtimes = RawSafety.castHashMap(ois.readObject());
                 fis.close();
                 ois.close();
             }

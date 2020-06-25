@@ -1,39 +1,36 @@
 import seakers.vassar.Result;
-import seakers.vassar.architecture.AbstractArchitecture;
-import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
-import seakers.vassar.evaluation.ArchitectureEvaluationManager;
-import seakers.vassar.problems.Assigning.Architecture;
-import seakers.vassar.problems.Assigning.ArchitectureEvaluator;
-import seakers.vassar.problems.Assigning.ArchitectureGenerator;
-import seakers.vassar.problems.Assigning.ClimateCentricParams;
+import seakers.vassar.spacecraft.SpacecraftDescription;
+import seakers.vassar.utils.VassarPy;
 
-import java.util.List;
-import java.util.Stack;
+import java.util.ArrayList;
 
 public class ClimateCentricEvaluationTest {
 
-    public static void main(String[] args){
-
+    public static void main(String[] args) throws Exception {
         String resourcesPath = "../VASSAR_resources";
 
-        ClimateCentricParams params = new ClimateCentricParams(resourcesPath, "CRISP-ATTRIBUTES",
-                "test", "normal");
-
+//        ClimateCentricParams params = new ClimateCentricParams(resourcesPath, "CRISP-ATTRIBUTES",
+//                "test", "normal");
+//        AbstractArchitectureEvaluator evaluator = new ArchitectureEvaluator();
+//        ArchitectureGenerator archGenerator = new ArchitectureGenerator(params);
+//        List<AbstractArchitecture> archs = archGenerator.generateRandomPopulation(1);
 
 //        for(String key: params.revtimes.keySet()){
 //            System.out.println(key + ": " + params.revtimes.get(key));
 //        }
 
-        AbstractArchitectureEvaluator evaluator = new ArchitectureEvaluator();
-        ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
-        evaluationManager.init(1);
+        // Instruments
+//        String[] instrumentList = {"ACE_ORCA", "ACE_POL", "ACE_LID"};
+        String[][] payloads = {{""}, {""}, {"SMAP_RAD", "SMAP_MWR"}, {""}, {""}};
+        String[] orbits = {"LEO-600-polar-NA", "SSO-600-SSO-AM","SSO-780-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
-        ArchitectureGenerator archGenerator = new ArchitectureGenerator(params);
 
-        List<AbstractArchitecture> archs = archGenerator.generateRandomPopulation(1);
+        VassarPy python = new VassarPy("SMAP", payloads, orbits, resourcesPath);
 
-        Result result = evaluationManager.evaluateArchitectureSync(archs.get(0), "Slow");
+        ArrayList<SpacecraftDescription> designs = python.archDesign();
+        Result designsEval = python.archEval();
+//        AbstractArchitecture arch = designsEval.getArch();
 
-        System.out.println("science: " + result.getScience() + ", cost:" + result.getCost());
+        int x = 1;
     }
 }

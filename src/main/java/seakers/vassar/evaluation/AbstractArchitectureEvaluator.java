@@ -4,14 +4,13 @@ import jess.*;
 import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
-import seakers.vassar.BaseParams;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
-import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.event.EventIntervalMerger;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -228,8 +227,12 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                             fovs = new_fovs;
                         }
                         String key = "1" + " x " + m.stringArraytoStringWith(fovs, "  ");
-                        therevtimesUS = params.revtimes.get(key).get("US"); //key: 'Global' or 'US', value Double
-                        therevtimesGlobal = params.revtimes.get(key).get("Global");
+//                        HashMap<String, Double> revTime = params.revtimes.get(key);
+//                        therevtimesUS = params.revtimes.get(key).get("US"); //key: 'Global' or 'US', value Double
+//                        therevtimesGlobal = params.revtimes.get(key).get("Global");
+                        double revTime = params.revtimes.get(key);
+                        therevtimesUS = revTime;
+                        therevtimesGlobal = revTime;
                     }
 
                     String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " +  param + ") "
@@ -477,7 +480,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 }
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
-
             }
         }
         catch (Exception e) {

@@ -12,6 +12,7 @@ package seakers.vassar;
 import seakers.vassar.architecture.AbstractArchitecture;
 
 import jess.*;
+import seakers.vassar.spacecraft.SpacecraftDescription;
 
 import java.io.Serializable;
 import java.util.TreeMap;
@@ -33,6 +34,7 @@ public class Result implements Serializable {
     private ArrayList<Fact> capabilities;
     private ArrayList<Fact> costFacts;
     private String taskType;
+    private ArrayList<SpacecraftDescription> designs;
 
     //Constructors
     public Result(){}
@@ -51,6 +53,7 @@ public class Result implements Serializable {
         taskType = "Fast";
         this.fuzzyScience = null;
         this.fuzzyCost = null;
+        this.designs = null;
     }
 
     public Result(AbstractArchitecture arch,
@@ -72,6 +75,7 @@ public class Result implements Serializable {
         this.objectiveScores = obj_scores;
         this.panelScores = panel_scores;
         this.subobjectiveScoresMap = subobj_scores_map;
+        this.designs = new ArrayList<>();
     }
 
     //Getters and Setters
@@ -151,6 +155,12 @@ public class Result implements Serializable {
         this.fuzzyCost = fuzzyCost;
     }
 
+    public void setDesigns(ArrayList<SpacecraftDescription> newDesigns){
+        this.designs = new ArrayList<>();
+        for (SpacecraftDescription newDesign : newDesigns) this.designs.add(new SpacecraftDescription(newDesign));
+    }
+    public ArrayList<SpacecraftDescription> getDesigns(){ return this.designs; }
+
     public static double SumDollar(ArrayList<Double> a) {
         double res = 0.0;
         for (Double num: a) {
@@ -176,6 +186,7 @@ public class Result implements Serializable {
     public static double sumProduct(ArrayList<Double> a, ArrayList<Double> b) throws Exception {
         return SumDollar(dotMult(a, b));
     }
+
 
     @Override
     public String toString() {

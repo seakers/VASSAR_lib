@@ -17,9 +17,9 @@ public class ArchitectureEvaluationManager {
 
     private BaseParams params;
     private int numCPU;
-    private AbstractArchitectureEvaluator evaluator;
-    private ResourcePool resourcePool;
-    private ExecutorService executorService;
+    protected AbstractArchitectureEvaluator evaluator;
+    protected ResourcePool resourcePool;
+    protected ExecutorService executorService;
     private Stack<Result> results;
     private ArrayList<Future<Result>> futures;
 
