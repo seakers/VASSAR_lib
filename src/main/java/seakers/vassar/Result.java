@@ -15,6 +15,7 @@ import jess.*;
 import seakers.vassar.spacecraft.SpacecraftDescription;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.ArrayList;
 
@@ -121,9 +122,7 @@ public class Result implements Serializable {
         this.cost = cost;
     }
 
-    public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() {
-        return subobjectiveScores;
-    }
+    public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() { return subobjectiveScores; }
     public ArrayList<ArrayList<Double>> getObjectiveScores() {
         return objectiveScores;
     }
@@ -187,6 +186,16 @@ public class Result implements Serializable {
         return SumDollar(dotMult(a, b));
     }
 
+    public ArrayList<String> getKeyNames(){
+        Set<String> keys = this.subobjectiveScoresMap.keySet();
+        ArrayList<String> keyNames = new ArrayList<>();
+
+        for(String key : keys){
+            keyNames.add(key);
+        }
+
+        return keyNames;
+    }
 
     @Override
     public String toString() {

@@ -445,6 +445,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     protected void designSpacecraft(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
         try {
 
+
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");
 

@@ -80,4 +80,5 @@ public abstract class AssigningParams extends BaseParams {
         return this.numSatellites;
     }
 
+    public int getNumPanels(){ return this.numPanels; }
 }

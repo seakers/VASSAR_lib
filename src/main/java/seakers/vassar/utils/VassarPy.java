@@ -3,7 +3,7 @@ package seakers.vassar.utils;
 import seakers.vassar.Result;
 import seakers.vassar.evaluation.ArchitectureEvaluationManager;
 import seakers.vassar.evaluation.DSHIELDArchitectureEvaluator;
-import seakers.vassar.evaluation.DSHIELDArchitectureSizeEvaluator;
+import seakers.vassar.evaluation.DSHIELDArchitectureSizer;
 import seakers.vassar.problems.Assigning.Architecture;
 import seakers.vassar.problems.Assigning.AssigningParams;
 import seakers.vassar.problems.Assigning.DSHIELDParams;
@@ -18,6 +18,17 @@ public class VassarPy {
     AssigningParams params;
     Architecture arch;
     String resourcesPath;
+    String[][] factList;
+
+    public VassarPy(String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList){
+        this.payloads = payloads;
+        this.orbits = orbits;
+        this.params = new DSHIELDParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal");
+        this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
+        this.resourcesPath = resourcesPath;
+        this.factList = factList;
+
+    }
 
     public VassarPy(String problemName, String[][] payloads, String[] orbits, String resourcesPath){
         this.payloads = payloads;
@@ -25,6 +36,7 @@ public class VassarPy {
         this.params = new DSHIELDParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal");
         this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
         this.resourcesPath = resourcesPath;
+        this.factList = null;
     }
 
     private HashMap<String, String[]> mapPayloads(String[][] payloads, String[] orbits){
@@ -38,7 +50,7 @@ public class VassarPy {
     }
 
     public ArrayList<SpacecraftDescription> archDesign(){
-        DSHIELDArchitectureSizeEvaluator evaluator = new DSHIELDArchitectureSizeEvaluator();
+        DSHIELDArchitectureSizer evaluator = new DSHIELDArchitectureSizer(this.factList);
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
         evaluationManager.init(1);
 
@@ -51,7 +63,7 @@ public class VassarPy {
     }
 
     public Result archEval(){
-        DSHIELDArchitectureEvaluator evaluator = new DSHIELDArchitectureEvaluator();
+        DSHIELDArchitectureEvaluator evaluator = new DSHIELDArchitectureEvaluator(this.factList);
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
         evaluationManager.init(1);
 
