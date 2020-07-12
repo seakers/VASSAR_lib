@@ -17,6 +17,9 @@ import seakers.vassar.Interval;
 import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.Resource;
 
+import static java.lang.Math.*;
+import static org.moeaframework.util.Vector.dot;
+
 public class MatlabFunctions implements Userfunction {
     private HashMap<String,Interval> valueInvHashmap;
     private HashMap<Interval,String> valueHashmap;
@@ -217,6 +220,89 @@ public class MatlabFunctions implements Userfunction {
         catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
+        }
+    }
+
+    public Value designAvionics(Funcall vv, Context c){
+        double ddpd;
+        int redundancy;
+        try {
+            ddpd = vv.get(2).floatValue(c);
+            redundancy = vv.get(3).intValue(c);
+
+            // Estimate program memory, RAM, and frequency -- based on SMAD
+            // tables, data downloaded per day, and margin of error (50%)
+
+            double mar = 50.0;
+
+            double memory = ddpd/300.0;
+
+            double progm = 176742.4;
+            double ram = 133324.8 + ddpd;
+            double freq = 1648.5 + 0.25 * memory;
+
+            progm = (1 + mar/100.0) * progm;
+            ram = (1 + mar/100.0) * ram;
+            freq = (1 + mar/100.0) * freq;
+
+            double[] x = {1, log(progm), log(ram), log(freq)};
+
+            double[] cons1 = {-1.04807, 0.169433, 0.186482, -0.00983};
+            double mass = exp(dot(cons1,x))/1000.0;
+
+            double[] cons2 = {3.540926, -0.01921, -0.00858, 0.072602};
+            double l = exp(dot(cons2,x))/1000.0;
+
+            double[] cons3 = {2.763307, 0.091377, 0.053965, -0.02504};
+            double w = exp(dot(cons3,x))/1000.0;
+
+            double[] cons4 = {-3.92369, 0.297605, 0.230538, -0.09338};
+            double h = exp(dot(cons4,x))/1000.0;
+
+            double[] cons5 = {1.390067, 0.336528, 0.245416, -0.10272};
+            double cost = exp(dot(cons5,x));
+
+            double[] cons6 = {-9.81788, 0.173328, 0.143292, 0.194043};
+            double avgPwr = exp(dot(cons6,x));
+
+            double peakPwr = 2*(avgPwr);
+
+            double heatpower = peakPwr;
+
+            double minTemp = -40.0;
+            double maxTemp = 85.0;
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(mass * redundancy);
+            vv2.add(l);
+            vv2.add(w);
+            vv2.add(h * redundancy);
+            vv2.add(cost * redundancy);
+            vv2.add(avgPwr * redundancy);
+            vv2.add(peakPwr * redundancy);
+            vv2.add(heatpower * redundancy);
+            vv2.add(minTemp);
+            vv2.add(maxTemp);
+            return new Value(vv2, RU.LIST);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+
+        public Value getLaunchVehiclePerformanceCoeffs(Funcall vv, Context c) {
+            String id;
+            String orb;
+            try {
+                id = vv.get(2).stringValue(c);
+                orb = vv.get(3).stringValue(c);
+                ValueVector coeffs = lvDatabase.get(id).getPayloadCoeffsOrbit(orb);
+                return new Value( coeffs, RU.LIST );
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
         }
     }
 }

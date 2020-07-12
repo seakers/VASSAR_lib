@@ -20,14 +20,13 @@ public class ClimateCentricEvaluationTest {
 //        }
 
         // Instruments
-//        String[] instrumentList = {"ACE_ORCA", "ACE_POL", "ACE_LID"};
-        String[][] payloads = {{""}, {""}, {"SMAP_RAD", "SMAP_MWR"}, {""}, {""}};
-        String[] orbits = {"LEO-600-polar-NA", "SSO-600-SSO-AM","SSO-780-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
-        String[][] factList = {{"payload-power#", "69"}, {"payload-peak-power#", "69"}};
+        String[][] payloads = {{""}, {""}, {"SMAP_RAD", "SMAP_MWR"}, {""}, {""}, {""}};
+        String[] orbits = {"SSO-400-SSO-AM","SSO-400-SSO-DD","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-700-SSO-AM","SSO-700-SSO-DD"};
+//        String[][] factList = {{"payload-power#", "69"}, {"payload-peak-power#", "69"}};
 
-        VassarPy python = new VassarPy("SMAP", payloads, orbits, resourcesPath, factList);
+        VassarPy python = new VassarPy("DSHIELD", payloads, orbits, resourcesPath, null);
 
-        ArrayList<SpacecraftDescription> designs = python.archDesign();
+//        ArrayList<SpacecraftDescription> designs = python.archDesign();
         Result designsEval = python.archEval();
 
         int x = 1;
