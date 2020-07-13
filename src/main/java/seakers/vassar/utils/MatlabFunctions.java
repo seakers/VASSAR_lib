@@ -223,7 +223,7 @@ public class MatlabFunctions implements Userfunction {
         }
     }
 
-    public Value designAvionics(Funcall vv, Context c){
+    public Value designAvionics(Funcall vv, Context c) {
         double ddpd;
         int redundancy;
         try {
@@ -235,44 +235,44 @@ public class MatlabFunctions implements Userfunction {
 
             double mar = 50.0;
 
-            double memory = ddpd/300.0;
+            double memory = ddpd / 300.0;
 
             double progm = 176742.4;
             double ram = 133324.8 + ddpd;
             double freq = 1648.5 + 0.25 * memory;
 
-            progm = (1 + mar/100.0) * progm;
-            ram = (1 + mar/100.0) * ram;
-            freq = (1 + mar/100.0) * freq;
+            progm = (1 + mar / 100.0) * progm;
+            ram = (1 + mar / 100.0) * ram;
+            freq = (1 + mar / 100.0) * freq;
 
             double[] x = {1, log(progm), log(ram), log(freq)};
 
             double[] cons1 = {-1.04807, 0.169433, 0.186482, -0.00983};
-            double mass = exp(dot(cons1,x))/1000.0;
+            double mass = exp(dot(cons1, x)) / 1000.0;
 
             double[] cons2 = {3.540926, -0.01921, -0.00858, 0.072602};
-            double l = exp(dot(cons2,x))/1000.0;
+            double l = exp(dot(cons2, x)) / 1000.0;
 
             double[] cons3 = {2.763307, 0.091377, 0.053965, -0.02504};
-            double w = exp(dot(cons3,x))/1000.0;
+            double w = exp(dot(cons3, x)) / 1000.0;
 
             double[] cons4 = {-3.92369, 0.297605, 0.230538, -0.09338};
-            double h = exp(dot(cons4,x))/1000.0;
+            double h = exp(dot(cons4, x)) / 1000.0;
 
             double[] cons5 = {1.390067, 0.336528, 0.245416, -0.10272};
-            double cost = exp(dot(cons5,x));
+            double cost = exp(dot(cons5, x));
 
             double[] cons6 = {-9.81788, 0.173328, 0.143292, 0.194043};
-            double avgPwr = exp(dot(cons6,x));
+            double avgPwr = exp(dot(cons6, x));
 
-            double peakPwr = 2*(avgPwr);
+            double peakPwr = 2 * (avgPwr);
 
             double heatpower = peakPwr;
 
             double minTemp = -40.0;
             double maxTemp = 85.0;
 
-            ValueVector vv2 = new ValueVector(2);
+            ValueVector vv2 = new ValueVector(10);
             vv2.add(mass * redundancy);
             vv2.add(l);
             vv2.add(w);
@@ -284,25 +284,157 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(minTemp);
             vv2.add(maxTemp);
             return new Value(vv2, RU.LIST);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+    public Value designEPS(Funcall vv, Context c) {
+        String id;
+        String orb;
+
+        double ppa;
+        double ppp;
+        double pcoms;
+        double pav;
+        double padcs;
+        double solarFrac;
+        double worstAngle;
+        double T;
+        double lifetime;
+        double drymass;
+        double dod;
+
+        try {
+            String[] cellType = {"Multi", "Si", "GaAs"};
+            String[] battType = {"NiH2", "NiCd"};
+
+            ppa = vv.get(2).floatValue(c);
+            ppp = vv.get(3).floatValue(c);
+            pcoms = vv.get(4).floatValue(c);
+            pav = vv.get(5).floatValue(c);
+            padcs = vv.get(6).floatValue(c);
+            solarFrac = vv.get(7).floatValue(c);
+            worstAngle = vv.get(8).floatValue(c);
+            T = vv.get(9).floatValue(c);
+            lifetime = vv.get(10).floatValue(c);
+            drymass = vv.get(11).floatValue(c);
+            dod = vv.get(12).floatValue(c);
+
+            // Total power
+            double Pa = ppa + pcoms + pav + padcs;
+            double Pp = ppp + pcoms + pav + padcs;
+
+            // Calculate time in daylight and eclipse
+            double Td = T * solarFrac;
+            double Te = T - Td;
+
+            // Calculate Solar Panel Power
+            double Xe = 0.65;
+            double Xd = 0.85;
+            double Pe = 0.8 * Pa + 0.2 * Pp;
+            double Pd = Pe;
+            double Psa_min = (Pe*Te/Xe + Pd*Td/Xd)/Td;
+
+            // Look for best combination of materials
+            double Asa = 0.0;
+            double Pbol = 0.0;
+            double Meps = 0.0;
+            double Msa = 0.0;
+
+            double cost = 1e10;
+            double costTemp = 0.0;
+
+            for(int i = 0; i < cellType.length; i++){
+                double Pbol_temp;
+                double Ld;
+
+                switch (cellType[i]){
+                    case "Multi":
+                        Pbol_temp = 301 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.005), lifetime);
+                        break;
+                    case "Si":
+                        Pbol_temp = 202 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.0375), lifetime);
+                        break;
+                    case "GaAs":
+                        Pbol_temp = 253 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.0275), lifetime);
+                        break;
+                    default:
+                        Pbol_temp = 0.0;
+                        Ld = 0.0;
+                        break;
+                }
+
+                double Peol = Pbol_temp * Ld;
+
+                for(int j = 0; j < battType.length; j++){
+                    double Cr;
+                    double mbatt = 0.0;
+                    double volume;
+                    double dimbat;
+
+                    for(int Nbat = 1; Nbat < 5; Nbat++) {
+                        switch (battType[j]) {
+                            case "NiH2":
+                                Cr = Pe * (Te/60) / (Nbat * 0.5 * 0.9);
+                                mbatt = Cr/45;
+                                volume = mbatt/2956;
+                                dimbat = pow(volume, 1.0/3.0);
+                                break;
+                            case "NiCd":
+                                Cr = Pe * (Te/60) / (Nbat * 0.15 * 0.9);
+                                mbatt = Cr/35;
+                                volume = mbatt/2956;
+                                dimbat = pow(volume, 1.0/3.0);
+                                break;
+                        }
+                        double Msa_temp = 0.04 * Psa_min;
+                        double L = sqrt(Msa_temp);
+                        double W = L;
+                        double Mcpu;
+                        double Mregconv;
+                        double Mwiring;
+
+                        if(drymass < 30.0){
+                            Mcpu = 0.02 * Psa_min / 10;
+                            Mregconv = 0.025 * Psa_min / 10;
+                            Mwiring = (0.01 + 0.04) / 2 * drymass;
+                        }
+                        else{
+                            Mcpu = 0.02 * Psa_min;
+                            Mregconv = 0.025 * Psa_min;
+                            Mwiring = (0.01 + 0.04) / 2 * drymass;
+                        }
+
+                        double Meps_temp = Msa_temp + (mbatt * Nbat) + Mcpu + Mregconv + Mwiring;
+                        costTemp = 62.7 * Meps_temp + 112 * pow(Meps_temp, 0.763);
+
+                        if(cost >= costTemp){
+                            cost = costTemp;
+
+                            Meps = Meps_temp;
+                            Pbol = Psa_min;
+                            Asa = Psa_min / Peol;
+                            Msa = Msa_temp;
+                        }
+                    }
+                }
+            }
+
+
+            ValueVector vv2 = new ValueVector(4);
+            vv2.add(Meps);
+            vv2.add(Pbol);
+            vv2.add(Asa);
+            vv2.add(Msa);
+            return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
-        }
-
-        public Value getLaunchVehiclePerformanceCoeffs(Funcall vv, Context c) {
-            String id;
-            String orb;
-            try {
-                id = vv.get(2).stringValue(c);
-                orb = vv.get(3).stringValue(c);
-                ValueVector coeffs = lvDatabase.get(id).getPayloadCoeffsOrbit(orb);
-                return new Value( coeffs, RU.LIST );
-            }
-            catch (Exception e) {
-                System.out.println(e.getMessage());
-                return null;
-            }
         }
     }
 }
