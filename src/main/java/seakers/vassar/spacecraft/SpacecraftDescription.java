@@ -35,7 +35,8 @@ public class SpacecraftDescription {
     }
 
     public SpacecraftDescription(Fact scDesign, Rete r) throws JessException {
-        fieldNames = new String[]{"adapter-mass",
+        fieldNames = new String[]{
+            "adapter-mass",
             "ADCS-mass#",
             "ADCS-penalty",
             "ADCS-requirement",
@@ -186,6 +187,8 @@ public class SpacecraftDescription {
             "updated",
             "updated2",
             "factHistory",
+            "avionics-power#",
+            "comm-OBDH-power#"
         };
 
         fieldValues = new String[fieldNames.length];

@@ -8,6 +8,7 @@ package seakers.vassar.utils;
  *
  * @author dani
  */
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -226,12 +227,16 @@ public class MatlabFunctions implements Userfunction {
     public Value designAvionics(Funcall vv, Context c) {
         double ddpd;
         int redundancy;
+        double pmass;
         try {
             ddpd = vv.get(2).floatValue(c);
             redundancy = vv.get(3).intValue(c);
+            pmass = vv.get(4).floatValue(c);
 
             // Estimate program memory, RAM, and frequency -- based on SMAD
             // tables, data downloaded per day, and margin of error (50%)
+
+            double refMass = pmass * 0.0983;
 
             double mar = 50.0;
 
@@ -248,21 +253,21 @@ public class MatlabFunctions implements Userfunction {
             double[] x = {1, log(progm), log(ram), log(freq)};
 
             double[] cons1 = {-1.04807, 0.169433, 0.186482, -0.00983};
-            double mass = exp(dot(cons1, x)) / 1000.0;
+            double mass = exp(dot(cons1, x)) / 1.0;
 
             double[] cons2 = {3.540926, -0.01921, -0.00858, 0.072602};
-            double l = exp(dot(cons2, x)) / 1000.0;
+            double l = exp(dot(cons2, x)) / 1.0;
 
             double[] cons3 = {2.763307, 0.091377, 0.053965, -0.02504};
-            double w = exp(dot(cons3, x)) / 1000.0;
+            double w = exp(dot(cons3, x)) / 1.0;
 
             double[] cons4 = {-3.92369, 0.297605, 0.230538, -0.09338};
-            double h = exp(dot(cons4, x)) / 1000.0;
+            double h = exp(dot(cons4, x)) / 1.0;
 
             double[] cons5 = {1.390067, 0.336528, 0.245416, -0.10272};
             double cost = exp(dot(cons5, x));
 
-            double[] cons6 = {-9.81788, 0.173328, 0.143292, 0.194043};
+            double[] cons6 = {-5.81788, 0.173328, 0.143292, 0.194043};
             double avgPwr = exp(dot(cons6, x));
 
             double peakPwr = 2 * (avgPwr);
@@ -306,8 +311,9 @@ public class MatlabFunctions implements Userfunction {
         double dod;
 
         try {
-            String[] cellType = {"Multi", "Si", "GaAs"};
-            String[] battType = {"NiH2", "NiCd"};
+//            String[] cellType = {"Multi", "Si", "GaAs"};
+            String[] cellType = {"DANI"};
+            String[] battType = {"NiH2", "NiCd","LiIon"};
 
             ppa = vv.get(2).floatValue(c);
             ppp = vv.get(3).floatValue(c);
@@ -322,8 +328,8 @@ public class MatlabFunctions implements Userfunction {
             dod = vv.get(12).floatValue(c);
 
             // Total power
-            double Pa = ppa + pcoms + pav + padcs;
-            double Pp = ppp + pcoms + pav + padcs;
+            double Pa = ppa/0.4 + pcoms + pav + padcs;
+            double Pp = ppp/0.4 + pcoms + pav + padcs;
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
@@ -341,35 +347,62 @@ public class MatlabFunctions implements Userfunction {
             double Pbol = 0.0;
             double Meps = 0.0;
             double Msa = 0.0;
+            double mbatt_min = 0.0;
+            int Nbat_min = -1;
+            double Mcpu_min = 0.0;
+            double Mregconv_min = 0.0;
+            double Mwiring_min =  0.0;
 
             double cost = 1e10;
             double costTemp = 0.0;
 
             for(int i = 0; i < cellType.length; i++){
                 double Pbol_temp;
+                double P_density_temp;
+                double Msa_temp;
+                double Asa_temp;
                 double Ld;
+                double Peol;
 
                 switch (cellType[i]){
                     case "Multi":
-                        Pbol_temp = 301 * 0.77 * cos(worstAngle * PI / 180);
+                        P_density_temp = 383 * 0.77 * cos(worstAngle * PI / 180);
                         Ld = pow( (1-0.005), lifetime);
+                        Peol = P_density_temp * Ld;
+                        Asa_temp = Psa_min / Peol;
+                        Msa_temp = 2.8 * Asa_temp;
+                        Pbol_temp = P_density_temp * Asa_temp;
                         break;
                     case "Si":
-                        Pbol_temp = 202 * 0.77 * cos(worstAngle * PI / 180);
-                        Ld = pow( (1-0.0375), lifetime);
+                        P_density_temp = 202 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.00375), lifetime);
+                        Peol = P_density_temp * Ld;
+                        Asa_temp = Psa_min / Peol;
+                        Msa_temp = 2.3 * Asa_temp;
+                        Pbol_temp = P_density_temp * Asa_temp;
                         break;
                     case "GaAs":
-                        Pbol_temp = 253 * 0.77 * cos(worstAngle * PI / 180);
-                        Ld = pow( (1-0.0275), lifetime);
+                        P_density_temp = 253 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.00275), lifetime);
+                        Peol = P_density_temp * Ld;
+                        Asa_temp = Psa_min / Peol;
+                        Msa_temp = 2.7 * Asa_temp;
+                        Pbol_temp = P_density_temp * Asa_temp;
+                        break;
+                    case "DANI":
+                        P_density_temp = 300 * 0.77 * cos(worstAngle * PI / 180);
+                        Ld = pow( (1-0.005), lifetime);
+                        Peol = P_density_temp * Ld;
+                        Asa_temp = Psa_min / Peol;
+                        Msa_temp = 25 * Asa_temp;
+                        Pbol_temp = P_density_temp * Asa_temp;
                         break;
                     default:
-                        Pbol_temp = 0.0;
-                        Ld = 0.0;
-                        break;
+                        continue;
                 }
 
-                double Peol = Pbol_temp * Ld;
 
+                int j_min = -1;
                 for(int j = 0; j < battType.length; j++){
                     double Cr;
                     double mbatt = 0.0;
@@ -379,20 +412,26 @@ public class MatlabFunctions implements Userfunction {
                     for(int Nbat = 1; Nbat < 5; Nbat++) {
                         switch (battType[j]) {
                             case "NiH2":
-                                Cr = Pe * (Te/60) / (Nbat * 0.5 * 0.9);
-                                mbatt = Cr/45;
+                                Cr = Pe * Te / (Nbat * 3600 * dod * 0.70);
+                                mbatt = Cr/60;
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
                                 break;
                             case "NiCd":
-                                Cr = Pe * (Te/60) / (Nbat * 0.15 * 0.9);
-                                mbatt = Cr/35;
+                                Cr = Pe * Te / (Nbat * 3600 * dod * 0.72);
+                                mbatt = Cr/30;
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
                                 break;
+                            case "LiIon":
+                                Cr = Pe * Te / (Nbat * 3600 * dod * 0.98);
+                                mbatt = Cr/125;
+                                volume = (mbatt/458.3)*pow(.1,3);
+                                dimbat = pow(volume, 1.0/3.0);
+                                break;
                         }
-                        double Msa_temp = 0.04 * Psa_min;
-                        double L = sqrt(Msa_temp);
+
+                        double L = sqrt(Asa_temp);
                         double W = L;
                         double Mcpu;
                         double Mregconv;
@@ -414,22 +453,105 @@ public class MatlabFunctions implements Userfunction {
 
                         if(cost >= costTemp){
                             cost = costTemp;
+                            j_min = j;
 
                             Meps = Meps_temp;
-                            Pbol = Psa_min;
-                            Asa = Psa_min / Peol;
+                            Pbol = Pbol_temp;
+                            Asa = Asa_temp;
                             Msa = Msa_temp;
+                            mbatt_min = mbatt;
+                            Nbat_min = Nbat;
+                            Mcpu_min = Mcpu;
+                            Mregconv_min = Mregconv;
+                            Mwiring_min =  Mwiring;
                         }
                     }
                 }
             }
 
+            if(true) {
+                System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
+                + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
+            }
 
             ValueVector vv2 = new ValueVector(4);
             vv2.add(Meps);
             vv2.add(Pbol);
             vv2.add(Asa);
             vv2.add(Msa);
+            return new Value(vv2, RU.LIST);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Value designComs(Funcall vv, Context c) {
+        double bps;
+        double drymass;
+        double alt;
+
+        try {
+            bps = vv.get(2).floatValue(c);
+            drymass = vv.get(3).floatValue(c);
+            alt = vv.get(4).floatValue(c);
+
+            ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
+            String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
+
+            double[] receiverPower = new double[250];
+            double[] antennaGain = new double[50];
+            double costMin = 1e10;
+            int band_min = -1;
+            int i_min = -1;
+            int j_min = -1;
+
+            for(int band = 0; band < bands_NEN.length; band++) {
+                ArrayList<ArrayList<AntennaDesign>> bandAntennas = new ArrayList<>();
+                for (int i = 0; i < receiverPower.length; i++) {
+                    if (i == 0) receiverPower[i] = 1;
+                    else receiverPower[i] = receiverPower[i-1] + 1;
+
+                    ArrayList<AntennaDesign> powerAntennas = new ArrayList<>();
+                    for(int j = 0; j < antennaGain.length; j++) {
+                        if (j == 0) antennaGain[j] = 1;
+                        else antennaGain[j] = j+1;
+
+                        AntennaDesign antenna = new AntennaDesign();
+                        antenna.designAntenna(alt, drymass, bps, receiverPower[i], antennaGain[j], bands_NEN[band]);
+                        powerAntennas.add(antenna);
+
+                        if (antenna.getCost() < costMin) {
+                            costMin = antenna.getCost();
+                            band_min = band;
+                            i_min = i;
+                            j_min = j;
+                        }
+                    }
+
+                    bandAntennas.add(powerAntennas);
+                }
+                nenAntennas.add(bandAntennas);
+            }
+
+            AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
+            double commsMass = bestAntenna.getMass();
+            double commsPower = bestAntenna.getPower();
+
+            if(true) {
+                System.out.println("comms mass: " + commsMass);
+                System.out.println("comms power: " + commsPower);
+                System.out.println("antenna dims: " + Arrays.toString(bestAntenna.getDims()));
+                System.out.println("antenna info: " + bestAntenna.getAntennaType() + " "
+                        + bestAntenna.getMassA() + " " + bands_NEN[band_min] + " "
+                        + receiverPower[i_min] + " " + antennaGain[j_min]);
+            }
+
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(commsMass);
+            vv2.add(commsPower);
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {

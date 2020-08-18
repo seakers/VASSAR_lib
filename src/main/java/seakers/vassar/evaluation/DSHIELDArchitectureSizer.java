@@ -259,9 +259,23 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
 
             r.setFocus("MANIFEST0");
             r.run();
-
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
+
+            r.setFocus("CAPABILITIES");                 r.run();
+            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
+            r.setFocus("CAPABILITIES-GENERATE");        r.run();
+            r.setFocus("CAPABILITIES-CROSS-REGISTER");  r.run();
+            r.setFocus("CAPABILITIES-UPDATE");          r.run();
+
+            r.setFocus("SYNERGIES");
+            r.run();
+
+            updateRevisitTimes(params, r, arch, qb, m, 1);
+            r.setFocus("ASSIMILATION2");
+            r.run();
+            r.setFocus("ASSIMILATION");
+            r.run();
 
             designSpacecraft(r, arch, qb, m);
             r.eval("(focus SAT-CONFIGURATION)");

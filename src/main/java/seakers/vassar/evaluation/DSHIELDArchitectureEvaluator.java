@@ -161,29 +161,15 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             //r.eval("(watch rules)");
             //r.eval("(facts)");
 
-            r.setFocus("MANIFEST0");
-            r.run();
+            r.setFocus("MANIFEST0"); r.run();
+            r.setFocus("MANIFEST"); r.run();
 
-            r.setFocus("MANIFEST");
-            r.run();
-
-            r.setFocus("CAPABILITIES");
-            r.run();
-
-            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS");
-            r.run();
-
-            r.setFocus("CAPABILITIES-GENERATE");
-            r.run();
-
-            r.setFocus("CAPABILITIES-CROSS-REGISTER");
-            r.run();
-
-            r.setFocus("CAPABILITIES-UPDATE");
-            r.run();
-
-            r.setFocus("SYNERGIES");
-            r.run();
+            r.setFocus("CAPABILITIES"); r.run();
+            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
+            r.setFocus("CAPABILITIES-GENERATE"); r.run();
+            r.setFocus("CAPABILITIES-CROSS-REGISTER"); r.run();
+            r.setFocus("CAPABILITIES-UPDATE"); r.run();
+            r.setFocus("SYNERGIES"); r.run();
 
             updateRevisitTimes(params, r, arch, qb, m, 1);
 
@@ -236,6 +222,78 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             throw new Error();
         }
         return result;
+    }
+
+    @Override
+    protected void evaluateCost(BaseParams params, Rete r, AbstractArchitecture arch, Result res, QueryBuilder qb, MatlabFunctions m) {
+
+        try {
+            long t0 = System.currentTimeMillis();
+
+            r.setFocus("MANIFEST0");
+            r.run();
+            r.eval("(focus MANIFEST)");
+            r.eval("(run)");
+
+            r.setFocus("CAPABILITIES");                 r.run();
+            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
+            r.setFocus("CAPABILITIES-GENERATE");        r.run();
+            r.setFocus("CAPABILITIES-CROSS-REGISTER");  r.run();
+            r.setFocus("CAPABILITIES-UPDATE");          r.run();
+
+            r.setFocus("SYNERGIES");
+            r.run();
+
+            updateRevisitTimes(params, r, arch, qb, m, 1);
+            r.setFocus("ASSIMILATION2");
+            r.run();
+            r.setFocus("ASSIMILATION");
+            r.run();
+
+            designSpacecraft(r, arch, qb, m);
+            r.eval("(focus SAT-CONFIGURATION)");
+            r.eval("(run)");
+
+            r.eval("(focus LV-SELECTION0)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION1)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION2)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION3)");
+            r.eval("(run)");
+
+            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+                r.eval("(focus FUZZY-COST-ESTIMATION)");
+            }
+            else {
+                r.eval("(focus COST-ESTIMATION)");
+            }
+            r.eval("(run)");
+
+            double cost = 0.0;
+            FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
+            ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
+            for (Fact mission: missions)  {
+                cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
+                if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
+                    fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
+                }
+            }
+
+            res.setCost(cost);
+            res.setFuzzyCost(fzcost);
+
+            if (debug) {
+                res.setCostFacts(missions);
+            }
+
+        }
+        catch (JessException e) {
+            System.out.println(e.toString());
+            System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -383,11 +441,10 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                     // Merge accesses to get the revisit time
                     Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
 
-                    for (int i = 1; i < fieldOfViewEvents.size(); ++i) {
+                    for (int i = 0; i < fieldOfViewEvents.size(); ++i) {
                         Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
                         mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
                     }
-
                     therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds) / 3600;
                     therevtimesUS = therevtimesGlobal;
 
