@@ -1,0 +1,27 @@
+query OrbitInformation($group_id: Int, $problem_id: Int!) {
+  orbit: Orbit(where: {Group: {id: {_eq: $group_id}}}) {
+    id
+    name
+     attributes: Join__Orbit_Attributes(where: {problem_id: {_eq: $problem_id}}) {
+      value
+      Orbit_Attribute {
+        name
+      }
+    }
+  }
+}
+
+
+
+query LaunchVehicleInformation($group_id: Int, $problem_id: Int!) {
+  vehicle: Launch_Vehicle(where: {Group: {id: {_eq: $group_id}}}) {
+    id
+    name
+    attributes: Join__Launch_Vehicle_Attributes(where: {problem_id: {_eq: $problem_id}}) {
+      value
+      Launch_Vehicle_Attribute {
+        name
+      }
+    }
+  }
+}

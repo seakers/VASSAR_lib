@@ -22,6 +22,7 @@ public class Resource {
         this.m = new MatlabFunctions(this);
         this.r.addUserfunction(this.m);
         
+        // JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m, params.problemName);
         JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m);
     }
 

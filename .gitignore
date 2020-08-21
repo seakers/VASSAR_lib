@@ -13,3 +13,4 @@ CoverageDatabase/
 backup/
 classes/
 lib/
+src/main/graphql/com/example/schema.json
