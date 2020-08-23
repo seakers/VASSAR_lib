@@ -328,8 +328,8 @@ public class MatlabFunctions implements Userfunction {
             dod = vv.get(12).floatValue(c);
 
             // Total power
-            double Pa = ppa/0.4 + pcoms + pav + padcs;
-            double Pp = ppp/0.4 + pcoms + pav + padcs;
+            double Pa = ppa + pcoms + pav + padcs;
+            double Pp = ppp + pcoms + pav + padcs;
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
@@ -394,8 +394,8 @@ public class MatlabFunctions implements Userfunction {
                         Ld = pow( (1-0.005), lifetime);
                         Peol = P_density_temp * Ld;
                         Asa_temp = Psa_min / Peol;
-                        Msa_temp = 25 * Asa_temp;
                         Pbol_temp = P_density_temp * Asa_temp;
+                        Msa_temp = Pbol_temp/25;
                         break;
                     default:
                         continue;
