@@ -288,6 +288,7 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(heatpower * redundancy);
             vv2.add(minTemp);
             vv2.add(maxTemp);
+            System.out.println("Avionics mass: "+mass);
             return new Value(vv2, RU.LIST);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -472,6 +473,8 @@ public class MatlabFunctions implements Userfunction {
             if(true) {
                 System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
                 + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
+                double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
+                System.out.println("Total EPS Mass: "+totalMass);
             }
 
             ValueVector vv2 = new ValueVector(4);
@@ -498,8 +501,8 @@ public class MatlabFunctions implements Userfunction {
             alt = vv.get(4).floatValue(c);
 
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
-            String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-
+            //String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
+            String[] bands_NEN = {"Xband"};
             double[] receiverPower = new double[250];
             double[] antennaGain = new double[50];
             double costMin = 1e10;
@@ -538,6 +541,7 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
+            System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
             if(true) {
                 System.out.println("comms mass: " + commsMass);

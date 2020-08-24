@@ -70,6 +70,7 @@ public class AntennaDesign {
         double k = 1.38e-23;
         double f_DL_GHz = f_DL / 1e9;
         double EbN0min = calcEbN0min(Rb_DL, BW_NEN[band_i][0] - BW_NEN[band_i][1]);
+        EbN0min = 20;
         double EbN0 = lin2dB(Ptx*Gtx) + G_GS + 2*lin2dB(lambda/(4*PI*R)) - lin2dB(k*Tgs*Rb_DL);
 
         boolean linkBudgetClosed = false;
@@ -329,6 +330,8 @@ public class AntennaDesign {
 
     public double getCost(){ return costComms; }
     public double getMass(){ return commsMass; }
+    public double getGain(){ return lin2dB(Gtx); }
+    public double getTransmitPower(){ return Ptx; }
     public double getPower(){return commsPower;}
     public String getAntennaType(){return antennaType;}
     public double[] getDims(){
