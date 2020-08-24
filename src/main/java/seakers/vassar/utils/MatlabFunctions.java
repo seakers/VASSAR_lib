@@ -474,7 +474,8 @@ public class MatlabFunctions implements Userfunction {
                 System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
                 + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
                 double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
-                System.out.println("Total EPS Mass: "+totalMass);
+                System.out.println("Total EPS Mass: "+ totalMass);
+                System.out.println("eps power: " + Pbol);
             }
 
             ValueVector vv2 = new ValueVector(4);
