@@ -363,6 +363,7 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
                 }
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
+                System.out.println("dry-mass: " + drymasses[0]);
             }
 
             for (int i = 0; i < missions.size(); i++) {

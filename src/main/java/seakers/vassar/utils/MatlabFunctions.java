@@ -312,8 +312,8 @@ public class MatlabFunctions implements Userfunction {
         double dod;
 
         try {
-//            String[] cellType = {"Multi", "Si", "GaAs"};
-            String[] cellType = {"DANI"};
+            String[] cellType = {"Multi", "Si", "GaAs", "DANI"};
+//            String[] cellType = {"DANI"};
             String[] battType = {"NiH2", "NiCd","LiIon"};
 
             ppa = vv.get(2).floatValue(c);
@@ -329,8 +329,13 @@ public class MatlabFunctions implements Userfunction {
             dod = vv.get(12).floatValue(c);
 
             // Total power
-            double Pa = ppa + pcoms + pav + padcs;
-            double Pp = ppp + pcoms + pav + padcs;
+            double ppow = ppp * 0.09/0.46;
+            double ptherm = ppp * 0.10/0.46;
+            double pstr = ppp * 0.01/0.46;
+            double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
+            double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
+//            Pa = 1200;
+//            Pp = Pa;
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
@@ -365,6 +370,7 @@ public class MatlabFunctions implements Userfunction {
                 double Ld;
                 double Peol;
 
+//                Pbol_temp = Pa;
                 switch (cellType[i]){
                     case "Multi":
                         P_density_temp = 383 * 0.77 * cos(worstAngle * PI / 180);
@@ -403,6 +409,7 @@ public class MatlabFunctions implements Userfunction {
                 }
 
 
+//                Pbol_temp = Pa;
                 int j_min = -1;
                 for(int j = 0; j < battType.length; j++){
                     double Cr;
@@ -475,7 +482,7 @@ public class MatlabFunctions implements Userfunction {
                 + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
                 double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
                 System.out.println("Total EPS Mass: "+ totalMass);
-                System.out.println("eps power: " + Pbol);
+                System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
             }
 
             ValueVector vv2 = new ValueVector(4);
@@ -502,8 +509,8 @@ public class MatlabFunctions implements Userfunction {
             alt = vv.get(4).floatValue(c);
 
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
-            //String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-            String[] bands_NEN = {"Xband"};
+            String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
+//            String[] bands_NEN = {"Xband"};
             double[] receiverPower = new double[250];
             double[] antennaGain = new double[50];
             double costMin = 1e10;

@@ -18,7 +18,7 @@ public class ClimateCentricEvaluationTest {
 
 //        // Instruments
 //        String[][] payloads = {{""}, {""}, {"SMAP_RAD", "SMAP_MWR"}, {""}, {""}, {"SMAP_RAD", "SMAP_MWR"}};
-        String[][] payloads = {{""}, {""}, {""}, {"SMAP_RAD", "SMAP_MWR"}, {""}, {""}};
+        String[][] payloads = {{""}, {""}, {""}, {"SAR_3"}, {""}, {""}};
         String[] orbits = {"SSO-400-SSO-AM","SSO-400-SSO-DD","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-AM","SSO-800-SSO-DD"};
 //        String[][] factList = {{"payload-power#", "69"}, {"payload-peak-power#", "69"}};
 
