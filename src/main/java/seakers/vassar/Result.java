@@ -29,6 +29,7 @@ public class Result implements Serializable {
     private FuzzyValue fuzzyCost;
     private AbstractArchitecture arch;
     private TreeMap<String,ArrayList<Fact>> explanations;
+    private TreeMap<String,ArrayList<Fact>> capabilityList;
     private TreeMap<String,Double> subobjectiveScoresMap;
     private ArrayList<Fact> capabilities;
     private ArrayList<Fact> costFacts;
@@ -51,6 +52,25 @@ public class Result implements Serializable {
         taskType = "Fast";
         this.fuzzyScience = null;
         this.fuzzyCost = null;
+    }
+
+    public Result(AbstractArchitecture arch,
+                  double science,
+                  double cost,
+                  ArrayList<ArrayList<ArrayList<Double>>> subobj_scores,
+                  ArrayList<ArrayList<Double>> obj_scores,
+                  ArrayList<Double> panel_scores,
+                  TreeMap<String,Double> subobj_scores_map) {
+
+        this.arch = arch;
+        this.science = science;
+        this.cost = cost;
+        this.fuzzyScience = null;
+        this.fuzzyCost = null;
+        this.subobjectiveScores = subobj_scores;
+        this.objectiveScores = obj_scores;
+        this.panelScores = panel_scores;
+        this.subobjectiveScoresMap = subobj_scores_map;
     }
 
     public Result(AbstractArchitecture arch,
@@ -87,6 +107,13 @@ public class Result implements Serializable {
     }
     public void setExplanations(TreeMap<String,ArrayList<Fact>> explanations) {
         this.explanations = explanations;
+    }
+
+    public TreeMap<String,ArrayList<Fact>> getCapabilityList() {
+        return capabilityList;
+    }
+    public void setCapabilityList(TreeMap<String,ArrayList<Fact>> capabilityList) {
+        this.capabilityList = capabilityList;
     }
 
     public String getTaskType() {

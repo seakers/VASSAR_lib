@@ -71,11 +71,12 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         QueryBuilder qb = res.getQueryBuilder();
         MatlabFunctions m = res.getM();
         Result result = new Result();
-
         try {
+            //r.eval("(watch facts)");
             if (type.equalsIgnoreCase("Slow")) {
                 result = evaluatePerformance(params, r, arch, qb, m);
                 r.eval("(reset)");
+                System.out.println("resetting rules in result call");
                 assertMissions(params, r, arch, m);
             }
             else {
@@ -99,6 +100,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         Result result = new Result();
         try {
             r.reset();
+            System.out.println("resetting rules in evaluatePerformance");
+            System.out.println(arch.toString());
             assertMissions(params, r, arch, m);
 
             r.eval("(bind ?*science-multiplier* 1.0)");
@@ -154,6 +157,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             for (String param: params.measurementsToInstruments.keySet()) {
                 Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
+
                 if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
 
                     ValueVector thefovs = v.listValue(r.getGlobalContext());
@@ -273,6 +277,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 result = aggregate_performance_score_facts(params, r, m, qb);
+            } else {
+                result = aggregate_performance_score(params, r, qb);
             }
 
             //////////////////////////////////////////////////////////////
@@ -379,6 +385,90 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         }
 
         return theresult;
+    }
+    protected Result aggregate_performance_score(BaseParams params, Rete r, QueryBuilder qb) {
+        ArrayList<ArrayList<ArrayList<Double>>> subobj_scores = new ArrayList<>();
+        ArrayList<ArrayList<Double>> obj_scores = new ArrayList<>();
+        ArrayList<Double> panel_scores = new ArrayList<>();
+        TreeMap<String, ArrayList<Fact>> explanations = new TreeMap<>();
+        TreeMap<String, ArrayList<Fact>> capabilities = new TreeMap<>();
+        double science = 0.0;
+        double cost = 0.0;
+        ArrayList<Fact> temp = new ArrayList<>();
+        System.out.println("aggregating performance score");
+        //Subobjective scores
+        for (int p = 0; p < params.numPanels; p++) {
+            int nob = params.numObjectivesPerPanel.get(p);
+            ArrayList<ArrayList<Double>> subobj_scores_p = new ArrayList<>(nob);
+            for (int o = 0; o < nob; o++) {
+                ArrayList<ArrayList<String>> subobj_p = params.subobjectives.get(p);
+                ArrayList<String> subobj_o = subobj_p.get(o);
+                int nsubob = subobj_o.size();
+                ArrayList<Double> subobj_scores_o = new ArrayList<>(nsubob);
+                for (String subobj : subobj_o) {
+                    String var_name = "?*subobj-" + subobj + "*";
+                    try {
+                        subobj_scores_o.add(r.eval(var_name).floatValue(r.getGlobalContext()));
+                        System.out.println(r.eval(var_name).floatValue(r.getGlobalContext()));
+                        if (!explanations.containsKey(subobj)) {
+                            temp = qb.makeQuery("REASONING::fully-satisfied (subobjective " + subobj + ")");
+                            temp.addAll(qb.makeQuery("REASONING::partially-satisfied (subobjective " + subobj + ")"));
+                            //explanations.put(subobj, qb.makeQuery("REASONING::fully-satisfied (subobjective " + subobj + ")"));
+                            //explanations.put(subobj, qb.makeQuery("REASONING::partially-satisfied (subobjective " + subobj + ")"));
+                            explanations.put(subobj,temp);
+                        }
+                    }
+                    catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                    capabilities.put(subobj, qb.makeQuery("REQUIREMENTS::Measurement (Parameter " + params.subobjectivesToMeasurements.get(subobj) + ")"));
+                }
+                subobj_scores_p.add(subobj_scores_o);
+            }
+            subobj_scores.add(subobj_scores_p);
+        }
+
+        //Objective scores
+        for (int p = 0; p < params.numPanels; p++) {
+            int nob = params.numObjectivesPerPanel.get(p);
+            ArrayList<Double> obj_scores_p = new ArrayList<>(nob);
+            for (int o = 0; o < nob; o++) {
+                ArrayList<ArrayList<Double>> subobj_weights_p = params.subobjWeights.get(p);
+                ArrayList<Double> subobj_weights_o = subobj_weights_p.get(o);
+                ArrayList<ArrayList<Double>> subobj_scores_p = subobj_scores.get(p);
+                ArrayList<Double> subobj_scores_o = subobj_scores_p.get(o);
+                try {
+                    obj_scores_p.add(Result.sumProduct(subobj_weights_o, subobj_scores_o));
+                }
+                catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+            obj_scores.add(obj_scores_p);
+        }
+
+        //Stakeholder and final score
+        for (int p = 0; p < params.numPanels; p++) {
+            try {
+                panel_scores.add(Result.sumProduct(params.objWeights.get(p), obj_scores.get(p)));
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        try {
+            science = Result.sumProduct(params.panelWeights, panel_scores);
+        }
+        catch (Exception e) {
+                System.out.println(e.getMessage());
+        }
+
+        Result theResult = new Result(arch, science, cost, subobj_scores, obj_scores, panel_scores,null);
+        theResult.setExplanations(explanations);
+        theResult.setCapabilityList(capabilities);
+        theResult.setCapabilities(qb.makeQuery("REQUIREMENTS::Measurement"));
+        return theResult;
     }
 
     protected void evaluateCost(BaseParams params, Rete r, AbstractArchitecture arch, Result res, QueryBuilder qb, MatlabFunctions m) {

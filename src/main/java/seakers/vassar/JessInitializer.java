@@ -44,7 +44,7 @@ public class JessInitializer {
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
             this.params = params;
-
+            //r.eval("watch all");
             // Create global variable path
             String tmp = params.problemPath.replaceAll("\\\\", "\\\\\\\\");
             r.eval("(defglobal ?*app_path* = \"" + tmp + "\")");
@@ -52,7 +52,7 @@ public class JessInitializer {
             r.eval("(import java.util.*)");
             r.eval("(import jess.*)");
             r.eval("(defglobal ?*rulesMap* = (new java.util.HashMap))");
-            r.eval("(set-reset-globals nil)");
+            r.eval("(set-reset-globals TRUE)");
             params.nof = 1;
             params.nor = 1;
 
@@ -158,7 +158,7 @@ public class JessInitializer {
             // Ad-hoc rules
             r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
             r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
-                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS)) (factHistory "+ params.nof +")))");
+                    "(list (create$ ACE-POL ACE-LID)) (factHistory "+ params.nof +")))");
             params.nof++;
             if (!params.adhocRulesClp.isEmpty()) {
                 System.out.println("WARNING: Loading ad-hoc rules");
@@ -726,11 +726,14 @@ public class JessInitializer {
         String current_obj = "";
         String current_subobj = "";
         String var_name = "";
+        params.requirementRules = new HashMap<>();
         for (int i = 1;i<nrules;i++) {
             Cell[] row = meas.getRow(i);
             String obj = row[0].getContents();
             String explan = row[1].getContents();
             params.subobjMeasurementParams.put(obj, explan);
+            ArrayList<String> attribTest = new ArrayList<>();
+            HashMap<String, ArrayList<String>> subobjTests = new HashMap<>();
             if(!obj.equalsIgnoreCase(current_obj)) {
                 nobj++;
                 nsubobj = 0;
@@ -754,13 +757,13 @@ public class JessInitializer {
 
             if (params.measurementsToSubobjectives.containsKey(param)) {
                 ArrayList list = (ArrayList) params.measurementsToSubobjectives.get(param);
-                if(!list.contains(tmp)) {
-                    list.add(tmp);
+                if(!list.contains(subobj)) {
+                    list.add(subobj);
                     params.measurementsToSubobjectives.put(param,list);
                 }
             } else {
                 ArrayList list = new ArrayList();
-                list.add(tmp);
+                list.add(subobj);
                 params.measurementsToSubobjectives.put(param,list);
             }
 
@@ -788,9 +791,9 @@ public class JessInitializer {
                 params.measurementsToPanels.put(param,list);
             }
             //String ruleName = "REQUIREMENTS::subobjective-" + subobj + "-" + type + " " + desc;
-            String ruleName = "REQUIREMENTS::subobjective-"  + subobj + "-attrib";
+            String ruleName = "REQUIREMENTS::"  + subobj + "-attrib" + type + " ";
 
-            String call = "(defrule REQUIREMENTS::subobjective-" + subobj + "-attrib ?mea <- (REQUIREMENTS::Measurement (Parameter " + param + ") ";
+            String call = "(defrule REQUIREMENTS::" + subobj + "-attrib" + type + " ?m <- (REQUIREMENTS::Measurement (Parameter " + param + ") ";
             //String call = "(defrule REQUIREMENTS::"  + subobj + "-attrib ?m <- (REQUIREMENTS::Measurement (taken-by ?whom) (power-duty-cycle# ?pc) (data-rate-duty-cycle# ?dc)  (Parameter " + param + ")";
             //boolean more_attributes = true;
             int ntests = 0;
@@ -800,18 +803,19 @@ public class JessInitializer {
                     break;
                 }
                 String attrib = row[j].getContents();
-
                 String[] tokens = attrib.split(" ",2);// limit = 2 so that remain contains RegionofInterest Global
                 String header = tokens[0];
                 String remain = tokens[1];
+                String att = "";
+                String val = "";
                 if (attrib.equalsIgnoreCase("")) {
                     call = call + " (taken-by ?who))";
                     //more_attributes = false;
                 } else if (header.startsWith("SameOrBetter")) {
                     ntests++;
                     String[] tokens2 = remain.split(" ");
-                    String att = tokens2[0];
-                    String val = tokens2[1];
+                    att = tokens2[0];
+                    val = tokens2[1];
                     String new_var_name = "?x" + ntests;
                     String match = att + " " +  new_var_name + "&~nil";
                     call = call + "(" + match + ")";
@@ -819,8 +823,8 @@ public class JessInitializer {
                 } else if (header.startsWith("ContainsRegion")) {
                     ntests++;
                     String[] tokens2 = remain.split(" ");
-                    String att = tokens2[0];
-                    String val = tokens2[1];
+                    att = tokens2[0];
+                    val = tokens2[1];
                     String new_var_name = "?x" + ntests;
                     String match = att + " " +  new_var_name + "&~nil";
                     call = call + "(" + match + ")";
@@ -833,27 +837,33 @@ public class JessInitializer {
                     calls_for_later = calls_for_later + " (test (ContainsBands  (create$ " + remain + ") $" + new_var_name + "))";
                 } else {
                     call = call + "(" + attrib + ")";
+                    att = header;
+                    val = remain;
                 }
+                attribTest.add(val);
+                subobjTests.put(att, attribTest);
             }
             call = call + "(taken-by ?who)) " + calls_for_later + " => ";
             var_name = "?*subobj-" + subobj + "*";
-
             if (type.startsWith("nominal")) {
-                call = call + "(assert (REASONING::fully-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (taken-by ?who)"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+                call = call + "(assert (REASONING::fully-satisfied (subobjective " + subobj + ") (parameter " + param + ") (value " + value + ") (objective \" " + explan + "\") (attribute " + desc + ")(taken-by ?who)"
+                        + " (requirement-id (?m getFactId)) " + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?m getFactId) \"}\"))"
                         + "))" ;
             } else {
-                call = call + "(assert (REASONING::partially-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (attribute " + desc + ") (taken-by ?who)"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?mea getFactId) \"}\"))"
+                call = call + "(assert (REASONING::partially-satisfied (subobjective " + subobj + ") (parameter " + param + ") (value " + value + ") (objective \" " + explan + "\") (attribute " + desc + ") (taken-by ?who)"
+                        + " (requirement-id (?m getFactId)) " + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?m getFactId) \"}\"))"
                         + "))" ;
             }
             call = call + "(bind " + var_name + " (max " + var_name + " " + value + " )))";
+            //System.out.println(call);
             r.eval(call);
             r.eval("(defglobal ?*num-soundings-per-day* = 0)");
+
+            params.requirementRules.put(subobj,subobjTests);
         }
-            params.measurementsToSubobjectives = getInverseHashMapSSToSAL(params.subobjectivesToMeasurements);
-            params.measurementsToObjectives = getInverseHashMapSALToSAL(params.objectivesToMeasurements);
-            params.measurementsToPanels = getInverseHashMapSALToSAL(params.panelsToMeasurements);
+        params.subobjectivesToMeasurements = getInverseHashMapSALToSS(params.measurementsToSubobjectives);
+        params.objectivesToMeasurements = getInverseHashMapSALToSAL(params.measurementsToObjectives);
+        params.panelsToMeasurements = getInverseHashMapSALToSAL(params.measurementsToPanels);
      }catch (Exception e) {
         e.printStackTrace();
         System.out.println( "EXC in loadRequirementRules " +e.getMessage() );
@@ -1326,15 +1336,44 @@ public class JessInitializer {
         }
         return inverse;
     }
+    private HashMap<String, String> getInverseHashMapSALToSS(HashMap<String, ArrayList<String>> hm) {
+        HashMap<String, String> inverse = new HashMap<>();
+        for (Map.Entry<String, ArrayList<String>> entr: hm.entrySet()) {
+            String key = entr.getKey();
+            ArrayList<String> vals = entr.getValue();
+            for (String val : vals) {
+                if (inverse.containsKey(val)) {
+                    String list = inverse.get(val);
+                    if (!list.equals(key)) {
+                        list = key;
+                        inverse.put(val, list);
+                    }
+                }
+                else {
+                    String list = new String();
+                    list = key;
+                    inverse.put(val, list);
+                }
+            }
 
+        }
+        return inverse;
+    }
     private void loadSynergyRules(Rete r, String clp) {
         try {
             r.batch(clp);
             for(Map.Entry<String, ArrayList<String>> es: params.measurementsToSubobjectives.entrySet()) {
                 String meas = es.getKey();
                 for (String subobj: es.getValue()) {
-                    String call = "(defrule SYNERGIES::stop-improving-" + meas.substring(1, meas.indexOf(" ")) + " ";
-                    String ruleName = "SYNERGIES::stop-improving-" + meas.substring(1, meas.indexOf(" "));
+                    String call = "";
+                    String ruleName = "";
+                    if (params.reqMode.equalsIgnoreCase("CRISP-CASES")) {
+                        call = "(defrule SYNERGIES::stop-improving-" + meas + " ";
+                        ruleName = "SYNERGIES::stop-improving-" + meas;
+                    } else {
+                        call = "(defrule SYNERGIES::stop-improving-" + meas.substring(1, meas.indexOf(" ")) + " ";
+                        ruleName = "SYNERGIES::stop-improving-" + meas.substring(1, meas.indexOf(" "));
+                    }
                     call += "?fsat <- (REASONING::fully-satisfied (subobjective " + subobj + ") (factHistory ?fh))";
                     call += " => (assert (REASONING::stop-improving (Measurement " + meas + ")"
                             + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?fsat getFactId) \"}\"))"
