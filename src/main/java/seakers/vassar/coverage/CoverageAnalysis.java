@@ -5,54 +5,47 @@
  */
 package seakers.vassar.coverage;
 
-import java.util.*;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import seakers.orekit.analysis.Analysis;
-import seakers.orekit.constellations.Walker;
-import seakers.orekit.event.*;
-import seakers.orekit.examples.CoverageExample;
-import seakers.orekit.object.CoverageDefinition;
-import seakers.orekit.object.CoveragePoint;
-import seakers.orekit.object.Instrument;
-import seakers.orekit.propagation.PropagatorFactory;
-import seakers.orekit.propagation.PropagatorType;
-import seakers.orekit.scenario.Scenario;
-import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-
-import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
-import static seakers.orekit.util.Orbits.LTAN2RAAN;
-
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
+import org.orekit.bodies.OneAxisEllipsoid;
+import org.orekit.data.DataProvidersManager;
+import org.orekit.errors.OrekitException;
+import org.orekit.frames.Frame;
+import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
-import org.orekit.time.AbsoluteDate;
-import org.orekit.time.TimeComponents;
-import org.orekit.time.TimeScalesFactory;
-import org.orekit.time.TimeScale;
-import org.orekit.time.DateComponents;
-import org.orekit.time.DateTimeComponents;
-import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.OneAxisEllipsoid;
-import org.orekit.errors.OrekitException;
-import org.orekit.frames.Frame;
-import org.orekit.frames.FramesFactory;
-import org.orekit.utils.Constants;
-import org.orekit.utils.IERSConventions;
-import org.orekit.data.DataProvidersManager;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.time.*;
+import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
+import seakers.orekit.constellations.Walker;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.analysis.AnalysisMetric;
+import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
+import seakers.orekit.event.EventAnalysis;
+import seakers.orekit.event.EventAnalysisEnum;
+import seakers.orekit.event.EventAnalysisFactory;
+import seakers.orekit.event.FieldOfViewEventAnalysis;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
+import seakers.orekit.propagation.PropagatorFactory;
+import seakers.orekit.propagation.PropagatorType;
+import seakers.orekit.scenario.Scenario;
 import seakers.orekit.util.OrekitConfig;
+
+import java.io.File;
+import java.util.*;
+
+import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
+import static seakers.orekit.util.Orbits.LTAN2RAAN;
 
 /**
  *
@@ -229,12 +222,12 @@ public class CoverageAnalysis {
      * @param fieldOfView [deg]
      * @param inclination [deg]
      * @param altitude [m]
-     * @param numSats
+     * @param numSatsPerPlane
      * @param numPlanes
      * @param raan [deg]
      * @throws OrekitException
      */
-    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, double raan) throws OrekitException{
+    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
         OrekitConfig.init(4);
 
@@ -260,7 +253,7 @@ public class CoverageAnalysis {
         payload.add(view1);
 
         //number of total satellites
-        int t = numSats;
+        int t = numSatsPerPlane*numPlanes;
 
         //number of planes
         int p = numPlanes;
@@ -516,4 +509,25 @@ public class CoverageAnalysis {
         return optRaan;
     }
 
+    public Map<TopocentricFrame, TimeIntervalArray> getAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException {
+        String raanLabel = Double.toString(raan);
+        CoverageAnalysisIO.AccessDataDefinition definition = new CoverageAnalysisIO.AccessDataDefinition(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, this.coverageGridGranularity, raanLabel, trueAnom);
+
+        String filename = this.coverageAnalysisIO.getAccessDataFilename(definition);
+        if (this.coverageAnalysisIO.getAccessDataFile(filename).exists()) {
+            // The access data exists
+            //System.out.println("Corresponding data file found");
+            return this.coverageAnalysisIO.readAccessData(definition);
+        }
+        else {
+            // Newly compute the accesses
+            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan);
+
+            if (this.saveAccessData) {
+                this.coverageAnalysisIO.writeAccessData(definition, fovEvents);
+            }
+
+            return fovEvents;
+        }
+    }
 }

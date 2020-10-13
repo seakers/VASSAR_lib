@@ -58,6 +58,7 @@ public class VassarPy {
 
         evaluationManager.clear();
         System.out.println("Architecture design DONE");
+        System.out.println("cost: "+result.getCost());
 
         return result.getDesigns();
     }

@@ -11,21 +11,24 @@ package seakers.vassar;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import jess.*;
-import jxl.*;
-import java.io.File;
-import java.io.StringWriter;
-import java.util.*;
-
+import jxl.Cell;
+import jxl.NumberCell;
+import jxl.Sheet;
+import jxl.Workbook;
+import org.apache.commons.lang3.StringUtils;
 import seakers.vassar.attribute.AttributeBuilder;
 import seakers.vassar.attribute.EOAttribute;
 import seakers.vassar.jessUserFunction.Improve;
 import seakers.vassar.jessUserFunction.SameOrBetter;
 import seakers.vassar.jessUserFunction.Worsen;
-import org.apache.commons.lang3.StringUtils;
 import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.template.classes.SlotInfo;
 import seakers.vassar.template.functions.JessExtension;
 import seakers.vassar.utils.MatlabFunctions;
+
+import java.io.File;
+import java.io.StringWriter;
+import java.util.*;
 
 public class JessInitializer {
 
@@ -40,7 +43,7 @@ public class JessInitializer {
         }
         return instance;
     }
-    
+
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
             this.params = params;
@@ -133,7 +136,7 @@ public class JessInitializer {
 
             // Load launch vehicle selection rules
             loadLaunchVehicleSelectionRules(r, params.launchVehicleSelectionRulesClp);
-            
+
             // Load fuzzy attribute rules
             loadFuzzyAttributeRules(r, templatesXls, "Fuzzy Attributes", "REQUIREMENTS::Measurement");
 
@@ -150,14 +153,14 @@ public class JessInitializer {
 
             // Load synergy rules
             loadSynergyRules(r, params.synergyRulesClp);
-            
+
             // Load assimilation rules
             loadAssimilationRules(r, params.assimilationRulesClp);
-            
+
             // Ad-hoc rules
             r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
             r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
-                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS)) (factHistory "+ params.nof +")))");
+                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS SAR_1)) (factHistory "+ params.nof +")))");
             params.nof++;
             if (!params.adhocRulesClp.isEmpty()) {
                 System.out.println("WARNING: Loading ad-hoc rules");
@@ -183,8 +186,8 @@ public class JessInitializer {
 
             loadAggregationRules(r, aggregation_xls, "Aggregation rules",
                     new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp });
-            
-            ///////////////////////////////////////////////////////////////////////////// 
+
+            /////////////////////////////////////////////////////////////////////////////
 
             Iterator<HasLHS> ruleIter = RawSafety.castType(r.listDefrules());
             Iterator<HasLHS> ruleIterCheck = RawSafety.castType(r.listDefrules());
@@ -212,14 +215,14 @@ public class JessInitializer {
                     r.eval(tmpString);
                 }
             }
-            
+
             //////////////////////////////////////////////////////////////////////////
-            
+
             r.reset();
-            
+
             //Create precomputed queries;
             loadPrecomputeQueries(qb);
-        
+
         }
         catch (Exception e) {
             System.out.println("EXC in InitializerJess " +e.getClass() + " : " + e.getMessage());
@@ -256,7 +259,7 @@ public class JessInitializer {
             System.out.println("EXC in loadOrbitRules " +e.getMessage());
         }
     }
-    
+
     private void loadTemplates(Rete r, Workbook xls, String clp) {
         loadMeasurementTemplate(r, xls);
         loadInstrumentTemplate(r, xls);
@@ -265,7 +268,7 @@ public class JessInitializer {
         loadSimpleTemplate(r, xls, "Launch-vehicle","DATABASE::Launch-vehicle");
         loadTemplatesCLP(r, clp);
     }
-    
+
     private void loadMeasurementTemplate(Rete r, Workbook xls) {
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
@@ -289,7 +292,7 @@ public class JessInitializer {
                 String strId = row[2].getContents();
                 int id = Integer.parseInt(strId);
                 String type = row[3].getContents();
-                                
+
                 attribsToKeys.put(name, id);
                 keysToAttribs.put(id, name);
                 attribsToTypes.put(name, type);
@@ -1042,10 +1045,10 @@ public class JessInitializer {
                 ArrayList<String> pan = new ArrayList<>();
                 String ruleName = "MANIFEST::" + instrument + "-init-can-measure";
                 String call = "(defrule MANIFEST::" + instrument + "-init-can-measure " + "(declare (salience -20)) ?this <- (CAPABILITIES::Manifested-instrument  (Name ?ins&" + instrument
-                        +  ") (Id ?id) (flies-in ?miss) (Intent ?int) (Spectral-region ?sr) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Illumination ?il) (factHistory ?fh)) "
+                        +  ") (Id ?id) (flies-in ?miss) (Intent ?int) (Spectral-region ?sr) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-string ?os) (orbit-anomaly# ?ano) (Illumination ?il) (factHistory ?fh)) "
                         + " (not (CAPABILITIES::can-measure (instrument ?ins) (in-orbit ?miss) (can-take-measurements no))) => "
                         + "(assert (CAPABILITIES::can-measure (instrument ?ins) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (data-rate-duty-cycle# nil) (power-duty-cycle# nil)(orbit-RAAN ?raan)"
-                        + "(in-orbit (eval (str-cat ?typ \"-\" ?h \"-\" ?inc \"-\" ?raan))) (can-take-measurements yes) (reason \"by default\") "
+                        + "(in-orbit (eval ?os)) (can-take-measurements yes) (reason \"by default\") "
                         + "(copied-to-measurement-fact no)(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \"}\")))))";
                 r.eval(call);
 
@@ -1425,13 +1428,13 @@ public class JessInitializer {
 
     private String createJessList(String str) {
         String s = "(create$ ";
-        
+
         str = str.substring(1, str.length()-1);
         String[] list = str.split(",");
-        
+
         for(String elem: list)
             s += elem + " ";
-        
+
         return s + ")";
     }
 }

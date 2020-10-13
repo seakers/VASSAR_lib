@@ -1,22 +1,8 @@
 package seakers.vassar.coverage;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.math3.util.FastMath;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
-import org.orekit.time.TimeScale;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-import seakers.orekit.object.CoveragePoint;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
@@ -25,10 +11,19 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.analysis.AnalysisMetric;
+import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
+import seakers.orekit.object.CoveragePoint;
 import seakers.vassar.RawSafety;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that computes coverage metrics for each satellite in the constellation
@@ -308,6 +303,7 @@ public class CoverageAnalysisIO {
         private double fieldOfView;
         private double inclination;
         private double altitude;
+        private double trueAnom;
         private int numSats;
         private int numPlanes;
         private int granularity;
@@ -320,6 +316,22 @@ public class CoverageAnalysisIO {
             this.numSats = numSats;
             this.numPlanes = numPlanes;
             this.granularity = granularity;
+            this.trueAnom = 0;
+            if(raanLabel == null){
+                this.raan = "NA";
+            }else{
+                this.raan = raanLabel;
+            }
+        }
+
+        public AccessDataDefinition(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, int granularity, String raanLabel, double trueAnom){
+            this.fieldOfView = fieldOfView;
+            this.inclination = inclination;
+            this.altitude = altitude;
+            this.numSats = numSats;
+            this.numPlanes = numPlanes;
+            this.granularity = granularity;
+            this.trueAnom = trueAnom;
             if(raanLabel == null){
                 this.raan = "NA";
             }else{
@@ -342,6 +354,7 @@ public class CoverageAnalysisIO {
                     append(numPlanes).
                     append(granularity).
                     append(raan).
+                    append(trueAnom).
                     toHashCode();
         }
     }

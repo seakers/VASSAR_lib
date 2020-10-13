@@ -375,7 +375,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             System.out.println(e.getMessage() + " " + e.getClass());
             e.printStackTrace();
         }
-        Result theresult = new Result(arch, science, cost, fuzzy_science, fuzzy_cost, subobj_scores, obj_scores,
+        Result theresult = new Result(arch, science, cost, 0, fuzzy_science, fuzzy_cost, subobj_scores, obj_scores,
                 panel_scores, subobj_scores_map);
         if (this.debug) {
             theresult.setCapabilities(qb.makeQuery("REQUIREMENTS::Measurement"));

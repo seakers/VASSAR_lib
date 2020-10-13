@@ -8,15 +8,15 @@ package seakers.vassar.utils;
  *
  * @author dani
  */
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.lang.reflect.Method;
-
 import jess.*;
 import seakers.vassar.Interval;
-import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.Resource;
+import seakers.vassar.spacecraft.LaunchVehicle;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import static java.lang.Math.*;
 import static org.moeaframework.util.Vector.dot;
@@ -288,7 +288,7 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(heatpower * redundancy);
             vv2.add(minTemp);
             vv2.add(maxTemp);
-            System.out.println("Avionics mass: "+mass);
+            //System.out.println("Avionics mass: "+mass);
             return new Value(vv2, RU.LIST);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -477,7 +477,7 @@ public class MatlabFunctions implements Userfunction {
                 }
             }
 
-            if(true) {
+            if(false) {
                 System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
                 + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
                 double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
@@ -549,9 +549,9 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
-            System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
+            //System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
-            if(true) {
+            if(false) {
                 System.out.println("comms mass: " + commsMass);
                 System.out.println("comms power: " + commsPower);
                 System.out.println("antenna dims: " + Arrays.toString(bestAntenna.getDims()));
