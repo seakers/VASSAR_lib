@@ -101,7 +101,7 @@ public class AssigningProblem extends AbstractProblem implements SystemArchitect
 
                 try {
                     Result result = this.evaluationManager.evaluateArchitectureAsync(arch_old, "Slow").get();
-                    arch.setObjective(0, -result.getCoverage()); //negative because MOEAFramework assumes minimization problems
+                    //arch.setObjective(0, -result.getCoverage()); //negative because MOEAFramework assumes minimization problems
                     arch.setObjective(1, result.getCost()); //normalize cost to maximum value
                     arch.setAlreadyEvaluated(true);
 

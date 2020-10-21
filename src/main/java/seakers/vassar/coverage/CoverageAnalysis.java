@@ -35,7 +35,7 @@ import seakers.orekit.event.FieldOfViewEventAnalysis;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.Instrument;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
+import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
@@ -99,7 +99,7 @@ public class CoverageAnalysis {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
+        this.endDate = startDate.shiftedBy(30 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -170,7 +170,7 @@ public class CoverageAnalysis {
     }
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes) throws OrekitException{
-        return this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, null);
+        return this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, 0.0,0.0);
     }
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, String raanLabel) throws OrekitException{
@@ -214,7 +214,7 @@ public class CoverageAnalysis {
             }
         }
 
-        return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan);
+        return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan, 0.0);
     }
 
     /**
@@ -227,7 +227,7 @@ public class CoverageAnalysis {
      * @param raan [deg]
      * @throws OrekitException
      */
-    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan) throws OrekitException{
+    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
         OrekitConfig.init(4);
 
@@ -247,7 +247,8 @@ public class CoverageAnalysis {
         double i = inclination;
 
         //define instruments and payload
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(22.5),FastMath.toRadians(22.5),0,earthShape);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
@@ -262,7 +263,7 @@ public class CoverageAnalysis {
         int f = 0;
 
         //Create a walker constellation
-        Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
+        Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
 
         //create a coverage definition
         CoverageDefinition covDef1 = new CoverageDefinition("covdef1", coverageGridGranularity, earthShape, gridStyle);
@@ -274,7 +275,7 @@ public class CoverageAnalysis {
         covDefs.add(covDef1);
 
         //set the type of propagation
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
 
         //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();
@@ -430,6 +431,23 @@ public class CoverageAnalysis {
         //System.out.println(String.format("Mean revisit time %s", mean));
         return mean;
     }
+    public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, this.propertiesPropagator);
+
+        }else{
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
+        }
+
+        double max = stat.getMax();
+        return max;
+    }
 
     /**
      * Computes a rough estimate of RAAN for a given LTAN
@@ -521,7 +539,7 @@ public class CoverageAnalysis {
         }
         else {
             // Newly compute the accesses
-            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan);
+            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan,trueAnom);
 
             if (this.saveAccessData) {
                 this.coverageAnalysisIO.writeAccessData(definition, fovEvents);

@@ -62,7 +62,7 @@ public class DSHIELDsizingTest {
         //initialize problem
         String path = "D:/Documents/VASSAR/VASSAR_resources";
         String[] numPlanes = new String[]{ "2","3","4" };
-        String[] numSatsPerPlane = new String[]{"1","2"};
+        String[] numSatsPerPlane = new String[]{"1","2","3","4"};
         String[] orbitAltitudes = new String[]{"350","500","600"};
         ArrayList<String> orbits = new ArrayList<String>();
         for (int i = 0; i < numPlanes.length; i++) {
