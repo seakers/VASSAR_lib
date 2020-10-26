@@ -63,7 +63,6 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
     @Override
     public Result call() {
         checkInit();
-
         Resource res = this.resourcePool.getResource();
         BaseParams params = res.getParams();
         Rete r = res.getRete();
@@ -156,8 +155,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.setFocus("ASSIMILATION");
             r.run();
 
-            r.setFocus("FUZZY");
-            r.run();
+            //r.setFocus("FUZZY");
+            //r.run();
 
             r.setFocus("SYNERGIES");
             r.run();
@@ -266,9 +265,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandFieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandFieldOfViewEvents = new ArrayList<>();
-            int coverageGranularity = 17;
+            int coverageGranularity = 20;
             CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
-            double[] latBounds = new double[]{FastMath.toRadians(-60), FastMath.toRadians(60)};
+            double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             for(int i = 0; i < arch.getSatelliteList().size(); i++) {
                 String orbName = arch.getSatelliteList().get(i).getOrbit();
@@ -459,7 +458,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
                     //Revisit times
                     CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
-                    double[] latBounds = new double[]{FastMath.toRadians(-10), FastMath.toRadians(10)};
+                    double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
                     double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 
                     List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();

@@ -248,11 +248,14 @@ public class CoverageAnalysis {
 
         //define instruments and payload
         //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
-        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(22.5),FastMath.toRadians(22.5),0,earthShape);
+        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+        OffNadirRectangularFOV fov_opposite = new OffNadirRectangularFOV(FastMath.toRadians(-45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
+        Instrument view2 = new Instrument("view2", fov_opposite, 100, 100);
         payload.add(view1);
-
+        payload.add(view2);
         //number of total satellites
         int t = numSatsPerPlane*numPlanes;
 

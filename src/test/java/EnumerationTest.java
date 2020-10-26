@@ -40,7 +40,7 @@ public class EnumerationTest {
             System.out.println(e);
         }
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i<10 ; i++) {
+        for(int i = 0; i<97 ; i++) {
             int repeat_cycle = parseInt(records.get(i).get(0));
             double alt = parseDouble(records.get(i).get(1));
             int inc = parseInt(records.get(i).get(4));
@@ -49,10 +49,10 @@ public class EnumerationTest {
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
         for(int i=0; i < orbitIncCombos.size();i++) {
-            for(int j = 3; j <= 4; j++) {
-                for(int k = 2; k <= 4; k++) {
+            for(int j = 1; j <= 4; j++) {
+                for(int k = 1; k <= 4; k++) {
                     for(int l = 0; l < 3; l++) {
-                        if(j*k > 10) {
+                        if(j*k > 8) {
                             continue;
                         }
                         if (l == 0) {
@@ -86,7 +86,8 @@ public class EnumerationTest {
                                 for(int n = 0; n < k; n++) {
                                     int pu = 360 / (j*k);
                                     int delAnom = pu * j; //in plane spacing between satellites
-                                    int RAAN = pu * k; //node spacing
+                                    int delRAAN = pu * k; //node spacing
+                                    int RAAN = delRAAN * m;
                                     int f = 1;
                                     int phasing = pu * f;
                                     int anom = (n * delAnom + phasing * m);
@@ -116,7 +117,8 @@ public class EnumerationTest {
                                 for(int n = 0; n < k; n++) {
                                     int pu = 360 / (j*k);
                                     int delAnom = pu * j; //in plane spacing between satellites
-                                    int RAAN = pu * k; //node spacing
+                                    int delRAAN = pu * k; //node spacing
+                                    int RAAN = delRAAN * m;
                                     int f = 1;
                                     int phasing = pu * f;
                                     int anom = (n * delAnom + phasing * m);
@@ -161,7 +163,7 @@ public class EnumerationTest {
             evaluationManager.clear();
             architecture.setCost(result.getCost());
             architecture.setCoverage(result.getCoverage());
-            System.out.println(architecture.toString("")+"Science: "+result.getScience()+", Cost: "+result.getCost()+", Revisit Time: "+result.getCoverage());
+            System.out.println(architecture.toString("")+"Cost: "+result.getCost()+", Revisit Time: "+result.getCoverage());
         }
         JSONObject results = new JSONObject();
         JSONArray arches = new JSONArray();
