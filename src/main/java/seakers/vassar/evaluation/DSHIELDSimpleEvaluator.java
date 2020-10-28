@@ -334,6 +334,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
             }
+            coverage.add(coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
 
         } catch (Exception e) {
 

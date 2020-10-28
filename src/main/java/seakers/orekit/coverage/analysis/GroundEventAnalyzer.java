@@ -5,19 +5,14 @@
  */
 package seakers.orekit.coverage.analysis;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.object.CoveragePoint;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.object.CoveragePoint;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * This class computes several standard metrics regarding events (occurring and
@@ -278,6 +273,20 @@ public class GroundEventAnalyzer implements Serializable {
                     for (double event : data.get(cp).getRiseAndSetTimesList()) {
                         ds.addValue(event);
                     }
+                }
+                break;
+            case PERCENT_COVERAGE:
+                for(TopocentricFrame cp : data.keySet()) {
+                    double sumDuration = 0;
+                    for (double duration : data.get(cp).getDurations()) {
+                        sumDuration += duration;
+                    }
+                    if(sumDuration > 0) {
+                        ds.addValue(1);
+                    } else {
+                        ds.addValue(0);
+                    }
+
                 }
                 break;
             case OCCURRENCES:

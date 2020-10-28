@@ -20,16 +20,15 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class EnumerationTest {
-    private static String resourcesPath = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
     private DSHIELDParams params;
 
     public static void main(String[] args){
-        String path = "D:/Documents/VASSAR/VASSAR_resources";
+        String path = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("C:/Users/Ben/Desktop/repeat_orbits_nonSSO_varinc.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\repeat_orbits_nonSSO_varinc.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -40,7 +39,7 @@ public class EnumerationTest {
             System.out.println(e);
         }
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i<97 ; i++) {
+        for(int i = 0; i<1 ; i++) {
             int repeat_cycle = parseInt(records.get(i).get(0));
             double alt = parseDouble(records.get(i).get(1));
             int inc = parseInt(records.get(i).get(4));
@@ -48,11 +47,11 @@ public class EnumerationTest {
             orbitIncCombos.add("LEO-"+alt+"-"+inc);
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
-        for(int i=0; i < orbitIncCombos.size();i++) {
+        for(int i=0; i < 20;i++) {
             for(int j = 1; j <= 4; j++) {
                 for(int k = 1; k <= 4; k++) {
                     for(int l = 0; l < 3; l++) {
-                        if(j*k > 8) {
+                        if(j*k > 7) {
                             continue;
                         }
                         if (l == 0) {
@@ -177,12 +176,13 @@ public class EnumerationTest {
             arch.put("maxRevisitP",architectures.get(i).getMaxRevisitP());
             arch.put("avgRevisitL",architectures.get(i).getAvgRevisitL());
             arch.put("maxRevisitL",architectures.get(i).getMaxRevisitL());
+            arch.put("percentCoverage",architectures.get(i).getPercentCoverage());
             arch.put("repeatCycle",architectures.get(i).getRepeatCycle());
             arches.add(arch);
         }
         results.put("architectures",arches);
         try{
-            FileWriter writer = new FileWriter("C:/Users/Ben/Desktop/output.json");
+            FileWriter writer = new FileWriter("output.json"); // may want to change this!
             writer.write(results.toJSONString());
             writer.close();
         } catch (Exception e) {

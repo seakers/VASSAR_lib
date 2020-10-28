@@ -8,6 +8,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
     private ArrayList<OrbitInstrumentObject> satelliteList;
     private String name;
     private int repeatCycle;
+    private double percentCoverage;
     private double avgRevisit;
     private double maxRevisit;
     private double avgRevisitP;
@@ -29,6 +30,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public double getMaxRevisitP() { return maxRevisitP; }
     public double getAvgRevisitL() { return avgRevisitL; }
     public double getMaxRevisitL() { return maxRevisitL; }
+    public double getPercentCoverage() { return percentCoverage; }
     public double getCost() { return cost; }
     public String getName() { return name; }
 
@@ -46,6 +48,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
         this.maxRevisitP = coverage.get(3);
         this.avgRevisitL = coverage.get(4);
         this.maxRevisitL = coverage.get(5);
+        this.percentCoverage = coverage.get(6);
     }
     public void setCost(double cost) {
         this.cost = cost;
