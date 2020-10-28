@@ -38,8 +38,9 @@ public class EnumerationTest {
         catch (Exception e) {
             System.out.println(e);
         }
+        int numArches = records.size();
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i<1 ; i++) {
+        for(int i = 0; i < numArches; i++) {
             int repeat_cycle = parseInt(records.get(i).get(0));
             double alt = parseDouble(records.get(i).get(1));
             int inc = parseInt(records.get(i).get(4));
@@ -47,7 +48,7 @@ public class EnumerationTest {
             orbitIncCombos.add("LEO-"+alt+"-"+inc);
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
-        for(int i=0; i < 20;i++) {
+        for(int i=0; i < numArches;i++) {
             for(int j = 1; j <= 4; j++) {
                 for(int k = 1; k <= 4; k++) {
                     for(int l = 0; l < 3; l++) {
