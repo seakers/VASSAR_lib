@@ -40,7 +40,7 @@ public class EnumerationTest {
         }
         int numArches = records.size();
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i < numArches; i++) {
+        for(int i = 0; i < 20; i++) {
             int repeat_cycle = parseInt(records.get(i).get(0));
             double alt = parseDouble(records.get(i).get(1));
             int inc = parseInt(records.get(i).get(4));
@@ -48,7 +48,7 @@ public class EnumerationTest {
             orbitIncCombos.add("LEO-"+alt+"-"+inc);
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
-        for(int i=0; i < numArches;i++) {
+        for(int i=0; i < 20;i++) {
             for(int j = 1; j <= 4; j++) {
                 for(int k = 1; k <= 4; k++) {
                     for(int l = 0; l < 3; l++) {
@@ -157,6 +157,9 @@ public class EnumerationTest {
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
 
+
+        JSONObject results = new JSONObject();
+        JSONArray arches = new JSONArray();
         for(SimpleArchitecture architecture : architectures) {
             evaluationManager.init(1);
             Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
@@ -164,31 +167,50 @@ public class EnumerationTest {
             architecture.setCost(result.getCost());
             architecture.setCoverage(result.getCoverage());
             System.out.println(architecture.toString("")+"Cost: "+result.getCost()+", Revisit Time: "+result.getCoverage());
-        }
-        JSONObject results = new JSONObject();
-        JSONArray arches = new JSONArray();
-        for(int i = 0; i < architectures.size();i++) {
             JSONObject arch = new JSONObject();
-            arch.put("name",architectures.get(i).getName());
-            arch.put("cost",architectures.get(i).getCost());
-            arch.put("avgRevisit",architectures.get(i).getAvgRevisit());
-            arch.put("maxRevisit",architectures.get(i).getMaxRevisit());
-            arch.put("avgRevisitP",architectures.get(i).getAvgRevisitP());
-            arch.put("maxRevisitP",architectures.get(i).getMaxRevisitP());
-            arch.put("avgRevisitL",architectures.get(i).getAvgRevisitL());
-            arch.put("maxRevisitL",architectures.get(i).getMaxRevisitL());
-            arch.put("percentCoverage",architectures.get(i).getPercentCoverage());
-            arch.put("repeatCycle",architectures.get(i).getRepeatCycle());
+            arch.put("name",architecture.getName());
+            arch.put("cost",architecture.getCost());
+            arch.put("avgRevisit",architecture.getAvgRevisit());
+            arch.put("maxRevisit",architecture.getMaxRevisit());
+            arch.put("avgRevisitP",architecture.getAvgRevisitP());
+            arch.put("maxRevisitP",architecture.getMaxRevisitP());
+            arch.put("avgRevisitL",architecture.getAvgRevisitL());
+            arch.put("maxRevisitL",architecture.getMaxRevisitL());
+            arch.put("percentCoverage",architecture.getPercentCoverage());
+            arch.put("repeatCycle",architecture.getRepeatCycle());
             arches.add(arch);
+            results.put("architectures",arches);
+            try{
+                FileWriter writer = new FileWriter("output.json"); // may want to change this!
+                writer.write(results.toJSONString());
+                writer.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        results.put("architectures",arches);
-        try{
-            FileWriter writer = new FileWriter("output.json"); // may want to change this!
-            writer.write(results.toJSONString());
-            writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+//        for(int i = 0; i < architectures.size();i++) {
+//            JSONObject arch = new JSONObject();
+//            arch.put("name",architectures.get(i).getName());
+//            arch.put("cost",architectures.get(i).getCost());
+//            arch.put("avgRevisit",architectures.get(i).getAvgRevisit());
+//            arch.put("maxRevisit",architectures.get(i).getMaxRevisit());
+//            arch.put("avgRevisitP",architectures.get(i).getAvgRevisitP());
+//            arch.put("maxRevisitP",architectures.get(i).getMaxRevisitP());
+//            arch.put("avgRevisitL",architectures.get(i).getAvgRevisitL());
+//            arch.put("maxRevisitL",architectures.get(i).getMaxRevisitL());
+//            arch.put("percentCoverage",architectures.get(i).getPercentCoverage());
+//            arch.put("repeatCycle",architectures.get(i).getRepeatCycle());
+//            arches.add(arch);
+//        }
+//        results.put("architectures",arches);
+//        try{
+//            FileWriter writer = new FileWriter("output.json"); // may want to change this!
+//            writer.write(results.toJSONString());
+//            writer.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         //OrekitConfig.init(numCpus, params.orekitResourcesPath);
 
         //OrekitConfig.end();
