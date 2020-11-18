@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class ClimateCentricEvaluationTest {
 
     public static void main(String[] args) throws Exception {
-        String resourcesPath = "D:/Documents/VASSAR/VASSAR_resources";
+        String resourcesPath = "../VASSAR_resources";
 
 //        // Instruments
 //        String[][] payloads = {{""}, {""}, {"SMAP_RAD"}, {""}, {""}, {"SMAP_RAD"}};
@@ -17,7 +17,7 @@ public class ClimateCentricEvaluationTest {
 
         VassarPy python = new VassarPy("DSHIELD", payloads, orbits, resourcesPath, null);
 
-        ArrayList<SpacecraftDescription> designs = python.archDesign();
+//        ArrayList<SpacecraftDescription> designs = python.archDesign();
         Result designsEval = python.archEval();
 
         int x = 1;
