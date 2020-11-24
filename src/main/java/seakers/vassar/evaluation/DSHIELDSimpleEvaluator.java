@@ -117,6 +117,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     r.eval(call);
                 }
             }
+            int planes = arch.getNumPlanes();
+            int satsPP = arch.getNumSatsPerPlane();
+            r.eval("(defrule MANIFEST::fixWalker ?v <- (MANIFEST::Mission (Name ?name) (launch-cost# ?c1&~nil)) => (modify ?v (num-of-sats-per-plane# "+satsPP+") (num-of-planes# "+planes+")))");
         } catch (Exception e) {
             System.out.println("" + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
@@ -269,6 +272,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
             double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+            double maxInclination = 0;
             for(int i = 0; i < arch.getSatelliteList().size(); i++) {
                 String orbName = arch.getSatelliteList().get(i).getOrbit();
                 Orbit orb = new Orbit(orbName);
@@ -283,13 +287,16 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     }
                 }
                 double inclination = orb.getInclinationNum(); // [deg]
+                if (inclination > maxInclination) {
+                    maxInclination  = inclination;
+                }
                 double altitude = orb.getAltitudeNum(); // [m]
                 double raan = orb.getRaanNum();
                 double trueAnom = orb.getTrueAnomNum();
                 String raanLabel = orb.getRaan();
 
-                int numSatsPerPlane = Integer.parseInt(orb.getNum_sats_per_plane());
-                int numPlanes = Integer.parseInt(orb.getNplanes());
+                int numSatsPerPlane = 1;
+                int numPlanes = 1;
 
                 Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom);
                 fieldOfViewEvents.add(accesses);
@@ -308,7 +315,14 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
             }
             coverage.add(coverageAnalysis.getRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
-            coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
+            if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,newLatBounds,lonBounds) / 3600);
+
+            } else {
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
+            }
+
 
             if(pBandFieldOfViewEvents.isEmpty()) {
                 coverage.add(0.0);
@@ -320,7 +334,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     pBandMergedEvents = EventIntervalMerger.merge(pBandMergedEvents, pBandEvent, false);
                 }
                 coverage.add(coverageAnalysis.getRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
-                coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
+                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,newLatBounds,lonBounds) / 3600);
+
+                } else {
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
+                }
             }
             if(lBandFieldOfViewEvents.isEmpty()) {
                 coverage.add(0.0);
@@ -332,12 +352,26 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
                 }
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
-                coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
+                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
+
+                } else {
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
+                }
             }
             coverage.add(coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
 
         } catch (Exception e) {
-
+            System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
+            e.printStackTrace();
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
         }
         return coverage;
     }

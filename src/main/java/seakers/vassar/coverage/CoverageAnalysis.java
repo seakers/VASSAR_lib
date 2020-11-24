@@ -41,9 +41,12 @@ import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
 import seakers.orekit.util.OrekitConfig;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.*;
 
+import static java.lang.Double.parseDouble;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seakers.orekit.util.Orbits.LTAN2RAAN;
 
@@ -267,9 +270,33 @@ public class CoverageAnalysis {
 
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
+        
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
 
+        ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
+        for(int idx = 0; idx < records.size(); idx++) {
+            double lat = parseDouble(records.get(idx).get(0));
+            double lon = parseDouble(records.get(idx).get(1));
+            lon = lon - 180.0;
+            lat = Math.toRadians(lat);
+            lon = Math.toRadians(lon);
+            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
+            if(Math.abs(lat) < Math.toRadians(70.0)) {
+                landPoints.add(landPoint);
+            }
+        }
         //create a coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", coverageGridGranularity, earthShape, gridStyle);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -366,6 +393,7 @@ public class CoverageAnalysis {
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
 
+        //double max = stat.getElement((int) Math.round(0.95*stat.getValues().length));
         double max = stat.getMax();
         return max;
     }

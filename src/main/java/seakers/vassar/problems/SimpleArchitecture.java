@@ -16,6 +16,8 @@ public class SimpleArchitecture extends AbstractArchitecture {
     private double avgRevisitL;
     private double maxRevisitL;
     private double cost;
+    private int numSatsPerPlane;
+    private int numPlanes;
 
 
     public SimpleArchitecture(ArrayList<OrbitInstrumentObject> satelliteList) {
@@ -33,6 +35,8 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public double getPercentCoverage() { return percentCoverage; }
     public double getCost() { return cost; }
     public String getName() { return name; }
+    public int getNumSatsPerPlane() { return numSatsPerPlane; }
+    public int getNumPlanes() { return numPlanes; }
 
     public void setRepeatCycle(int repeatCycle) {
         this.repeatCycle = repeatCycle;
@@ -53,6 +57,8 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public void setCost(double cost) {
         this.cost = cost;
     }
+    public void setNumSatsPerPlane (int satsPerPlane) { this.numSatsPerPlane = satsPerPlane; }
+    public void setNumPlanes (int numPlanes) { this.numPlanes = numPlanes; }
 
     @Override
     public boolean isFeasibleAssignment() {

@@ -23,12 +23,12 @@ public class EnumerationTest {
     private DSHIELDParams params;
 
     public static void main(String[] args){
-        String path = "../VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/repeat_orbits_nonSSO_varinc.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\repeat_orbits_nonSSO_varinc.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -38,9 +38,9 @@ public class EnumerationTest {
         catch (Exception e) {
             System.out.println(e);
         }
-        int numArches = records.size();
+        int numOrbits = records.size();
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i < 1; i++) {
+        for(int i = 0; i < numOrbits; i++) {
             int repeat_cycle = parseInt(records.get(i).get(0));
             double alt = parseDouble(records.get(i).get(1));
             int inc = parseInt(records.get(i).get(4));
@@ -48,10 +48,10 @@ public class EnumerationTest {
             orbitIncCombos.add("LEO-"+alt+"-"+inc);
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
-        for(int i=0; i < 1;i++) {                   // Original value of 20
-            for(int j = 2; j <= 2; j++) {           // Number of planes.     Original value of 4
-                for(int k = 2; k <= 2; k++) {       // Satellites per plane. Original value of 4
-                    for(int l = 0; l < 1; l++) {    // Original value of 3
+        for(int i=0; i < numOrbits;i++) {
+            for(int j = 1; j <= 4; j++) {
+                for(int k = 1; k <= 4; k++) {
+                    for(int l = 0; l < 1; l++) {
                         if(j*k > 7) {
                             continue;
                         }
@@ -162,7 +162,10 @@ public class EnumerationTest {
         JSONArray arches = new JSONArray();
         for(SimpleArchitecture architecture : architectures) {
             evaluationManager.init(1);
+            double start = System.nanoTime();
             Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
+            double end = System.nanoTime();
+            System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
             evaluationManager.clear();
             architecture.setCost(result.getCost());
             architecture.setCoverage(result.getCoverage());
