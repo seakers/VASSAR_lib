@@ -117,9 +117,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     r.eval(call);
                 }
             }
-            int planes = arch.getNumPlanes();
-            int satsPP = arch.getNumSatsPerPlane();
-            r.eval("(defrule MANIFEST::fixWalker ?v <- (MANIFEST::Mission (Name ?name) (launch-cost# ?c1&~nil)) => (modify ?v (num-of-sats-per-plane# "+satsPP+") (num-of-planes# "+planes+")))");
+//            int planes = arch.getNumPlanes();
+//            int satsPP = arch.getNumSatsPerPlane();
+//            r.eval("(defrule MANIFEST::fixWalker ?v <- (MANIFEST::Mission (Name ?name) (launch-cost# ?c1&~nil)) => (modify ?v (num-of-sats-per-plane# "+satsPP+") (num-of-planes# "+planes+")))");
         } catch (Exception e) {
             System.out.println("" + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
