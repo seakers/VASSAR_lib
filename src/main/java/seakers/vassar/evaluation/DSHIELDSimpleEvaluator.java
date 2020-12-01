@@ -268,9 +268,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandFieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandFieldOfViewEvents = new ArrayList<>();
-            int coverageGranularity = 20;
+            int coverageGranularity = 5;
             CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
-            double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+            double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
             for(int i = 0; i < arch.getSatelliteList().size(); i++) {
@@ -493,7 +493,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
                     //Revisit times
                     CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
-                    double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+                    double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
                     double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 
                     List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();

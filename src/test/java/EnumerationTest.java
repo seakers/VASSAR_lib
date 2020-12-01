@@ -39,18 +39,19 @@ public class EnumerationTest {
             System.out.println(e);
         }
         int numArches = records.size();
+        int startingIndex = 20;
         HashMap<String,Integer> alt_repeat = new HashMap<>();
-        for(int i = 0; i < 1; i++) {
-            int repeat_cycle = parseInt(records.get(i).get(0));
-            double alt = parseDouble(records.get(i).get(1));
-            int inc = parseInt(records.get(i).get(4));
+        for(int i = 0; i < 20; i++) {
+            int repeat_cycle = parseInt(records.get(i+startingIndex).get(0));
+            double alt = parseDouble(records.get(i+startingIndex).get(1));
+            int inc = parseInt(records.get(i+startingIndex).get(4));
             alt = (double)Math.round(alt * 100d) / 100d;
             orbitIncCombos.add("LEO-"+alt+"-"+inc);
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
-        for(int i=0; i < 1;i++) {                   // Original value of 20
-            for(int j = 2; j <= 2; j++) {           // Number of planes.     Original value of 4
-                for(int k = 2; k <= 2; k++) {       // Satellites per plane. Original value of 4
+        for(int i=0; i < 20; i++) {                   // Original value of 20
+            for(int j = 1; j <= 4; j++) {           // Number of planes.     Original value of 4
+                for(int k = 1; k <= 4; k++) {       // Satellites per plane. Original value of 4
                     for(int l = 0; l < 1; l++) {    // Original value of 3
                         if(j*k > 7) {
                             continue;

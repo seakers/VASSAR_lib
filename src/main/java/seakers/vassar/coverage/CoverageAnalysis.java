@@ -291,7 +291,7 @@ public class CoverageAnalysis {
             lat = Math.toRadians(lat);
             lon = Math.toRadians(lon);
             GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
-            if(Math.abs(lat) < Math.toRadians(70.0)) {
+            if(Math.abs(lat) <= Math.toRadians(75.0)) {
                 landPoints.add(landPoint);
             }
         }
