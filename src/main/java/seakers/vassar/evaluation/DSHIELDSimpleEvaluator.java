@@ -489,7 +489,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 if (recalculateRevisitTime) {
                     // Do the re-calculation of the revisit times
 
-                    int coverageGranularity = 20;
+                    int coverageGranularity = 5;
 
                     //Revisit times
                     CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
