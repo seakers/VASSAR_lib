@@ -272,7 +272,8 @@ public class CoverageAnalysis {
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
         
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");

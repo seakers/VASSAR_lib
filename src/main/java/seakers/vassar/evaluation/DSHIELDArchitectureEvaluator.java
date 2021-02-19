@@ -203,7 +203,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                 r.setFocus("AGGREGATION");
             }
             r.run();
-    
+
             if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 result = aggregate_performance_score_facts(params, r, m, qb);
             }
