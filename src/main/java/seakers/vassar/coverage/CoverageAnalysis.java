@@ -25,12 +25,12 @@ import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.geometry.fov.CircularFieldOfView;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
@@ -249,7 +249,7 @@ public class CoverageAnalysis {
         double i = FastMath.toRadians(inclination); // inclination given in deg
 
         //define instruments and payload
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        CircularFieldOfView fov = new CircularFieldOfView(Vector3D.PLUS_K, FastMath.toRadians(fieldOfView), 0.);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
@@ -263,7 +263,7 @@ public class CoverageAnalysis {
         //number of phases
         int f = 0;
 
-        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
+        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, earthShape, startDate, mu, FastMath.toRadians(raan), 0.0);
 
         //define coverage params
         //this is coverage with 20 granularity and equal area grid style
