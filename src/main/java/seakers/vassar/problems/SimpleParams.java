@@ -13,16 +13,17 @@ public class SimpleParams extends BaseParams {
     protected int numOrbits;
     protected HashMap<String, Integer> instrumentIndexes;
     protected HashMap<String, Integer> orbitIndexes;
-    protected int[] numSatellites = {1};
-    public int MAX_TOTAL_INSTR;
 
     public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
-        String[] instruments = new String[]{"P-band_SAR", "L-band_SAR"};
-        this.instrumentList = instruments;
+
+        // Uncomment for D-SHIELD
+        //String[] instruments = new String[]{"L-band_SAR","P-band_SAR","Aquarius","FMPL-2","L-band_Reflectometer","P-band_Reflectometer"};
+        // Uncomment for SMAP problem
+        this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
         this.orbitList = orbitList;
-        this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
-//        this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
+        //this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
+        this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
         this.numInstr = instrumentList.length;
         this.numOrbits = orbitList.length;
         instrumentIndexes = new HashMap<>();
@@ -74,9 +75,5 @@ public class SimpleParams extends BaseParams {
 
     public HashMap<String, Integer> getInstrumentIndexes() {
         return instrumentIndexes;
-    }
-
-    public int[] getNumSatellites(){
-        return this.numSatellites;
     }
 }
