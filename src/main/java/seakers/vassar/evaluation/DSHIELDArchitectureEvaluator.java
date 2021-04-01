@@ -1,3 +1,4 @@
+
 package seakers.vassar.evaluation;
 
 import jess.*;

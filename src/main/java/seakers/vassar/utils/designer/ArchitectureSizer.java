@@ -1,21 +1,27 @@
-package seakers.vassar.evaluation;
+package seakers.vassar.utils.designer;
 
-import jess.Fact;
-import jess.JessException;
-import jess.Rete;
+import jess.*;
+import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
+import org.orekit.frames.TopocentricFrame;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
+import seakers.vassar.coverage.CoverageAnalysis;
+import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
 import seakers.vassar.problems.Assigning.Architecture;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
 import seakers.vassar.utils.MatlabFunctions;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
+import java.util.*;
 
-    public DSHIELDArchitectureSizer() {
+public class ArchitectureSizer extends AbstractArchitectureEvaluator {
+    protected ArrayList<SpacecraftDescription> designs;
+    protected String[][] factList;
+
+    public ArchitectureSizer() {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
@@ -25,7 +31,7 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
         this.factList = null;
     }
 
-    public DSHIELDArchitectureSizer(String[][] factList) {
+    public ArchitectureSizer(String[][] factList) {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
@@ -35,7 +41,7 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
         this.factList = factList;
     }
 
-    public DSHIELDArchitectureSizer(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
+    public ArchitectureSizer(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
@@ -83,12 +89,12 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance() {
-        return new DSHIELDArchitectureSizer(super.resourcePool, super.arch, super.type, super.factList);
+        return new ArchitectureSizer(super.resourcePool, super.arch, super.type, this.factList);
     }
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        return new DSHIELDArchitectureSizer(resourcePool, arch, type,this.factList);
+        return new ArchitectureSizer(resourcePool, arch, type,this.factList);
     }
 
 
@@ -302,7 +308,7 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             for (Fact mission: missions)  {
-                cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
+//                cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
                 if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
@@ -363,7 +369,7 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
                 }
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
-                System.out.println("dry-mass: " + drymasses[0]);
+//                System.out.println("dry-mass: " + drymasses[0]);
             }
 
             for (int i = 0; i < missions.size(); i++) {
@@ -374,6 +380,187 @@ public class DSHIELDArchitectureSizer extends DSHIELDArchitectureEvaluator {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
+        Architecture arch = (Architecture) inputArch;
+
+        boolean[][] mat = arch.getBitMatrix();
+        try {
+            this.orbitsUsed = new HashSet<>();
+
+            for (int i = 0; i < params.getNumOrbits(); i++) {
+                int ninstrs = m.sumRowBool(mat, i);
+                if (ninstrs > 0) {
+                    String orbitName = params.getOrbitList()[i];
+//                    String[] tokens = orbitName.split("/");
+//                    String orbitPrefix = tokens[0];
+//                    String orbitPostfix = tokens[1];
+                    Orbit orb = new Orbit(orbitName);
+                    this.orbitsUsed.add(orb);
+
+                    String payload = "";
+                    String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
+                    for (int j = 0; j < params.getNumInstr(); j++) {
+                        if (mat[i][j]) {
+                            payload += " " + params.getInstrumentList()[j];
+                        }
+                    }
+                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
+                            + "(factHistory F" + params.nof + ")))";
+                    params.nof++;
+
+                    call += "(assert (SYNERGIES::cross-registered-instruments " +
+                            " (instruments " + payload +
+                            ") (degree-of-cross-registration spacecraft) " +
+                            " (platform " + orbitName + " )"
+                            + "(factHistory F" + params.nof + ")))";
+                    params.nof++;
+                    r.eval(call);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("" + e.getClass() + " " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    protected void overrideFacts(Rete r) throws JessException {
+        // Overrides facts related to the architecture design
+
+        if (this.factList != null) {
+            Iterator modList = r.listFacts();
+            Fact modFact;
+            for (Iterator it = modList; it.hasNext(); ) {
+                Fact factTemp = (Fact) it.next();
+                if (factTemp.getName().equals("MANIFEST::Mission")) {
+                    modFact = factTemp;
+                    for (int i = 0; i < factList.length; i++) {
+                        Value val = new Value(Double.parseDouble(factList[i][1]), 4);
+                        r.modify(modFact, factList[i][0], val);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    protected double updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
+        // Check if all of the orbits in the original formulation are used
+        double revTime = 0;
+        int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
+        String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA", "SSO-600-SSO-AM", "SSO-600-SSO-DD", "SSO-800-SSO-DD", "SSO-800-SSO-PM"};
+
+        for (int i = 0; i < params.getOrbitList().length; i++) {
+            String orb = params.getOrbitList()[i];
+            int matchedIndex = -1;
+            for (int j = 0; j < revTimePrecomputedOrbitList.length; j++) {
+                if (revTimePrecomputedOrbitList[j].equalsIgnoreCase(orb)) {
+                    matchedIndex = j;
+                    break;
+                }
+            }
+
+            // Assign -1 if unmatched. Otherwise, assign the corresponding index
+            revTimePrecomputedIndex[i] = matchedIndex;
+        }
+
+        for (String param : params.measurementsToInstruments.keySet()) {
+            Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
+
+            if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
+
+                ValueVector thefovs = v.listValue(r.getGlobalContext());
+                String[] fovs = new String[thefovs.size()];
+                for (int i = 0; i < thefovs.size(); i++) {
+                    int tmp = thefovs.get(i).intValue(r.getGlobalContext());
+                    fovs[i] = String.valueOf(tmp);
+                }
+
+                boolean recalculateRevisitTime = false;
+                for (int i = 0; i < fovs.length; i++) {
+                    if (revTimePrecomputedIndex[i] == -1) {
+                        // If there exists a single orbit that is different from pre-calculated ones, re-calculate
+                        recalculateRevisitTime = true;
+                    }
+                }
+
+                Double therevtimesGlobal;
+                Double therevtimesUS;
+
+                if (recalculateRevisitTime) {
+                    // Do the re-calculation of the revisit times
+
+                    int coverageGranularity = 20;
+
+                    //Revisit times
+                    CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
+                    double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+                    double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+
+                    List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+
+                    // For each fieldOfview-orbit combination
+                    for (Orbit orb : this.orbitsUsed) {
+                        int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
+
+                        if (fov <= 0) {
+                            continue;
+                        }
+
+                        double fieldOfView = fov; // [deg]
+                        double inclination = orb.getInclinationNum(); // [deg]
+                        double altitude = orb.getAltitudeNum(); // [m]
+                        double raan = orb.getRaanNum();
+                        //double trueAnom = orb.getTrueAnomNum();
+                        String raanLabel = orb.getRaan();
+
+                        int numSatsPerPlane = Integer.parseInt(orb.getNum_sats_per_plane());
+                        int numPlanes = Integer.parseInt(orb.getNplanes());
+
+                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, 0.0);
+                        fieldOfViewEvents.add(accesses);
+                    }
+
+                    // Merge accesses to get the revisit time
+                    Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
+
+                    for (int i = 0; i < fieldOfViewEvents.size(); ++i) {
+                        Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
+                        mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
+                    }
+                    therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds) / 3600;
+                    therevtimesUS = therevtimesGlobal;
+
+                } else {
+                    // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
+                    if (thefovs.size() < 5) {
+                        String[] new_fovs = new String[5];
+                        for (int i = 0; i < 5; i++) {
+                            if (i < thefovs.size()) {
+                                new_fovs[i] = fovs[revTimePrecomputedIndex[i]];
+                            } else {
+                                new_fovs[i] = "-1";
+                            }
+                        }
+                        fovs = new_fovs;
+                    }
+//                        String key = "1" + " x " + m.stringArraytoStringWith(fovs, "  ");
+                    String key = m.stringArraytoStringWith(fovs, "  ");
+                    therevtimesUS = params.revtimes.get(key);
+                    therevtimesGlobal = params.revtimes.get(key);
+                }
+                String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
+                        + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
+                        + "(avg-revisit-time-US# " + therevtimesUS + ")"
+                        + "(factHistory J" + javaAssertedFactID + ")))";
+                javaAssertedFactID++;
+                r.eval(call);
+                revTime = therevtimesGlobal;
+            }
+        }
+        return revTime;
     }
 }
 

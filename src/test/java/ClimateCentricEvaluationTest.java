@@ -1,8 +1,5 @@
 import seakers.vassar.Result;
-import seakers.vassar.spacecraft.SpacecraftDescription;
-import seakers.vassar.utils.VassarPy;
-
-import java.util.ArrayList;
+import seakers.vassar.utils.designer.Designer;
 
 public class ClimateCentricEvaluationTest {
 
@@ -10,15 +7,13 @@ public class ClimateCentricEvaluationTest {
         String resourcesPath = "../VASSAR_resources";
 
 //        // Instruments
-//        String[][] payloads = {{""}, {""}, {"SMAP_RAD"}, {""}, {""}, {"SMAP_RAD"}};
-        String[][] payloads = {{""}, {""}, {""}, {"SAR_1"}, {""}, {""}};
+        String[][] payloads = {{""}, {""}, {""}, {"L-band_ANT", "L-band_SAR"}, {""}, {""}};
         String[] orbits = {"SSO-400-SSO-AM","SSO-400-SSO-DD","SSO-600-SSO-AM","SSO-500-SSO-DD","SSO-800-SSO-AM","SSO-800-SSO-DD"};
-//        String[][] factList = {{"payload-power#", "69"}, {"payload-peak-power#", "69"}};
+        String[][] factList = null;
+//        factList = {{"payload-power#", "69"}, {"payload-peak-power#", "69"}};
 
-        VassarPy python = new VassarPy("DSHIELD", payloads, orbits, resourcesPath, null);
-
-//        ArrayList<SpacecraftDescription> designs = python.archDesign();
-        Result designsEval = python.archEval();
+        Designer designer = new Designer("SAR_sizing_ref","Designer", payloads, orbits, resourcesPath, factList);
+        designer.archDesign(true);
 
         int x = 1;
     }
