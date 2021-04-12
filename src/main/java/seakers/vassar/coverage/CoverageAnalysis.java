@@ -42,7 +42,6 @@ import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
 
 import java.io.File;
-import java.io.*;
 import java.util.*;
 
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
@@ -260,20 +259,6 @@ public class CoverageAnalysis {
         int f = 0;
 
         Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
-        //Create a walker constellation
-        
-        List<List<String>> records = new ArrayList<>();
-        //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
 
         //define coverage params
         //this is coverage with 20 granularity and equal area grid style
