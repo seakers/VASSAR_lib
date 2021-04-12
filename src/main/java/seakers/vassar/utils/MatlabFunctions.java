@@ -338,7 +338,6 @@ public class MatlabFunctions implements Userfunction {
 //            Pp = Pa;
 
             // Calculate time in daylight and eclipse
-            System.out.println("Time: "+T);
             double Td = T * solarFrac;
             double Te = T - Td;
 
@@ -485,8 +484,7 @@ public class MatlabFunctions implements Userfunction {
                 System.out.println("Total EPS Mass: "+ totalMass);
                 System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
             }
-            System.out.println("Payload average power: "+ppa);
-            System.out.println("Payload energy in kJ: "+ppa*T/1000);
+
             ValueVector vv2 = new ValueVector(4);
             vv2.add(Meps);
             vv2.add(Pbol);
