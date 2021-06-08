@@ -43,7 +43,11 @@ import seakers.orekit.util.OrekitConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
+//<<<<<<< HEAD
 import java.io.FileReader;
+//=======
+import java.io.*;
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 import java.util.*;
 
 import static java.lang.Double.parseDouble;
@@ -268,11 +272,20 @@ public class CoverageAnalysis {
         //number of phases
         int f = 0;
 
+//<<<<<<< HEAD
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
         
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//=======
+//        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
+        //Create a walker constellation
+        
+//        List<List<String>> records = new ArrayList<>();
+        //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -282,6 +295,14 @@ public class CoverageAnalysis {
         catch (Exception e) {
             System.out.println(e);
         }
+//<<<<<<< HEAD
+//=======
+
+        //define coverage params
+        //this is coverage with 20 granularity and equal area grid style
+        CoverageDefinition coverageDefinition = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        coverageDefinition.assignConstellation(walker);
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 
         ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
         for(int idx = 0; idx < records.size(); idx++) {
