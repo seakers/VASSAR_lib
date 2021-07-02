@@ -19,7 +19,7 @@ public class ResourcePool
             Resource res = new Resource(params.copy());
             
             pool.push( res );
-            System.out.println("Resource " + i + " initialized.");
+            //System.out.println("Resource " + i + " initialized.");
         }
     }
     

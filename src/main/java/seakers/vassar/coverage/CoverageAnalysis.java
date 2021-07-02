@@ -35,15 +35,22 @@ import seakers.orekit.event.FieldOfViewEventAnalysis;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.Instrument;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
+import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
 import seakers.orekit.util.OrekitConfig;
 
+import java.io.BufferedReader;
 import java.io.File;
+//<<<<<<< HEAD
+import java.io.FileReader;
+//=======
+import java.io.*;
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 import java.util.*;
 
+import static java.lang.Double.parseDouble;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seakers.orekit.util.Orbits.LTAN2RAAN;
 
@@ -99,7 +106,7 @@ public class CoverageAnalysis {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
+        this.endDate = startDate.shiftedBy(30 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -170,7 +177,7 @@ public class CoverageAnalysis {
     }
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes) throws OrekitException{
-        return this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, null);
+        return this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, 0.0,0.0);
     }
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, String raanLabel) throws OrekitException{
@@ -214,7 +221,7 @@ public class CoverageAnalysis {
             }
         }
 
-        return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan);
+        return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan, 0.0);
     }
 
     /**
@@ -227,7 +234,7 @@ public class CoverageAnalysis {
      * @param raan [deg]
      * @throws OrekitException
      */
-    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan) throws OrekitException{
+    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
         OrekitConfig.init(4);
 
@@ -247,11 +254,15 @@ public class CoverageAnalysis {
         double i = inclination;
 
         //define instruments and payload
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+        OffNadirRectangularFOV fov_opposite = new OffNadirRectangularFOV(FastMath.toRadians(-45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
+        Instrument view2 = new Instrument("view2", fov_opposite, 100, 100);
         payload.add(view1);
-
+        payload.add(view2);
         //number of total satellites
         int t = numSatsPerPlane*numPlanes;
 
@@ -261,11 +272,52 @@ public class CoverageAnalysis {
         //number of phases
         int f = 0;
 
+//<<<<<<< HEAD
         //Create a walker constellation
-        Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
+        Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
+        
+        List<List<String>> records = new ArrayList<>();
+//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//=======
+//        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
+        //Create a walker constellation
+        
+//        List<List<String>> records = new ArrayList<>();
+        //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+//<<<<<<< HEAD
+//=======
 
+        //define coverage params
+        //this is coverage with 20 granularity and equal area grid style
+        CoverageDefinition coverageDefinition = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        coverageDefinition.assignConstellation(walker);
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
+
+        ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
+        for(int idx = 0; idx < records.size(); idx++) {
+            double lat = parseDouble(records.get(idx).get(0));
+            double lon = parseDouble(records.get(idx).get(1));
+            lon = lon - 180.0;
+            lat = Math.toRadians(lat);
+            lon = Math.toRadians(lon);
+            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
+            if(Math.abs(lat) <= Math.toRadians(75.0)) {
+                landPoints.add(landPoint);
+            }
+        }
         //create a coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", coverageGridGranularity, earthShape, gridStyle);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -274,7 +326,7 @@ public class CoverageAnalysis {
         covDefs.add(covDef1);
 
         //set the type of propagation
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
 
         //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();
@@ -305,111 +357,29 @@ public class CoverageAnalysis {
         Map<TopocentricFrame, TimeIntervalArray> accesses = fovEvent.getEvents(covDef1);
         return accesses;
 
-
-//        long start = System.nanoTime();
-//
-//        // Reset the properties setting
-//        this.propertiesPropagator = new Properties();
-//
-//        TimeScale utc = TimeScalesFactory.getUTC();
-//        double mu = Constants.WGS84_EARTH_MU; // gravitational coefficient
-//
-//        //must use IERS_2003 and EME2000 frames to be consistent with STK
-//        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
-//        Frame inertialFrame = FramesFactory.getEME2000();
-//
-//        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-//                Constants.WGS84_EARTH_FLATTENING, earthFrame);
-//
-//        //Enter satellite orbital parameters
-//        double h = altitude; //altitude in meters
-//        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h; //semi-major axis
-//        double i = FastMath.toRadians(inclination); // inclination given in deg
-//
-//        //define instruments and payload
-//        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
-//        ArrayList<Instrument> payload = new ArrayList<>();
-//        Instrument view1 = new Instrument("view1", fov, 100, 100);
-//        payload.add(view1);
-//
-//        //number of total satellites
-//        int t = numSats;
-//
-//        //number of planes
-//        int p = numPlanes;
-//
-//        //number of phases
-//        int f = 0;
-//
-//        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
-//
-//        //define coverage params
-//        //this is coverage with 20 granularity and equal area grid style
-//        CoverageDefinition coverageDefinition = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
-//        coverageDefinition.assignConstellation(walker);
-//
-//        //define where to save the coverage - in a map
-//        HashSet<CoverageDefinition> coverageDefinitionMap = new HashSet<>();
-//        coverageDefinitionMap.add(coverageDefinition);
-//
-//        //propagator type
-//        PropagatorFactory propFactory = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
-//
-//        //can set the properties of the analyses
-//        Properties propertiesEventAnalysis = new Properties();
-//        propertiesEventAnalysis.setProperty("fov.saveAccess", "false");
-//
-//        //set the event analyses
-//        EventAnalysisFactory eventAnalysisFactory = new EventAnalysisFactory(startDate, endDate, inertialFrame, propFactory);
-//        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-//        FieldOfViewEventAnalysis fovEventAnalysis = (FieldOfViewEventAnalysis) eventAnalysisFactory.createGroundPointAnalysis(EventAnalysisEnum.FOV, coverageDefinitionMap, propertiesEventAnalysis);
-//        eventanalyses.add(fovEventAnalysis);
-//
-//        //set the analyses
-//        ArrayList<Analysis<?>> analyses = new ArrayList<>();
-//
-//        Scenario scene = new Scenario.Builder(startDate, endDate, utc).
-//                eventAnalysis(eventanalyses).
-//                covDefs(coverageDefinitionMap).name("SMAP").properties(propertiesPropagator).
-//                propagatorFactory(propFactory).build();
-//
-//        try {
-////            System.out.println(String.format("Running Scenario %s", scene));
-////            System.out.println(String.format("Number of points:     %d", coverageDefinition.getNumberOfPoints()));
-////            System.out.println(String.format("Number of satellites: %d", walker.getSatellites().size()));
-//            scene.call();
-//        }
-//        catch (Exception ex) {
-////            Logger.getLogger(CoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-////            System.out.println("Fail: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
-////                    ", nPlane: " + numPlanes + ", raan: " + raan );
-//
-//            throw new IllegalStateException("scenario failed to complete.");
-//        }
-//
-////        System.out.println("Success: fov: " + fieldOfView + ", inc: " + inclination + ", alt: " + altitude + ", nSat: " + numSats +
-////                ", nPlane: " + numPlanes + ", raan: " + raan );
-////        Logger.getGlobal().finer(String.format("Done Running Scenario %s", scene));
-//
-//        Map<TopocentricFrame, TimeIntervalArray> accesses = fovEventAnalysis.getEvents(coverageDefinition);
-//
-//        Object[] accessVals = accesses.values().toArray();
-//        for(int j = 0; j < accesses.size(); j++){
-//            TimeIntervalArray temp = (TimeIntervalArray) accessVals[j];
-//            if(temp.isAccessing()){
-//                int y = 0;
-//            }
-//        }
-//
-//        //output the time
-//        long end = System.nanoTime();
-////        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
-//
-//        return accesses;
     }
 
     public double getRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses){
         return getRevisitTime(accesses,  new double[0], new double[0]);
+    }
+
+    public double getPercentCoverage(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.PERCENT_COVERAGE, true, this.propertiesPropagator);
+
+        }else{
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.PERCENT_COVERAGE, true, latBounds, lonBounds, this.propertiesPropagator);
+        }
+
+        double perc_cov = stat.getMean();
+        //System.out.println(String.format("Mean revisit time %s", mean));
+        return perc_cov;
     }
 
     public double getRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
@@ -429,6 +399,24 @@ public class CoverageAnalysis {
         double mean = stat.getMean();
         //System.out.println(String.format("Mean revisit time %s", mean));
         return mean;
+    }
+    public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, this.propertiesPropagator);
+
+        }else{
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
+        }
+
+        //double max = stat.getElement((int) Math.round(0.95*stat.getValues().length));
+        double max = stat.getMax();
+        return max;
     }
 
     /**
@@ -521,7 +509,7 @@ public class CoverageAnalysis {
         }
         else {
             // Newly compute the accesses
-            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan);
+            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan,trueAnom);
 
             if (this.saveAccessData) {
                 this.coverageAnalysisIO.writeAccessData(definition, fovEvents);

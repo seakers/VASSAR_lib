@@ -47,4 +47,5 @@ public enum AnalysisMetric {
      * Number of occurrences (passes or gaps)
      */
     OCCURRENCES,
+    PERCENT_COVERAGE,
 }
