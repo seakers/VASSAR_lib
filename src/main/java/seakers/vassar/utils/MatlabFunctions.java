@@ -337,7 +337,7 @@ public class MatlabFunctions implements Userfunction {
             Pa = Pa/2;
             Pp = Pp/2;
 
-            System.out.println(ppa + " " + pcoms + " " + pav )
+            System.out.println(ppa + " " + pcoms + " " + pav );
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;

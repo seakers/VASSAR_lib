@@ -24,7 +24,8 @@ dependencies {
     compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
     compile 'org.orekit:orekit:10.0'
     compile 'seakers:orekit:1.0'
-    compile 'gov.sandia:jess:7.1p2'
+    compile files('\\..\\..\\..\\.m2\\repository\\gov\\sandia\\jess\\Jess71p2\\lib\\jess.jar')
+    compile files('\\..\\..\\..\\.m2\\repository\\org\\json\\simple\\1.1\\json-simple-1.1.1.jar')
     compile 'io.pebbletemplates:pebble:3.1.0'
     compile 'org.slf4j:slf4j-simple:1.7.28'
     testCompile 'junit:junit:4.12'
