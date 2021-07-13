@@ -24,7 +24,7 @@ public class Result implements Serializable {
 
     private double science;
     private double cost;
-    private double coverage;
+    private ArrayList<Double> coverage;
     private ArrayList<ArrayList<ArrayList<Double>>> subobjectiveScores;
     private ArrayList<ArrayList<Double>> objectiveScores;
     private ArrayList<Double> panelScores;
@@ -43,7 +43,7 @@ public class Result implements Serializable {
 
     public Result(AbstractArchitecture arch, double science, double cost) {
         this.science = science;
-        this.coverage = 0;
+        this.coverage = new ArrayList<>();
         this.cost = cost;
         this.subobjectiveScores = null;
         this.subobjectiveScoresMap = null;
@@ -111,8 +111,8 @@ public class Result implements Serializable {
         this.arch = arch;
     }
 
-    public void setCoverage(double coverage) { this.coverage = coverage; }
-    public double getCoverage() { return coverage; }
+    public void setCoverage(ArrayList<Double> coverage) { this.coverage = coverage; }
+    public ArrayList<Double> getCoverage() { return coverage; }
 
     public double getScience() {
         return science;

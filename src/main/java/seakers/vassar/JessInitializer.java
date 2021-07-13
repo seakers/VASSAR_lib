@@ -163,7 +163,7 @@ public class JessInitializer {
                     "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS SAR_1)) (factHistory "+ params.nof +")))");
             params.nof++;
             if (!params.adhocRulesClp.isEmpty()) {
-                System.out.println("WARNING: Loading ad-hoc rules");
+                //System.out.println("WARNING: Loading ad-hoc rules");
                 r.batch(params.adhocRulesClp);
             }
 

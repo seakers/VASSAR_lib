@@ -345,8 +345,10 @@ public class MatlabFunctions implements Userfunction {
             double pstr = ppp * 0.01/0.46;
             double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
             double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
-//            Pa = 1200;
-//            Pp = Pa;
+            Pa = Pa/2;
+            Pp = Pp/2;
+
+            System.out.println(ppa + " " + pcoms + " " + pav );
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
@@ -576,6 +578,100 @@ public class MatlabFunctions implements Userfunction {
             ValueVector vv2 = new ValueVector(2);
             vv2.add(commsMass);
             vv2.add(commsPower);
+            return new Value(vv2, RU.LIST);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Value countSats(Funcall vv, Context c) {
+        String orb1;
+        String orb2;
+        double ns1;
+        double ns2;
+
+        try {
+            orb1 = vv.get(2).stringValue(c);
+            orb2 = vv.get(3).stringValue(c);
+            ns1 = Double.parseDouble( vv.get(4).stringValue(c) );
+            ns2 = Double.parseDouble( vv.get(5).stringValue(c) );
+            double npp = 0;
+            double nsp = 0;
+            double np2 = 1;
+
+            String[] orbit1 = orb1.split("-");
+            String[] orbit2 = orb2.split("-");
+
+            boolean sameOrbit = true;
+            for(int i = 0; i < 4; i++){
+                if(!orbit1[i].equals(orbit2[i])){
+                    sameOrbit = false;
+                    break;
+                }
+            }
+
+            if(sameOrbit){
+                nsp = ns2;
+                np2 = 0;
+                ns2 = 0;
+            }
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(npp);
+            vv2.add(nsp);
+            vv2.add(np2);
+            vv2.add(ns2);
+            return new Value(vv2, RU.LIST);
+        }
+            catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Value countPlanes(Funcall vv, Context c) {
+        String orb1;
+        String orb2;
+        double np1;
+        double ns1;
+        double np2;
+        double ns2;
+
+        try {
+            orb1 = vv.get(2).stringValue(c);
+            np1 = Double.parseDouble( vv.get(3).stringValue(c) );
+            ns1 = Double.parseDouble( vv.get(4).stringValue(c) );
+            orb2 = vv.get(5).stringValue(c);
+            np2 = Double.parseDouble( vv.get(6).stringValue(c) );
+            ns2 = Double.parseDouble( vv.get(7).stringValue(c) );
+
+            double npp = 0;
+            double nsp = 0;
+
+            String[] orbit1 = orb1.split("-");
+            String[] orbit2 = orb2.split("-");
+
+            boolean sameOrbit = true;
+            for(int i = 0; i < 3; i++){
+                if(!orbit1[i].equals(orbit2[i])){
+                    sameOrbit = false;
+                    break;
+                }
+            }
+
+            if(sameOrbit && !orb1.equals(orb2)){
+                npp = np2;
+                np2 = 0;
+                ns2 = 0;
+            }
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(npp);
+            vv2.add(nsp);
+            vv2.add(np2);
+            vv2.add(ns2);
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
