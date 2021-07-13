@@ -235,6 +235,7 @@ public class MatlabFunctions implements Userfunction {
 
             // Estimate program memory, RAM, and frequency -- based on SMAD
             // tables, data downloaded per day, and margin of error (50%)
+            // TODO check values and source values
 
             double refMass = pmass * 0.0983;
 
@@ -312,8 +313,7 @@ public class MatlabFunctions implements Userfunction {
         double dod;
 
         try {
-            String[] cellType = {"Multi", "Si", "GaAs", "DANI"};
-//            String[] cellType = {"DANI"};
+            String[] cellType = {"Multi", "Si", "GaAs", "DANI"}; // TODO What is DANI type cell?
             String[] battType = {"NiH2", "NiCd","LiIon"};
 
             ppa = vv.get(2).floatValue(c);
@@ -329,13 +329,12 @@ public class MatlabFunctions implements Userfunction {
             dod = vv.get(12).floatValue(c);
 
             // Total power
+            // TODO AHHHHHHHHHH where are these from
             double ppow = ppp * 0.09/0.46;
             double ptherm = ppp * 0.10/0.46;
             double pstr = ppp * 0.01/0.46;
-            double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
+            double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr; // TODO add propulsion power?
             double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
-//            Pa = 1200;
-//            Pp = Pa;
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
@@ -345,7 +344,7 @@ public class MatlabFunctions implements Userfunction {
             double Xe = 0.65;
             double Xd = 0.85;
             double Pe = 0.8 * Pa + 0.2 * Pp;
-            double Pd = Pe;
+            double Pd = Pe; // TODO implement more interesting conops?
             double Psa_min = (Pe*Te/Xe + Pd*Td/Xd)/Td;
 
             // Look for best combination of materials
@@ -370,8 +369,8 @@ public class MatlabFunctions implements Userfunction {
                 double Ld;
                 double Peol;
 
-//                Pbol_temp = Pa;
                 switch (cellType[i]){
+                    // TODO sources for numbers if possible
                     case "Multi":
                         P_density_temp = 383 * 0.77 * cos(worstAngle * PI / 180);
                         Ld = pow( (1-0.005), lifetime);
@@ -445,7 +444,7 @@ public class MatlabFunctions implements Userfunction {
                         double Mregconv;
                         double Mwiring;
 
-                        if(drymass < 30.0){
+                        if(drymass < 30.0){ // TODO this seems sketchy
                             Mcpu = 0.02 * Psa_min / 10;
                             Mregconv = 0.025 * Psa_min / 10;
                             Mwiring = (0.01 + 0.04) / 2 * drymass;
@@ -477,14 +476,6 @@ public class MatlabFunctions implements Userfunction {
                 }
             }
 
-            if(false) {
-                System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
-                + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
-                double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
-                System.out.println("Total EPS Mass: "+ totalMass);
-                System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
-            }
-
             ValueVector vv2 = new ValueVector(4);
             vv2.add(Meps);
             vv2.add(Pbol);
@@ -510,7 +501,6 @@ public class MatlabFunctions implements Userfunction {
 
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
             String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-//            String[] bands_NEN = {"Xband"};
             double[] receiverPower = new double[250];
             double[] antennaGain = new double[50];
             double costMin = 1e10;
@@ -562,7 +552,7 @@ public class MatlabFunctions implements Userfunction {
 
 
             ValueVector vv2 = new ValueVector(2);
-            vv2.add(commsMass);
+            vv2.add(commsMass); // TODO add transceiver mass and power
             vv2.add(commsPower);
             return new Value(vv2, RU.LIST);
         }

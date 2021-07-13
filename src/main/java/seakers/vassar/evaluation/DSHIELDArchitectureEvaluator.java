@@ -265,6 +265,8 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
             r.eval("(run)");
+            r.eval("(focus LV-SELECTION4)");
+            r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");

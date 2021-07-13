@@ -167,16 +167,16 @@ public class JessInitializer {
                 r.batch(params.adhocRulesClp);
             }
 
-            // Load down-selection rules
-            loadDownSelectionRules(r, params.downSelectionRulesClp);
-
-            // Load search rules
-            r.eval("(deffacts DATABASE::add-improve-orbit-list-of-improve-heuristics " +
-                    "(SEARCH-HEURISTICS::improve-heuristic (id improveOrbit) (factHistory " + params.nof + ")" +
-                    "))");
-            params.nof++;
-
-            loadSearchRules(r, params.searchHeuristicRulesClp);
+//            // Load down-selection rules
+//            loadDownSelectionRules(r, params.downSelectionRulesClp);
+//
+//            // Load search rules
+//            r.eval("(deffacts DATABASE::add-improve-orbit-list-of-improve-heuristics " +
+//                    "(SEARCH-HEURISTICS::improve-heuristic (id improveOrbit) (factHistory " + params.nof + ")" +
+//                    "))");
+//            params.nof++;
+//
+//            loadSearchRules(r, params.searchHeuristicRulesClp);
 
             // Load explanation rules
             loadExplanationRules(r, params.explanationRulesClp);

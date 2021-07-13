@@ -73,7 +73,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
         try {
             if (type.equalsIgnoreCase("Slow")) {
-                result = evaluatePerformance(params, r, arch, qb, m);
+                //result = evaluatePerformance(params, r, arch, qb, m);
                 r.eval("(reset)");
                 assertMissions(params, r, arch, m);
             }
@@ -407,6 +407,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(focus LV-SELECTION2)");
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION4)");
             r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
