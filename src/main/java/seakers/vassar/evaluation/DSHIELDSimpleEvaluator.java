@@ -9,18 +9,18 @@ import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
-import seakers.vassar.problems.Assigning.Architecture;
+import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
 import seakers.vassar.utils.MatlabFunctions;
 
 import java.util.*;
 
-public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator {
+public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
     protected ArrayList<SpacecraftDescription> designs;
     protected String[][] factList;
 
-    public DSHIELDArchitectureEvaluator() {
+    public DSHIELDSimpleEvaluator() {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
@@ -30,7 +30,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
         this.factList = null;
     }
 
-    public DSHIELDArchitectureEvaluator(String[][] factList) {
+    public DSHIELDSimpleEvaluator(String[][] factList) {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
@@ -40,7 +40,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
         this.factList = factList;
     }
 
-    public DSHIELDArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
+    public DSHIELDSimpleEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
@@ -52,23 +52,17 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance() {
-        return new DSHIELDArchitectureEvaluator(super.resourcePool, super.arch, super.type, this.factList);
+        return new DSHIELDSimpleEvaluator(super.resourcePool, super.arch, super.type, this.factList);
     }
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        return new DSHIELDArchitectureEvaluator(resourcePool, arch, type, this.factList);
+        return new DSHIELDSimpleEvaluator(resourcePool, arch, type, this.factList);
     }
 
     @Override
     public Result call() {
-
         checkInit();
-
-        if (!arch.isFeasibleAssignment()) {
-            return new Result(arch, 0.0, 1E5);
-        }
-
         Resource res = this.resourcePool.getResource();
         BaseParams params = res.getParams();
         Rete r = res.getRete();
@@ -76,58 +70,39 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
         MatlabFunctions m = res.getM();
         Result result = new Result();
 
+        result.setScience(evaluateScience(params,r,arch,qb,m));
         try {
-            if (type.equalsIgnoreCase("Slow")) {
-                result = evaluatePerformance(params, r, arch, qb, m);
-                r.eval("(reset)");
-                assertMissions(params, r, arch, m);
-            } else {
-                throw new Exception("Wroeng type of task");
-            }
-            evaluateCost(params, r, arch, result, qb, m);
-
-
-            for (SpacecraftDescription design : this.designs) {
-                design.setEval(result);
-            }
-
-            result.setDesigns(this.designs);
-            result.setTaskType(type);
+            r.eval("(reset)");
+            assertMissions(params,r,arch,m);
         } catch (Exception e) {
             System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
             this.resourcePool.freeResource(res);
         }
+        result.setCost(evaluateCosts(params,r,arch,qb,m));
+        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+
         this.resourcePool.freeResource(res);
 
         return result;
     }
 
-
     @Override
     protected void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
-        Architecture arch = (Architecture) inputArch;
-
-        boolean[][] mat = arch.getBitMatrix();
+        SimpleArchitecture arch = (SimpleArchitecture) inputArch;
         try {
             this.orbitsUsed = new HashSet<>();
-
-            for (int i = 0; i < params.getNumOrbits(); i++) {
-                int ninstrs = m.sumRowBool(mat, i);
+            for (int i = 0; i < arch.getSatelliteList().size(); i++) {
+                int ninstrs = arch.getSatelliteList().get(i).getInstrumentList().length;
                 if (ninstrs > 0) {
-                    String orbitName = params.getOrbitList()[i];
-//                    String[] tokens = orbitName.split("/");
-//                    String orbitPrefix = tokens[0];
-//                    String orbitPostfix = tokens[1];
+                    String orbitName = arch.getSatelliteList().get(i).getOrbit();
                     Orbit orb = new Orbit(orbitName);
                     this.orbitsUsed.add(orb);
 
                     String payload = "";
                     String call = "(assert (MANIFEST::Mission (Name " + orbitName + ") ";
-                    for (int j = 0; j < params.getNumInstr(); j++) {
-                        if (mat[i][j]) {
-                            payload += " " + params.getInstrumentList()[j];
-                        }
+                    for (int j = 0; j < ninstrs; j++) {
+                        payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
                     call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
@@ -142,16 +117,18 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                     r.eval(call);
                 }
             }
+//            int planes = arch.getNumPlanes();
+//            int satsPP = arch.getNumSatsPerPlane();
+//            r.eval("(defrule MANIFEST::fixWalker ?v <- (MANIFEST::Mission (Name ?name) (launch-cost# ?c1&~nil)) => (modify ?v (num-of-sats-per-plane# "+satsPP+") (num-of-planes# "+planes+")))");
         } catch (Exception e) {
             System.out.println("" + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    @Override
-    protected Result evaluatePerformance(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
-        double cov = 0;
-        Result result = new Result();
+    protected double evaluateScience(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
+        double science = 0;
+
         try {
             r.reset();
             assertMissions(params, r, arch, m);
@@ -173,7 +150,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             r.setFocus("CAPABILITIES-UPDATE"); r.run();
             r.setFocus("SYNERGIES"); r.run();
 
-            cov = updateRevisitTimes(params, r, arch, qb, m, 1);
+            updateRevisitTimes(params, r, arch, qb, m, 1);
 
             r.setFocus("ASSIMILATION2");
             r.run();
@@ -181,8 +158,8 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             r.setFocus("ASSIMILATION");
             r.run();
 
-            r.setFocus("FUZZY");
-            r.run();
+            //r.setFocus("FUZZY");
+            //r.run();
 
             r.setFocus("SYNERGIES");
             r.run();
@@ -205,17 +182,9 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             r.run();
     
             if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                result = aggregate_performance_score_facts(params, r, m, qb);
+                science = aggregate_performance_score_facts(params, r, m, qb).getScience();
             }
 
-            //////////////////////////////////////////////////////////////
-
-            if (this.debug) {
-                ArrayList<Fact> partials = qb.makeQuery("REASONING::partially-satisfied");
-                ArrayList<Fact> fulls = qb.makeQuery("REASONING::fully-satisfied");
-                fulls.addAll(partials);
-                //result.setExplanations(fulls);
-            }
         } catch (JessException e) {
             System.out.println(e.getMessage() + " " + e.getClass() + " ");
             e.printStackTrace();
@@ -223,13 +192,11 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             e.printStackTrace();
             throw new Error();
         }
-        result.setCoverage(cov);
-        return result;
+        return science;
     }
 
-    @Override
-    protected void evaluateCost(BaseParams params, Rete r, AbstractArchitecture arch, Result res, QueryBuilder qb, MatlabFunctions m) {
-
+    protected double evaluateCosts(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
+        double cost = 0.0;
         try {
             long t0 = System.currentTimeMillis();
 
@@ -265,8 +232,6 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
             r.eval("(run)");
-            r.eval("(focus LV-SELECTION4)");
-            r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -276,7 +241,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             }
             r.eval("(run)");
 
-            double cost = 0.0;
+
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             for (Fact mission: missions)  {
@@ -286,12 +251,6 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                 }
             }
 
-            res.setCost(cost);
-            res.setFuzzyCost(fzcost);
-
-            if (debug) {
-                res.setCostFacts(missions);
-            }
 
         }
         catch (JessException e) {
@@ -299,10 +258,125 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }
+        return cost;
     }
 
-    @Override
-    protected void designSpacecraft(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
+    protected ArrayList<Double> evaluateCoverage(BaseParams params, Rete r, AbstractArchitecture inputArch, QueryBuilder qb, MatlabFunctions m) {
+        ArrayList<Double> coverage = new ArrayList<>();
+        SimpleArchitecture arch = (SimpleArchitecture) inputArch;
+        try {
+            List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> pBandFieldOfViewEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> lBandFieldOfViewEvents = new ArrayList<>();
+            int coverageGranularity = 5;
+            CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
+            double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
+            double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+            double maxInclination = 0;
+            for(int i = 0; i < arch.getSatelliteList().size(); i++) {
+                String orbName = arch.getSatelliteList().get(i).getOrbit();
+                Orbit orb = new Orbit(orbName);
+
+
+                double fieldOfView = 0.0;
+                for(int j = 0; j < arch.getSatelliteList().get(i).getInstrumentList().length; j++) {
+                    Value v = r.eval("(get-instrument-fov "+arch.getSatelliteList().get(i).getInstrumentList()[j]+")");
+                    double temp = v.floatValue(r.getGlobalContext());
+                    if(temp > fieldOfView) {
+                        fieldOfView = temp;
+                    }
+                }
+                double inclination = orb.getInclinationNum(); // [deg]
+                if (inclination > maxInclination) {
+                    maxInclination  = inclination;
+                }
+                double altitude = orb.getAltitudeNum(); // [m]
+                double raan = orb.getRaanNum();
+                double trueAnom = orb.getTrueAnomNum();
+                String raanLabel = orb.getRaan();
+
+                int numSatsPerPlane = 1;
+                int numPlanes = 1;
+
+                Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom);
+                fieldOfViewEvents.add(accesses);
+                List<String> insList = Arrays.asList(arch.getSatelliteList().get(i).getInstrumentList());
+                if(insList.contains("P-band_SAR")) {
+                    pBandFieldOfViewEvents.add(accesses);
+                }
+                if(insList.contains("L-band_SAR")) {
+                    lBandFieldOfViewEvents.add(accesses);
+                }
+
+            }
+            Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
+            for (int i = 0; i < fieldOfViewEvents.size(); ++i) {
+                Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
+                mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
+            }
+            coverage.add(coverageAnalysis.getRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
+            if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,newLatBounds,lonBounds) / 3600);
+
+            } else {
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
+            }
+
+
+            if(pBandFieldOfViewEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                Map<TopocentricFrame, TimeIntervalArray> pBandMergedEvents = new HashMap<>(pBandFieldOfViewEvents.get(0));
+                for (int i = 0; i < pBandFieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> pBandEvent = pBandFieldOfViewEvents.get(i);
+                    pBandMergedEvents = EventIntervalMerger.merge(pBandMergedEvents, pBandEvent, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
+                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,newLatBounds,lonBounds) / 3600);
+
+                } else {
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
+                }
+            }
+            if(lBandFieldOfViewEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
+                for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
+                    lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
+                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
+                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
+
+                } else {
+                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
+                }
+            }
+            coverage.add(coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
+
+        } catch (Exception e) {
+            System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
+            e.printStackTrace();
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+            coverage.add(0.0);
+        }
+        return coverage;
+    }
+
+    protected void designSpacecraft(Rete r, SimpleArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
         try {
             overrideFacts(r);
 
@@ -369,7 +443,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
         }
     }
 
-    protected double updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
+    protected void updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
         // Check if all of the orbits in the original formulation are used
         double revTime = 0;
         int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
@@ -415,11 +489,11 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                 if (recalculateRevisitTime) {
                     // Do the re-calculation of the revisit times
 
-                    int coverageGranularity = 20;
+                    int coverageGranularity = 5;
 
                     //Revisit times
                     CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
-                    double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+                    double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
                     double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 
                     List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
@@ -480,9 +554,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
                         + "(factHistory J" + javaAssertedFactID + ")))";
                 javaAssertedFactID++;
                 r.eval(call);
-                revTime = therevtimesGlobal;
             }
         }
-        return revTime;
     }
 }

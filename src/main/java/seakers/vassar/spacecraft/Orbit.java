@@ -47,23 +47,62 @@ public class Orbit {
 
     public Orbit(String orb) {
         name = orb;
-        String[] halves = orb.split("/");
-        String[] tokens = halves[0].split("-");
-        type = tokens[0];
-        altitude = tokens[1];
-        inclination = tokens[2];
-        raan = tokens[3];
-        if(tokens.length > 4) {
-            trueAnom = tokens[4];
+        if(orb.contains("/")) {
+            String[] halves = orb.split("/");
+            String[] tokens = halves[0].split("-");
+            type = tokens[0];
+            altitude = tokens[1];
+            inclination = tokens[2];
+            if(inclination=="polar") {
+                inclination = tokens[3];
+                raan = tokens[4];
+                if(tokens.length > 5) {
+                    trueAnom = tokens[5];
+                } else {
+                    trueAnom = "0";
+                }
+            } else {
+                raan = tokens[3];
+                if(tokens.length > 4) {
+                    trueAnom = tokens[4];
+                } else {
+                    trueAnom = "0";
+                }
+            }
+            String[] tokens2 = halves[1].split("-");
+            nplanes = tokens2[0];
+            num_sats_per_plane = tokens2[1];
+            mission_arch = "single_arch";
+            eccentricity = "0.0";
+            this.saveOrbitalParamInNumbers(altitude, inclination, raan, trueAnom);
         } else {
-            trueAnom = "0";
+            String[] tokens = orb.split("-");
+            type = tokens[0];
+            altitude = tokens[1];
+            inclination = tokens[2];
+            if(inclination=="polar") {
+                inclination = tokens[3];
+                raan = tokens[4];
+                if(tokens.length > 5) {
+                    trueAnom = tokens[5];
+                } else {
+                    trueAnom = "0";
+                }
+            } else {
+                raan = tokens[3];
+                if(tokens.length > 4) {
+                    trueAnom = tokens[4];
+                } else {
+                    trueAnom = "0";
+                }
+            }
+            nplanes = "1";
+            num_sats_per_plane = "1";
+            mission_arch = "single_arch";
+            eccentricity = "0.0";
+            this.saveOrbitalParamInNumbers(altitude, inclination,raan,trueAnom);
         }
-        String[] tokens2 = halves[1].split("-");
-        nplanes = tokens2[0];
-        num_sats_per_plane = tokens2[1];
-        mission_arch = "single_arch";
-        eccentricity = "0.0";
-        this.saveOrbitalParamInNumbers(altitude, inclination, raan, trueAnom);
+
     }
 
     public Orbit(String t, String a, String i, String ra) {
@@ -111,8 +150,8 @@ public class Orbit {
 //    "LEO-600-polar-NA","SSO-600-SSO-AM"
 
         if (inclination != null) {
-            if (StringUtils.isNumeric(altitude)) {
-                this.altitudeNum = Double.parseDouble(altitude) * 1000;  // [m]
+            if (true) {
+                this.altitudeNum = Double.parseDouble(altitude) * 1000.0;  // [m]
             }
             if (StringUtils.isNumeric(raan)) {
                 this.raanNum = Double.parseDouble(raan); // [deg]
@@ -234,16 +273,31 @@ public class Orbit {
         return name;
     }
     public String toJessSlots() {
-        return " (num-of-planes# " + nplanes + ")" +
-            " (num-of-sats-per-plane# "  + num_sats_per_plane + ")"  + 
-            " (mission-architecture " + mission_arch + ") " +
-            " (orbit-type " + type + ")"  + 
-            " (orbit-altitude# "  + altitude + ")"  + 
-            " (orbit-eccentricity "  + eccentricity + ")"  + 
-            " (orbit-RAAN " + raan + ")"  +
-            " (orbit-inclination " + inclination + ")"  +
-            " (orbit-anomaly# " + trueAnom + ")"  +
-            " (orbit-string " + this.toString() + ")";
+        String res = "";
+        if(StringUtils.isNumeric(inclination)) {
+            res = " (num-of-planes# " + nplanes + ")" +
+                    " (num-of-sats-per-plane# "  + num_sats_per_plane + ")"  +
+                    " (mission-architecture " + mission_arch + ") " +
+                    " (orbit-type " + type + ")"  +
+                    " (orbit-altitude# "  + altitude + ")"  +
+                    " (orbit-eccentricity "  + eccentricity + ")"  +
+                    " (orbit-RAAN " + "NA" + ")"  +
+                    " (orbit-inclination " + "polar" + ")"  +
+                    " (orbit-anomaly# " + trueAnom + ")"  +
+                    " (orbit-string " + this.toString() + ")";
+        } else {
+            res = " (num-of-planes# " + nplanes + ")" +
+                    " (num-of-sats-per-plane# " + num_sats_per_plane + ")" +
+                    " (mission-architecture " + mission_arch + ") " +
+                    " (orbit-type " + type + ")" +
+                    " (orbit-altitude# " + altitude + ")" +
+                    " (orbit-eccentricity " + eccentricity + ")" +
+                    " (orbit-RAAN " + raan + ")" +
+                    " (orbit-inclination " + inclination + ")" +
+                    " (orbit-anomaly# " + trueAnom + ")" +
+                    " (orbit-string " + this.toString() + ")";
+        }
+        return res;
     }
 
     public String getMission_arch() {

@@ -224,7 +224,19 @@ public class MatlabFunctions implements Userfunction {
         }
     }
 
-    public Value designAvionics(Funcall vv, Context c) {
+    /**
+     * Designs avionics for cube sat sized spacecraft
+     *  Units used:
+     *  cost -- $
+     *  power -- W
+     *  mass -- kg
+     *  dimensions -- m
+     *  temperature -- C
+     *  data -- B
+     *  frequency -- Hz
+     */
+    public Value designAvionicsSmallSat(Funcall vv, Context c) {
+
         double ddpd;
         int redundancy;
         double pmass;
@@ -237,38 +249,35 @@ public class MatlabFunctions implements Userfunction {
             // tables, data downloaded per day, and margin of error (50%)
             // TODO check values and source values
 
-            double refMass = pmass * 0.0983;
-
-            double mar = 50.0;
-
+            double mar = 50.0;                      // margin of error
             double memory = ddpd / 300.0;
 
             double progm = 176742.4;
             double ram = 133324.8 + ddpd;
             double freq = 1648.5 + 0.25 * memory;
 
-            progm = (1 + mar / 100.0) * progm;
-            ram = (1 + mar / 100.0) * ram;
-            freq = (1 + mar / 100.0) * freq;
+            progm *= (1 + mar / 100.0);
+            ram *= (1 + mar / 100.0);
+            freq *= (1 + mar / 100.0);
 
             double[] x = {1, log(progm), log(ram), log(freq)};
 
             double[] cons1 = {-1.04807, 0.169433, 0.186482, -0.00983};
-            double mass = exp(dot(cons1, x)) / 1.0;
+            double mass = exp(dot(cons1, x)) / 1000.0;
 
             double[] cons2 = {3.540926, -0.01921, -0.00858, 0.072602};
-            double l = exp(dot(cons2, x)) / 1.0;
+            double l = exp(dot(cons2, x)) / 1000.0;
 
             double[] cons3 = {2.763307, 0.091377, 0.053965, -0.02504};
-            double w = exp(dot(cons3, x)) / 1.0;
+            double w = exp(dot(cons3, x)) / 1000.0;
 
             double[] cons4 = {-3.92369, 0.297605, 0.230538, -0.09338};
-            double h = exp(dot(cons4, x)) / 1.0;
+            double h = exp(dot(cons4, x)) / 1000.0;
 
             double[] cons5 = {1.390067, 0.336528, 0.245416, -0.10272};
             double cost = exp(dot(cons5, x));
 
-            double[] cons6 = {-5.81788, 0.173328, 0.143292, 0.194043};
+            double[] cons6 = {-9.81788, 0.173328, 0.143292, 0.194043};
             double avgPwr = exp(dot(cons6, x));
 
             double peakPwr = 2 * (avgPwr);
@@ -289,7 +298,9 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(heatpower * redundancy);
             vv2.add(minTemp);
             vv2.add(maxTemp);
-            //System.out.println("Avionics mass: "+mass);
+
+            System.out.println("Avionics mass: "+mass);
+
             return new Value(vv2, RU.LIST);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -489,7 +500,7 @@ public class MatlabFunctions implements Userfunction {
         }
     }
 
-    public Value designComs(Funcall vv, Context c) {
+    public Value designComms(Funcall vv, Context c) {
         double bps;
         double drymass;
         double alt;
@@ -510,6 +521,7 @@ public class MatlabFunctions implements Userfunction {
 
             for(int band = 0; band < bands_NEN.length; band++) {
                 ArrayList<ArrayList<AntennaDesign>> bandAntennas = new ArrayList<>();
+
                 for (int i = 0; i < receiverPower.length; i++) {
                     if (i == 0) receiverPower[i] = 1;
                     else receiverPower[i] = receiverPower[i-1] + 1;
@@ -554,6 +566,100 @@ public class MatlabFunctions implements Userfunction {
             ValueVector vv2 = new ValueVector(2);
             vv2.add(commsMass); // TODO add transceiver mass and power
             vv2.add(commsPower);
+            return new Value(vv2, RU.LIST);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Value countSats(Funcall vv, Context c) {
+        String orb1;
+        String orb2;
+        double ns1;
+        double ns2;
+
+        try {
+            orb1 = vv.get(2).stringValue(c);
+            orb2 = vv.get(3).stringValue(c);
+            ns1 = Double.parseDouble( vv.get(4).stringValue(c) );
+            ns2 = Double.parseDouble( vv.get(5).stringValue(c) );
+            double npp = 0;
+            double nsp = 0;
+            double np2 = 1;
+
+            String[] orbit1 = orb1.split("-");
+            String[] orbit2 = orb2.split("-");
+
+            boolean sameOrbit = true;
+            for(int i = 0; i < 4; i++){
+                if(!orbit1[i].equals(orbit2[i])){
+                    sameOrbit = false;
+                    break;
+                }
+            }
+
+            if(sameOrbit){
+                nsp = ns2;
+                np2 = 0;
+                ns2 = 0;
+            }
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(npp);
+            vv2.add(nsp);
+            vv2.add(np2);
+            vv2.add(ns2);
+            return new Value(vv2, RU.LIST);
+        }
+            catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Value countPlanes(Funcall vv, Context c) {
+        String orb1;
+        String orb2;
+        double np1;
+        double ns1;
+        double np2;
+        double ns2;
+
+        try {
+            orb1 = vv.get(2).stringValue(c);
+            np1 = Double.parseDouble( vv.get(3).stringValue(c) );
+            ns1 = Double.parseDouble( vv.get(4).stringValue(c) );
+            orb2 = vv.get(5).stringValue(c);
+            np2 = Double.parseDouble( vv.get(6).stringValue(c) );
+            ns2 = Double.parseDouble( vv.get(7).stringValue(c) );
+
+            double npp = 0;
+            double nsp = 0;
+
+            String[] orbit1 = orb1.split("-");
+            String[] orbit2 = orb2.split("-");
+
+            boolean sameOrbit = true;
+            for(int i = 0; i < 3; i++){
+                if(!orbit1[i].equals(orbit2[i])){
+                    sameOrbit = false;
+                    break;
+                }
+            }
+
+            if(sameOrbit && !orb1.equals(orb2)){
+                npp = np2;
+                np2 = 0;
+                ns2 = 0;
+            }
+
+            ValueVector vv2 = new ValueVector(2);
+            vv2.add(npp);
+            vv2.add(nsp);
+            vv2.add(np2);
+            vv2.add(ns2);
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
