@@ -299,7 +299,7 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(minTemp);
             vv2.add(maxTemp);
 
-            System.out.println("Avionics mass: "+mass);
+            //System.out.println("Avionics mass: "+mass);
 
             return new Value(vv2, RU.LIST);
         } catch (Exception e) {

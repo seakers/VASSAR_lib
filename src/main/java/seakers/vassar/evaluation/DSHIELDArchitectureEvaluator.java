@@ -223,7 +223,7 @@ public class DSHIELDArchitectureEvaluator extends AbstractArchitectureEvaluator 
             e.printStackTrace();
             throw new Error();
         }
-        result.setCoverage(cov);
+        //result.setCoverage(cov);
         return result;
     }
 
