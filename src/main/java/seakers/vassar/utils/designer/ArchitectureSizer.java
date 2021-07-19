@@ -268,6 +268,7 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
 
+            r.setFocus("DESIGN-PREP");                  r.run();
             r.setFocus("CAPABILITIES");                 r.run();
             r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
             r.setFocus("CAPABILITIES-GENERATE");        r.run();
