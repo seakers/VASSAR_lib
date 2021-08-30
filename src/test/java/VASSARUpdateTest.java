@@ -20,8 +20,8 @@ public class VASSARUpdateTest {
         System.out.println("Evaluating architecture");
 
         String path = "../VASSAR_resources";
-        String[] orbitList = {"LEO-400-polar-NA"};
-        String orbit = "LEO-400-polar-NA";
+        String[] orbitList = {"SSO-680-SSO-DD"};
+        String orbit = "SSO-680-SSO-DD";
         String[] instrumentList = {"SMAP_MWR","SMAP_RAD"};
 
         CommonParams params = new CommonParams(orbitList,"Designer", path, "CRISP-ATTRIBUTES", "test", "normal");

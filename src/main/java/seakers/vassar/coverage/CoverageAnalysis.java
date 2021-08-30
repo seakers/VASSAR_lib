@@ -32,9 +32,11 @@ import seakers.orekit.event.EventAnalysis;
 import seakers.orekit.event.EventAnalysisEnum;
 import seakers.orekit.event.EventAnalysisFactory;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
+import seakers.orekit.examples.CoverageExample;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.Instrument;
+import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
@@ -49,6 +51,8 @@ import java.io.FileReader;
 import java.io.*;
 //>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.Double.parseDouble;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
@@ -221,7 +225,7 @@ public class CoverageAnalysis {
             }
         }
 
-        return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan, 0.0);
+        return this.computeAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raan, 0.0);
     }
 
     /**
@@ -235,7 +239,7 @@ public class CoverageAnalysis {
      * @throws OrekitException
      */
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException{
-        //initializes the look up tables for planteary position (required!)
+        //initializes the look up tables for planetary position (required!)
         OrekitConfig.init(4);
 
         //define the start and end date of the simulation
@@ -254,15 +258,10 @@ public class CoverageAnalysis {
         double i = inclination;
 
         //define instruments and payload
-        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
-        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
-        OffNadirRectangularFOV fov_opposite = new OffNadirRectangularFOV(FastMath.toRadians(-45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
-
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
-        Instrument view2 = new Instrument("view2", fov_opposite, 100, 100);
         payload.add(view1);
-        payload.add(view2);
         //number of total satellites
         int t = numSatsPerPlane*numPlanes;
 
@@ -272,58 +271,16 @@ public class CoverageAnalysis {
         //number of phases
         int f = 0;
 
-//<<<<<<< HEAD
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
-        
-        List<List<String>> records = new ArrayList<>();
-//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-//=======
-//        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), 0.0);
-        //Create a walker constellation
-        
-//        List<List<String>> records = new ArrayList<>();
-        //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-//<<<<<<< HEAD
-//=======
 
         //define coverage params
         //this is coverage with 20 granularity and equal area grid style
         CoverageDefinition coverageDefinition = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
         coverageDefinition.assignConstellation(walker);
-//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
-
-        ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
-        for(int idx = 0; idx < records.size(); idx++) {
-            double lat = parseDouble(records.get(idx).get(0));
-            double lon = parseDouble(records.get(idx).get(1));
-            lon = lon - 180.0;
-            lat = Math.toRadians(lat);
-            lon = Math.toRadians(lon);
-            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
-            if(Math.abs(lat) <= Math.toRadians(75.0)) {
-                landPoints.add(landPoint);
-            }
-        }
-        //create a coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
-
-        //assign the walker constellation to the coverage definition
-        covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
-        covDefs.add(covDef1);
+        covDefs.add(coverageDefinition);
 
         //set the type of propagation
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
@@ -350,11 +307,11 @@ public class CoverageAnalysis {
             //run the scenario
             scen.call();
         } catch (Exception ex) {
-//            Logger.getLogger(CoverageExample.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CoverageExample.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("scenario failed to complete.");
         }
 
-        Map<TopocentricFrame, TimeIntervalArray> accesses = fovEvent.getEvents(covDef1);
+        Map<TopocentricFrame, TimeIntervalArray> accesses = fovEvent.getEvents(coverageDefinition);
         return accesses;
 
     }

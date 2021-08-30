@@ -341,9 +341,9 @@ public class MatlabFunctions implements Userfunction {
 
             // Total power
             // TODO AHHHHHHHHHH where are these from
-            double ppow = ppp * 0.09/0.46;
-            double ptherm = ppp * 0.10/0.46;
-            double pstr = ppp * 0.01/0.46;
+            double ppow = ppa * 2.5 * 0.25;
+            double ptherm = ppa * 2.5 * 0.05;
+            double pstr = ppa * 2.5 * 0.0;
             double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr; // TODO add propulsion power?
             double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
 
@@ -663,6 +663,26 @@ public class MatlabFunctions implements Userfunction {
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+    public Value inflate(Funcall vv, Context c) {
+        try {
+            double[] factors = {0.097, 0.088, 0.08, 0.075, 0.078, 0.08, 0.081, 0.084, 0.082, 0.081, 0.081, 0.085, 0.095, 0.1, 0.102, 0.105, 0.113, 0.13, 0.14, 0.138, 0.14, 0.151, 0.154, 0.155, 0.156, 0.156, 0.158, 0.163, 0.168, 0.169, 0.172, 0.174, 0.175, 0.178, 0.18, 0.183, 0.188, 0.194, 0.202, 0.213, 0.225, 0.235, 0.243, 0.258, 0.286, 0.312, 0.33, 0.352, 0.379, 0.422, 0.479, 0.528, 0.56, 0.578, 0.603, 0.625, 0.636, 0.66, 0.687, 0.72, 0.759, 0.791, 0.815, 0.839, 0.861, 0.885, 0.911, 0.932, 0.947, 0.967, 1, 1.028, 1.045, 1.069, 1.097, 1.134, 1.171, 1.171, 1.216, 1.208, 1.226, 1.244, 1.264, 1.285, 1.307, 1.328, 1.35, 1.372, 1.395, 1.418};
+            double year = 1930;
+            HashMap<Double, Double> factorMap = new HashMap<>(factors.length);
+            for(int i = 0; i < factors.length; i++){
+                factorMap.put(year+i, factors[i]);
+            }
+            double cost = vv.get(2).floatValue(c);
+            double y1 = vv.get(3).floatValue(c);
+            double y2 = vv.get(4).floatValue(c);
+            double f1 = factorMap.get(y1);
+            double f2 = factorMap.get(y2);
+            cost = (cost/f1)*f2;
+            return new Value(cost, RU.FLOAT);
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
         }

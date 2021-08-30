@@ -22,6 +22,17 @@ public class CommonParams extends BaseParams {
 //        String[] instruments = new String[]{"VIIRS", "CMIS", "SMAP_ANT", "SMAP_RAD", "SMAP_MWR", "BIOMASS", "SAR_1", "SAR_2", "SAR_3"};
         this.instrumentList = instruments;
         this.orbitList = orbitsList;
+        this.numInstr = instrumentList.length;
+        this.numOrbits = orbitList.length;
+        instrumentIndexes = new HashMap<>();
+        orbitIndexes = new HashMap<>();
+
+        for (int i = 0; i < numInstr; i++) {
+            instrumentIndexes.put(instrumentList[i], i);
+        }
+        for (int i = 0; i < numOrbits; i++) {
+            orbitIndexes.put(orbitList[i], i);
+        }
         this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
 //        this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
         super.init();

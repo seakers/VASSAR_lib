@@ -73,7 +73,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
         try {
             if (type.equalsIgnoreCase("Slow")) {
-                //result = evaluatePerformance(params, r, arch, qb, m);
+                result = evaluatePerformance(params, r, arch, qb, m);
                 r.eval("(reset)");
                 assertMissions(params, r, arch, m);
             }
@@ -410,6 +410,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(run)");
             r.eval("(focus LV-SELECTION4)");
             r.eval("(run)");
+            r.eval("(focus LV-SELECTION5)");
+            r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -418,7 +420,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 r.eval("(focus COST-ESTIMATION)");
             }
             r.eval("(run)");
-
+            r.eval("(focus INFLATION)");
+            r.eval("(run)");
             double cost = 0.0;
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
@@ -431,7 +434,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
-
+            r.eval("(facts MANIFEST)");
             if (debug) {
                 res.setCostFacts(missions);
             }
