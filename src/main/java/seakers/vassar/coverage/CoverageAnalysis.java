@@ -43,16 +43,16 @@ import seakers.orekit.util.OrekitConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
-//<<<<<<< HEAD
 import java.io.FileReader;
-//=======
-import java.io.*;
-//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 import java.util.*;
 
 import static java.lang.Double.parseDouble;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seakers.orekit.util.Orbits.LTAN2RAAN;
+
+//<<<<<<< HEAD
+//=======
+//>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
 
 /**
  *
@@ -284,7 +284,7 @@ public class CoverageAnalysis {
         
 //        List<List<String>> records = new ArrayList<>();
         //try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("VASSAR_lib/src/test/java/LandLatLong.csv")) ) { // CHANGE THIS FOR YOUR IMPLEMENTATION
 //>>>>>>> parent of f109e62 (Revert "Resolving conflicts")
             String line;
             while ((line = br.readLine()) != null) {
