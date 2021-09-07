@@ -254,6 +254,9 @@ public class MatlabFunctions implements Userfunction {
 
             double[] cons1 = {-1.04807, 0.169433, 0.186482, -0.00983};
             double mass = exp(dot(cons1, x)) / 1.0;
+            if(pmass < 30.0) {
+                mass = refMass;
+            }
 
             double[] cons2 = {3.540926, -0.01921, -0.00858, 0.072602};
             double l = exp(dot(cons2, x)) / 1.0;
@@ -269,6 +272,9 @@ public class MatlabFunctions implements Userfunction {
 
             double[] cons6 = {-5.81788, 0.173328, 0.143292, 0.194043};
             double avgPwr = exp(dot(cons6, x));
+            if(pmass<30.0) {
+                avgPwr = 1.0;
+            }
 
             double peakPwr = 2 * (avgPwr);
 
@@ -329,9 +335,9 @@ public class MatlabFunctions implements Userfunction {
             dod = vv.get(12).floatValue(c);
 
             // Total power
-            double ppow = ppp * 0.09/0.46;
-            double ptherm = ppp * 0.10/0.46;
-            double pstr = ppp * 0.01/0.46;
+            double ppow = ppa * 2.5 * 0.25;
+            double ptherm = ppa * 2.5 * 0.05;
+            double pstr = ppa * 2.5 * 0.0;
             double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
             double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
 //            Pa = 1200;
@@ -339,18 +345,23 @@ public class MatlabFunctions implements Userfunction {
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
-            double Te = T - Td;
+            double Te = 60*30;
+            //System.out.println("Eclipse time (s): "+Te);
+
 
             // Calculate Solar Panel Power
             double Xe = 0.65;
             double Xd = 0.85;
-            double Pe = 0.8 * Pa + 0.2 * Pp;
+            double dc = 0.25; // duty cycle
+            double Pe = (1-dc) * (Pa-ppa) + dc * Pa;
             double Pd = Pe;
             double Psa_min = (Pe*Te/Xe + Pd*Td/Xd)/Td;
+            //System.out.println("Eclipse power: " + Pe);
 
             // Look for best combination of materials
             double Asa = 0.0;
             double Pbol = 0.0;
+            double charge = 0.0;
             double Meps = 0.0;
             double Msa = 0.0;
             double mbatt_min = 0.0;
@@ -369,6 +380,7 @@ public class MatlabFunctions implements Userfunction {
                 double Asa_temp;
                 double Ld;
                 double Peol;
+                double charge_temp;
 
 //                Pbol_temp = Pa;
                 switch (cellType[i]){
@@ -424,19 +436,24 @@ public class MatlabFunctions implements Userfunction {
                                 mbatt = Cr/60;
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
+                                charge_temp = Cr*Nbat;
                                 break;
                             case "NiCd":
                                 Cr = Pe * Te / (Nbat * 3600 * dod * 0.72);
                                 mbatt = Cr/30;
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
+                                charge_temp = Cr*Nbat;
                                 break;
                             case "LiIon":
                                 Cr = Pe * Te / (Nbat * 3600 * dod * 0.98);
                                 mbatt = Cr/125;
                                 volume = (mbatt/458.3)*pow(.1,3);
                                 dimbat = pow(volume, 1.0/3.0);
+                                charge_temp = Cr*Nbat;
                                 break;
+                            default:
+                                throw new IllegalStateException("Unexpected value: " + battType[j]);
                         }
 
                         double L = sqrt(Asa_temp);
@@ -484,7 +501,11 @@ public class MatlabFunctions implements Userfunction {
                 System.out.println("Total EPS Mass: "+ totalMass);
                 System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
             }
-
+            //System.out.println("eps power: " + Pbol);
+            double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
+            //System.out.println("Total EPS Mass: "+ totalMass);
+            //System.out.println("Payload average power: "+ppa);
+            //System.out.println("Payload energy in kJ: "+ppa*T/1000);
             ValueVector vv2 = new ValueVector(4);
             vv2.add(Meps);
             vv2.add(Pbol);
@@ -559,7 +580,11 @@ public class MatlabFunctions implements Userfunction {
                         + bestAntenna.getMassA() + " " + bands_NEN[band_min] + " "
                         + receiverPower[i_min] + " " + antennaGain[j_min]);
             }
-
+            boolean crosslink = false;
+            if(crosslink){
+                commsMass = commsMass + 0.5; // based on Endurosat antenna + transceiver
+                commsPower = commsPower + 40;
+            }
 
             ValueVector vv2 = new ValueVector(2);
             vv2.add(commsMass);
@@ -611,7 +636,7 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(ns2);
             return new Value(vv2, RU.LIST);
         }
-            catch (Exception e) {
+        catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
         }

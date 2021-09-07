@@ -519,7 +519,7 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
                         int numSatsPerPlane = Integer.parseInt(orb.getNum_sats_per_plane());
                         int numPlanes = Integer.parseInt(orb.getNplanes());
 
-                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, 0.0);
+                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raanLabel);
                         fieldOfViewEvents.add(accesses);
                     }
 

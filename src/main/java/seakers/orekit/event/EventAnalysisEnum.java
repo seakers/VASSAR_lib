@@ -23,5 +23,7 @@ public enum EventAnalysisEnum {
     /**
      * Analysis of ground station accesses
      */
-    ACCESS
+    ACCESS,
+
+    REFLECTOR
 }

@@ -9,6 +9,8 @@ import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
+import seakers.vassar.coverage.CoverageAnalysisModified;
+import seakers.vassar.coverage.ReflectometerCoverageAnalysis;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
@@ -79,8 +81,35 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             e.printStackTrace();
             this.resourcePool.freeResource(res);
         }
+        // Commented out for runtime, uncomment for full evaluation
+        //result.setScience(evaluateScience(params,r,arch,qb,m));
+        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+        ArrayList<Double> coverage = new ArrayList<Double>();
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        coverage.add(0.0);
+        result.setCoverage(coverage);
         result.setCost(evaluateCosts(params,r,arch,qb,m));
-        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+
 
         this.resourcePool.freeResource(res);
 
@@ -205,14 +234,14 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
 
-            r.setFocus("CAPABILITIES");                 r.run();
-            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
-            r.setFocus("CAPABILITIES-GENERATE");        r.run();
-            r.setFocus("CAPABILITIES-CROSS-REGISTER");  r.run();
-            r.setFocus("CAPABILITIES-UPDATE");          r.run();
-
-            r.setFocus("SYNERGIES");
-            r.run();
+//            r.setFocus("CAPABILITIES");                 r.run();
+//            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
+//            r.setFocus("CAPABILITIES-GENERATE");        r.run();
+//            r.setFocus("CAPABILITIES-CROSS-REGISTER");  r.run();
+//            r.setFocus("CAPABILITIES-UPDATE");          r.run();
+//
+//            r.setFocus("SYNERGIES");
+//            r.run();
 
             updateRevisitTimes(params, r, arch, qb, m, 1);
             r.setFocus("ASSIMILATION2");
@@ -232,6 +261,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
             r.eval("(run)");
+            r.eval("(focus LV-SELECTION4)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION5)");
+            r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -250,12 +283,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
+            r.eval("(facts MANIFEST)");
 
 
         }
         catch (JessException e) {
             System.out.println(e.toString());
-            System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
+            System.out.println("EXC in evaluateCosts: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }
         return cost;
@@ -268,8 +302,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandFieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandFieldOfViewEvents = new ArrayList<>();
-            int coverageGranularity = 5;
-            CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
+            List<Map<TopocentricFrame, TimeIntervalArray>> radiometerEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> reflectometerEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> lBandReflectometerEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> pBandReflectometerEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> allEvents = new ArrayList<>();
+            CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, 5, true, true, params.orekitResourcesPath);
+            ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(4, 5, true, true, params.orekitResourcesPath);
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
@@ -289,6 +328,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 double inclination = orb.getInclinationNum(); // [deg]
                 if (inclination > maxInclination) {
                     maxInclination  = inclination;
+
                 }
                 double altitude = orb.getAltitudeNum(); // [m]
                 double raan = orb.getRaanNum();
@@ -298,29 +338,139 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 int numSatsPerPlane = 1;
                 int numPlanes = 1;
 
-                Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom);
-                fieldOfViewEvents.add(accesses);
+
                 List<String> insList = Arrays.asList(arch.getSatelliteList().get(i).getInstrumentList());
+//                if(insList.contains("P-band_Reflectometer")) {
+//                    //Map<TopocentricFrame, TimeIntervalArray> reflAccesses = reflAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "P-band");
+//                    Map<TopocentricFrame, TimeIntervalArray> reflAccesses = coverageAnalysis.getAccesses(fieldOfView,inclination,altitude,numSatsPerPlane,numPlanes,raan,trueAnom,"reflectometer");
+//                    reflectometerEvents.add(reflAccesses);
+//                    pBandReflectometerEvents.add(reflAccesses);
+//                    allEvents.add(reflAccesses);
+//                }
+                if(insList.contains("L-band_Reflectometer")) {
+                    //Map<TopocentricFrame, TimeIntervalArray> reflAccesses = reflAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "L-band");
+                    Map<TopocentricFrame, TimeIntervalArray> reflAccesses = coverageAnalysis.getAccesses(fieldOfView,inclination,altitude,numSatsPerPlane,numPlanes,raan,trueAnom,"reflectometer");
+                    reflectometerEvents.add(reflAccesses);
+                    lBandReflectometerEvents.add(reflAccesses);
+                    allEvents.add(reflAccesses);
+                }
+                if(insList.contains("Aquarius")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(16.5, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
+                    radiometerEvents.add(accesses);
+                    allEvents.add(accesses);
+                }
+                if(insList.contains("FMPL-2")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
+                    radiometerEvents.add(accesses);
+                    allEvents.add(accesses);
+                }
                 if(insList.contains("P-band_SAR")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                    allEvents.add(accesses);
                     pBandFieldOfViewEvents.add(accesses);
                 }
                 if(insList.contains("L-band_SAR")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
                     lBandFieldOfViewEvents.add(accesses);
+                    allEvents.add(accesses);
                 }
 
             }
-            Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
-            for (int i = 0; i < fieldOfViewEvents.size(); ++i) {
-                Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
-                mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
-            }
-            coverage.add(coverageAnalysis.getRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
-            if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
-                double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
-                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,newLatBounds,lonBounds) / 3600);
-
+            double[] newLatBounds = new double[]{0,0};
+            if (maxInclination < 75) {
+                newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
             } else {
-                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,latBounds,lonBounds) / 3600);
+                newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+            }
+            //Combined Radars
+            if(fieldOfViewEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
+                for (int i = 0; i < fieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
+                    mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedEvents,newLatBounds,lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedEvents,newLatBounds,lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
+            }
+            if(lBandReflectometerEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                //L-band Reflectometers
+                Map<TopocentricFrame, TimeIntervalArray> mergedReflEventsL = new HashMap<>(lBandReflectometerEvents.get(0));
+                for (int i = 0; i < lBandReflectometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = lBandReflectometerEvents.get(i);
+                    mergedReflEventsL = EventIntervalMerger.merge(mergedReflEventsL, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedReflEventsL, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedReflEventsL, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedReflEventsL, newLatBounds, lonBounds));
+            }
+            if(reflectometerEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                //Combined Reflectometers
+                Map<TopocentricFrame, TimeIntervalArray> mergedReflEvents = new HashMap<>(reflectometerEvents.get(0));
+                for (int i = 0; i < reflectometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = reflectometerEvents.get(i);
+                    mergedReflEvents = EventIntervalMerger.merge(mergedReflEvents, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedReflEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedReflEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedReflEvents, latBounds, lonBounds));
+            }
+            if(pBandReflectometerEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                //P-band Reflectometers
+                Map<TopocentricFrame, TimeIntervalArray> mergedReflEventsP = new HashMap<>(pBandReflectometerEvents.get(0));
+                for (int i = 0; i < pBandReflectometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = pBandReflectometerEvents.get(i);
+                    mergedReflEventsP = EventIntervalMerger.merge(mergedReflEventsP, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedReflEventsP, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedReflEventsP, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedReflEventsP, latBounds, lonBounds));
+            }
+            if(radiometerEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                //Radiometers
+                Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerEvents.get(0));
+                for (int i = 0; i < radiometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
+                    mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedRadiometerEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedRadiometerEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedRadiometerEvents, latBounds, lonBounds));
+            }
+            if(allEvents.isEmpty()) {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            } else {
+                // Combined revisit
+                Map<TopocentricFrame, TimeIntervalArray> mergedAllEvents = new HashMap<>(allEvents.get(0));
+                for (int i = 0; i < allEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = allEvents.get(i);
+                    mergedAllEvents = EventIntervalMerger.merge(mergedAllEvents, event, false);
+                }
+                coverage.add(coverageAnalysis.getRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getPercentCoverage(mergedAllEvents, latBounds, lonBounds));
             }
 
 
@@ -333,14 +483,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     Map<TopocentricFrame, TimeIntervalArray> pBandEvent = pBandFieldOfViewEvents.get(i);
                     pBandMergedEvents = EventIntervalMerger.merge(pBandMergedEvents, pBandEvent, false);
                 }
-                coverage.add(coverageAnalysis.getRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
-                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
-                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
-                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,newLatBounds,lonBounds) / 3600);
-
-                } else {
-                    coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,latBounds,lonBounds) / 3600);
-                }
+                coverage.add(coverageAnalysis.getRevisitTime(pBandMergedEvents,newLatBounds,lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(pBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
             if(lBandFieldOfViewEvents.isEmpty()) {
                 coverage.add(0.0);
@@ -351,16 +495,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
                     lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
                 }
-                coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
-                if(Math.toRadians(maxInclination) < Math.abs(latBounds[0])) {
-                    double[] newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
-                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
-
-                } else {
-                    coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,latBounds,lonBounds) / 3600);
-                }
+                coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
+                coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-            coverage.add(coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
 
         } catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());

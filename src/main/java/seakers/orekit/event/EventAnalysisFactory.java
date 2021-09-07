@@ -5,22 +5,23 @@
  */
 package seakers.orekit.event;
 
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.CelestialBody;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
+import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.GndStation;
 import seakers.orekit.object.Satellite;
-import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
+
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Creates a multitude of event analyses.
@@ -152,4 +153,19 @@ public class EventAnalysisFactory {
         return ea;
     }
 
+    public EventAnalysis createReflectionAnalysis(EventAnalysisEnum type,
+                                                  Constellation rxConstel, Constellation txConstel, Set<CoverageDefinition> covDefs, Properties prop, double th_g) {
+        EventAnalysis ea = null;
+
+        switch (type) {
+            case REFLECTOR:
+                ea = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs, propagatorFactory, false, false, txConstel,th_g);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Analysis type %s is unsupported.", type));
+        }
+
+        return ea;
+    }
 }
