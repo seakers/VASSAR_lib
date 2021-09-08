@@ -72,7 +72,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         MatlabFunctions m = res.getM();
         Result result = new Result();
 
-        result.setScience(evaluateScience(params,r,arch,qb,m));
+        //result.setScience(evaluateScience(params,r,arch,qb,m));
+        result.setScience(0.0);
         try {
             r.eval("(reset)");
             assertMissions(params,r,arch,m);

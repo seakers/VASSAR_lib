@@ -345,7 +345,7 @@ public class MatlabFunctions implements Userfunction {
 
             // Calculate time in daylight and eclipse
             double Td = T * solarFrac;
-            double Te = 60*30;
+            double Te = T - Td;
             //System.out.println("Eclipse time (s): "+Te);
 
 
@@ -428,6 +428,7 @@ public class MatlabFunctions implements Userfunction {
                     double mbatt = 0.0;
                     double volume;
                     double dimbat;
+                    String batt;
 
                     for(int Nbat = 1; Nbat < 5; Nbat++) {
                         switch (battType[j]) {
@@ -437,6 +438,7 @@ public class MatlabFunctions implements Userfunction {
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
                                 charge_temp = Cr*Nbat;
+                                batt = battType[j];
                                 break;
                             case "NiCd":
                                 Cr = Pe * Te / (Nbat * 3600 * dod * 0.72);
@@ -444,6 +446,7 @@ public class MatlabFunctions implements Userfunction {
                                 volume = mbatt/2956;
                                 dimbat = pow(volume, 1.0/3.0);
                                 charge_temp = Cr*Nbat;
+                                batt = battType[j];
                                 break;
                             case "LiIon":
                                 Cr = Pe * Te / (Nbat * 3600 * dod * 0.98);
@@ -451,6 +454,7 @@ public class MatlabFunctions implements Userfunction {
                                 volume = (mbatt/458.3)*pow(.1,3);
                                 dimbat = pow(volume, 1.0/3.0);
                                 charge_temp = Cr*Nbat;
+                                batt = battType[j];
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected value: " + battType[j]);
@@ -489,17 +493,39 @@ public class MatlabFunctions implements Userfunction {
                             Mcpu_min = Mcpu;
                             Mregconv_min = Mregconv;
                             Mwiring_min =  Mwiring;
+                            System.out.println("Battery type: " + batt);
+                            System.out.println("Batter capacity: " + charge_temp);
                         }
                     }
                 }
             }
 
-            if(false) {
-                System.out.println("eps mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
-                + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
+            if(true) {
+//                System.out.println("EPS mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
+//                + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
                 double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
-                System.out.println("Total EPS Mass: "+ totalMass);
-                System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
+//                System.out.println("Total EPS Mass            : "+ totalMass);
+//                System.out.println("eps power                 : " + " " + Psa_min + " " + Asa + " " + Pbol);
+                System.out.println("----------------------------");
+                System.out.println("Solar array mass          : " + Msa);
+                System.out.println("Battery mass              : " + mbatt_min);
+                System.out.println("Number of batteries       : " + Nbat_min);
+                System.out.println("EPS CPU mass              : " + Mcpu_min);
+                System.out.println("Regulating converter mass : " + Mregconv_min);
+                System.out.println("Wiring mass               : " + Mwiring_min);
+                System.out.println("Total mass                : " + totalMass);
+                System.out.println("Solar array minimum power : " + Psa_min);
+                System.out.println("Area of solar array       : " + Asa);
+                System.out.println("BOL solar array power     : " + Pbol);
+                System.out.println("Payload power             : " + ppa);
+                System.out.println("Idle power                : " + (Pa-ppa));
+                System.out.println("Comms power               : " + pcoms);
+                System.out.println("Avionics power            : " + pav);
+                System.out.println("ADCS power                : " + padcs);
+                System.out.println("Power system power        : " + ppow);
+                System.out.println("Thermal power             : " + ptherm);
+                System.out.println("Depth of discharge        : " + dod);
+
             }
             //System.out.println("eps power: " + Pbol);
             double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
@@ -572,7 +598,7 @@ public class MatlabFunctions implements Userfunction {
             double commsPower = bestAntenna.getPower();
             //System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
-            if(false) {
+            if(true) {
                 System.out.println("comms mass: " + commsMass);
                 System.out.println("comms power: " + commsPower);
                 System.out.println("antenna dims: " + Arrays.toString(bestAntenna.getDims()));
