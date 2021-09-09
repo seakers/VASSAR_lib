@@ -10,6 +10,7 @@ import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
 
 import java.util.HashSet;
+import java.util.Map;
 
 public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
 
@@ -35,6 +36,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             this.orbitsUsed = new HashSet<>();
             String orbitName = arch.getOrbit();
             String instrumentList[] = arch.getInstrumentList();
+            Map<String,String> facts = arch.getMissionFacts();
             Orbit orb = new Orbit(orbitName, 1, 1);
             this.orbitsUsed.add(orb);
             String payload = "";
@@ -42,7 +44,12 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             for (int i = 0; i < instrumentList.length; i++) {
                 payload+=" " + instrumentList[i];
             }
-            call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
+            String factList = "";
+            for (Map.Entry<String,String> entry : facts.entrySet()) {
+                factList+="("+entry.getKey()+" "+(String)entry.getValue()+")";
+            }
+            // slew rate in rad/s for 360 degrees in 90 min
+            call += "(instruments " + payload + ")"+factList+"(select-orbit no) " + orb.toJessSlots() + ""
                     + "(factHistory F" + params.nof + ")))";
             params.nof++;
 

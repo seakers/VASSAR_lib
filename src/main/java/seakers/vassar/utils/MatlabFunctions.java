@@ -551,9 +551,23 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
+
+            switch(band_min) {
+                case 0: // UHF
+                    break;
+                case 1: // S-band
+                    commsMass = commsMass + 15.74; // Table 11-26, SMAD 3rd ed
+                case 2: // X-band
+                    commsMass = commsMass + 9.1; // Table 11-26, SMAD 3rd ed (7.6 + 1.5)
+                case 3: // Ka-band
+                    break;
+                default:
+                    break;
+
+            }
             //System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
-            if(false) {
+            if(true) {
                 System.out.println("comms mass: " + commsMass);
                 System.out.println("comms power: " + commsPower);
                 System.out.println("antenna dims: " + Arrays.toString(bestAntenna.getDims()));

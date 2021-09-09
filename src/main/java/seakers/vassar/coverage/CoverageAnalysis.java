@@ -165,7 +165,7 @@ public class CoverageAnalysis {
         String filename = this.coverageAnalysisIO.getAccessDataFilename(definition);
         if (this.coverageAnalysisIO.getAccessDataFile(filename).exists()) {
             // The access data exists
-            //System.out.println("Corresponding data file found");
+            System.out.println("Corresponding data file found");
             return this.coverageAnalysisIO.readAccessData(definition);
         }
         else {
@@ -240,8 +240,6 @@ public class CoverageAnalysis {
      */
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException{
         //initializes the look up tables for planetary position (required!)
-        OrekitConfig.init(4);
-
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
 

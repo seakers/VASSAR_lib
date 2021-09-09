@@ -235,11 +235,8 @@ public class CoverageAnalysisIO {
     }
 
     public File getAccessDataFile(String filename) {
-
-        return new File(
-                System.getProperty("orekit.coveragedatabase"),
-                filename
-                );
+        File dataFile = new File(System.getProperty("orekit.coveragedatabase"), filename);
+        return dataFile;
     }
 
     public Map<TopocentricFrame, TimeIntervalArray> readAccessDataBinary(AccessDataDefinition definition) {
