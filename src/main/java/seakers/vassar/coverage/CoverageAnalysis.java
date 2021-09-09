@@ -165,7 +165,7 @@ public class CoverageAnalysis {
         String filename = this.coverageAnalysisIO.getAccessDataFilename(definition);
         if (this.coverageAnalysisIO.getAccessDataFile(filename).exists()) {
             // The access data exists
-            System.out.println("Corresponding data file found");
+            //System.out.println("Corresponding data file found");
             return this.coverageAnalysisIO.readAccessData(definition);
         }
         else {

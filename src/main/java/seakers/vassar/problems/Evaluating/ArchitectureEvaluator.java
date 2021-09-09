@@ -36,7 +36,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             this.orbitsUsed = new HashSet<>();
             String orbitName = arch.getOrbit();
             String instrumentList[] = arch.getInstrumentList();
-            Map<String,String> facts = arch.getMissionFacts();
+            Map<String, Object> facts = arch.getMissionFacts();
             Orbit orb = new Orbit(orbitName, 1, 1);
             this.orbitsUsed.add(orb);
             String payload = "";
@@ -45,11 +45,10 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                 payload+=" " + instrumentList[i];
             }
             String factList = "";
-            for (Map.Entry<String,String> entry : facts.entrySet()) {
-                factList+="("+entry.getKey()+" "+(String)entry.getValue()+")";
+            for (Map.Entry<String, Object> entry : facts.entrySet()) {
+                factList+=" ("+entry.getKey()+" "+entry.getValue().toString()+")";
             }
-            // slew rate in rad/s for 360 degrees in 90 min
-            call += "(instruments " + payload + ")"+factList+"(select-orbit no) " + orb.toJessSlots() + ""
+            call += "(instruments " + payload + ")"+factList+" (select-orbit no) " + orb.toJessSlots() + ""
                     + "(factHistory F" + params.nof + ")))";
             params.nof++;
 

@@ -19,8 +19,8 @@
         {"name": "TIRS"}
       ],
       "facts": {
-          "lifetime": 10,
-          "launch-date": 2020,
+          "lifetime": 5,
+          "launch-date": 2013,
           "slew-rate": 0.0023
       }
     }

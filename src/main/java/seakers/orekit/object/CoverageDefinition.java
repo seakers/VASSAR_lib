@@ -76,7 +76,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param minLongitdue Maximum latitude where coverage is defined [deg].
      * Longitudes should be in interval of [-180,180] degrees
      * @param maxLongitude Maximum latitude where coverage is defined [deg].
-     * Longitudes should be in interval of [-180,180] degreesÏ
+     * Longitudes should be in interval of [-180,180] degrees
      * @param planet Body shape on which to project the CoveragePoints
      * @param style the style of the grid
      */

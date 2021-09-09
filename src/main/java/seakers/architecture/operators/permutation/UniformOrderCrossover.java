@@ -18,7 +18,7 @@ import org.moeaframework.core.variable.Permutation;
  * selected and a random binary template is generated. Some of the genes for
  * offspring C1 are filled by taking the genes from parent P1 where there is a
  * one in the template. At this point we have C1 partially filled, but it has
- * some “gaps”. The genes of parent P1 in the positions corresponding to zeros
+ * some gaps. The genes of parent P1 in the positions corresponding to zeros
  * in the template are taken and sorted in the same order as they appear in
  * parent P2. The sorted list is used to fill the gaps in C1. Offspring C2 is
  * created using a similar process."
