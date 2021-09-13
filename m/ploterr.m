@@ -147,7 +147,7 @@ function hh = ploterr(x, y, xerr, yerr, varargin)
 %  v1.1.2, February 2009: added abshh properties to set handle sizes as
 %          absolute values
 %
-%   Felix Zörgiebel
+%   Felix Zï¿½rgiebel
 %   email: felix_z -> web.de
 %   Date: 12/03/2008
 
@@ -353,7 +353,7 @@ if isempty(errmsg)
     A=A(2:end); % skip symbol for properties
 end
 n=length(A);
-A=[A '!"§$%&()=?']; % append some stupid string for the case that the last property comes without a value
+A=[A '!"ï¿½$%&()=?']; % append some stupid string for the case that the last property comes without a value
 idx=1;
 while idx <= n
     prop=A{idx};

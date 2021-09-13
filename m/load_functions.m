@@ -2,7 +2,7 @@ function load_functions
 r = global_jess_engine();
 jess batch ".\\clp\\functions.clp";
 jess batch ".\\clp\\jess_functions.clp";
-r.eval('(deffunction update-objective-variable (?obj ?new-value) “Update the value of the global variable with the new value only if it is better” (bind ?obj (max ?obj ?new-value)))');
+r.eval('(deffunction update-objective-variable (?obj ?new-value) ï¿½Update the value of the global variable with the new value only if it is betterï¿½ (bind ?obj (max ?obj ?new-value)))');
 r.eval('(deffunction ContainsRegion (?observed-region ?desired-region) "Returns true if the observed region i.e. 1st param contains the desired region i.e. 2nd param" (bind ?tmp1 (eq ?observed-region Global)) (bind ?tmp2 (eq ?desired-region ?observed-region)) (if (or ?tmp1 ?tmp2) then (return TRUE) else (return FALSE)))');
 r.eval('(deffunction ContainsBands (?list-bands ?desired-bands) "Returns true if the list of bands contains the desired bands" (if (subsetp ?desired-bands ?list-bands) then (return TRUE) else (return FALSE)))');
 
