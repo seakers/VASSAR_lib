@@ -8,8 +8,7 @@
       ],
       "facts": {
           "lifetime": 5,
-          "launch-date": 2015,
-          "slew-rate": 0.0011
+          "launch-date": 2015
       }
     },
     {
@@ -21,7 +20,7 @@
       "facts": {
           "lifetime": 5,
           "launch-date": 2013,
-          "slew-rate": 0.0023
+          "slew-rate": 0.0037
       }
     }
   ]
