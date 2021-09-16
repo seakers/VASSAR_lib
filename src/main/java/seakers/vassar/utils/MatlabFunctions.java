@@ -343,15 +343,15 @@ public class MatlabFunctions implements Userfunction {
 //            Pa = 1200;
 //            Pp = Pa;
 
-            // Calculate time in daylight and eclipse
-            double Td = T * solarFrac;
-            double Te = T - Td;
+            // Calculate time in daylight and eclipse   
+            double Td = (T-1800);
+            double Te = 1800;
             //System.out.println("Eclipse time (s): "+Te);
 
 
             // Calculate Solar Panel Power
-            double Xe = 0.65;
-            double Xd = 0.85;
+            double Xe = 1.0;
+            double Xd = 1.0;
             double dc = 0.25; // duty cycle
             double Pe = (1-dc) * (Pa-ppa) + dc * Pa;
             double Pd = Pe;
