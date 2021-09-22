@@ -508,6 +508,7 @@ public class MatlabFunctions implements Userfunction {
 //                System.out.println("eps power                 : " + " " + Psa_min + " " + Asa + " " + Pbol);
                 System.out.println("----------------------------");
                 System.out.println("Solar array mass          : " + Msa);
+                System.out.println("Solar array area          : " + Asa);
                 System.out.println("Battery mass              : " + mbatt_min);
                 System.out.println("Number of batteries       : " + Nbat_min);
                 System.out.println("EPS CPU mass              : " + Mcpu_min);
@@ -712,6 +713,26 @@ public class MatlabFunctions implements Userfunction {
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+    public Value inflate(Funcall vv, Context c) {
+        try {
+            double[] factors = {0.097, 0.088, 0.08, 0.075, 0.078, 0.08, 0.081, 0.084, 0.082, 0.081, 0.081, 0.085, 0.095, 0.1, 0.102, 0.105, 0.113, 0.13, 0.14, 0.138, 0.14, 0.151, 0.154, 0.155, 0.156, 0.156, 0.158, 0.163, 0.168, 0.169, 0.172, 0.174, 0.175, 0.178, 0.18, 0.183, 0.188, 0.194, 0.202, 0.213, 0.225, 0.235, 0.243, 0.258, 0.286, 0.312, 0.33, 0.352, 0.379, 0.422, 0.479, 0.528, 0.56, 0.578, 0.603, 0.625, 0.636, 0.66, 0.687, 0.72, 0.759, 0.791, 0.815, 0.839, 0.861, 0.885, 0.911, 0.932, 0.947, 0.967, 1, 1.028, 1.045, 1.069, 1.097, 1.134, 1.171, 1.204, 1.250, 1.246, 1.266, 1.306, 1.333, 1.353, 1.375, 1.376, 1.394, 1.423, 1.452, 1.484, 1.518, 1.555, 1.592, 1.629, 1.667, 1.706, 1.746, 1.787, 1.829};
+            double year = 1930;
+            HashMap<Double, Double> factorMap = new HashMap<>(factors.length);
+            for(int i = 0; i < factors.length; i++){
+                factorMap.put(year+i, factors[i]);
+            }
+            double cost = vv.get(2).floatValue(c);
+            double y1 = vv.get(3).floatValue(c);
+            double y2 = vv.get(4).floatValue(c);
+            double f1 = factorMap.get(y1);
+            double f2 = factorMap.get(y2);
+            cost = (cost/f1)*f2;
+            return new Value(cost, RU.FLOAT);
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
         }

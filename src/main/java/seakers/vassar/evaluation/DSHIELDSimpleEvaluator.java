@@ -134,7 +134,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2021) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -274,6 +274,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 r.eval("(focus COST-ESTIMATION)");
             }
             r.eval("(run)");
+            //r.eval("(focus INFLATION)");
+            //r.eval("(run)");
 
 
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");

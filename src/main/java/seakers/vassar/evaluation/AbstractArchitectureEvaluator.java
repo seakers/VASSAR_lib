@@ -416,6 +416,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 r.eval("(focus COST-ESTIMATION)");
             }
             r.eval("(run)");
+            r.eval("(focus INFLATION)");
+            r.eval("(run)");
 
             double cost = 0.0;
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
