@@ -46,7 +46,7 @@ public class FullArchTest {
             alt_repeat.put("LEO-"+alt+"-"+inc,repeat_cycle);
         }
         int r = 1;
-        int s = 1;
+        int s = 3;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> fullSatellites = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> complementarySatellites = new ArrayList<>();

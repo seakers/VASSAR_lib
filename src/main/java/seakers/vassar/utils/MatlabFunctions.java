@@ -344,14 +344,14 @@ public class MatlabFunctions implements Userfunction {
 //            Pp = Pa;
 
             // Calculate time in daylight and eclipse   
-            double Td = (T-1800);
-            double Te = 1800;
+            double Td = T*solarFrac;
+            double Te = T-Td;
             //System.out.println("Eclipse time (s): "+Te);
 
 
             // Calculate Solar Panel Power
-            double Xe = 1.0;
-            double Xd = 1.0;
+            double Xe = 0.65; // not accurate, used for planner power draw estimation
+            double Xd = 0.85;
             double dc = 0.25; // duty cycle
             double Pe = (1-dc) * (Pa-ppa) + dc * Pa;
             double Pd = Pe;
@@ -389,24 +389,24 @@ public class MatlabFunctions implements Userfunction {
                         Ld = pow( (1-0.005), lifetime);
                         Peol = P_density_temp * Ld;
                         Asa_temp = Psa_min / Peol;
-                        Msa_temp = 2.8 * Asa_temp;
                         Pbol_temp = P_density_temp * Asa_temp;
+                        Msa_temp = Pbol_temp/25;
                         break;
                     case "Si":
                         P_density_temp = 202 * 0.77 * cos(worstAngle * PI / 180);
                         Ld = pow( (1-0.00375), lifetime);
                         Peol = P_density_temp * Ld;
                         Asa_temp = Psa_min / Peol;
-                        Msa_temp = 2.3 * Asa_temp;
                         Pbol_temp = P_density_temp * Asa_temp;
+                        Msa_temp = Pbol_temp/25;
                         break;
                     case "GaAs":
                         P_density_temp = 253 * 0.77 * cos(worstAngle * PI / 180);
                         Ld = pow( (1-0.00275), lifetime);
                         Peol = P_density_temp * Ld;
                         Asa_temp = Psa_min / Peol;
-                        Msa_temp = 2.7 * Asa_temp;
                         Pbol_temp = P_density_temp * Asa_temp;
+                        Msa_temp = Pbol_temp/25;
                         break;
                     case "DANI":
                         P_density_temp = 300 * 0.77 * cos(worstAngle * PI / 180);
@@ -472,9 +472,9 @@ public class MatlabFunctions implements Userfunction {
                             Mwiring = (0.01 + 0.04) / 2 * drymass;
                         }
                         else{
-                            Mcpu = 0.02 * Psa_min;
-                            Mregconv = 0.025 * Psa_min;
-                            Mwiring = (0.01 + 0.04) / 2 * drymass;
+                            Mcpu = 0.02 * Pp;
+                            Mregconv = 0.025 * Pp;
+                            Mwiring = 0.04 * drymass; // SMAD 3rd edition Table 10-27.
                         }
 
                         double Meps_temp = Msa_temp + (mbatt * Nbat) + Mcpu + Mregconv + Mwiring;
