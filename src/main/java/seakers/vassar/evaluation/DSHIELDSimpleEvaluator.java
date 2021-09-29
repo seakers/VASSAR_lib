@@ -4,6 +4,9 @@ import jess.*;
 import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.time.AbsoluteDate;
+import org.orekit.time.TimeScale;
+import org.orekit.time.TimeScalesFactory;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
@@ -84,7 +87,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
         // Commented out for runtime, uncomment for full evaluation
         //result.setScience(evaluateScience(params,r,arch,qb,m));
-        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
         ArrayList<Double> coverage = new ArrayList<Double>();
         coverage.add(0.0);
         coverage.add(0.0);
@@ -109,7 +112,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         coverage.add(0.0);
         coverage.add(0.0);
         result.setCoverage(coverage);
-        result.setCost(evaluateCosts(params,r,arch,qb,m));
+        //result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
         this.resourcePool.freeResource(res);
@@ -310,7 +313,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> allEvents = new ArrayList<>();
-            CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, 5, true, true, params.orekitResourcesPath);
+            CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, 5, false, true, params.orekitResourcesPath);
             ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(4, 5, true, true, params.orekitResourcesPath);
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
@@ -501,7 +504,20 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-
+            Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
+            for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
+                Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
+                lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
+            }
+            Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerEvents.get(0));
+            for (int i = 0; i < radiometerEvents.size(); ++i) {
+                Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
+                mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
+            }
+            for (int f = 0; f < 11; f++) {
+                overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
+            }
+            System.out.println("Done processing coverage");
         } catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
@@ -514,6 +530,44 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             coverage.add(0.0);
         }
         return coverage;
+    }
+
+    protected void overlapResults(Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents, Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents, CoverageAnalysisModified coverageAnalysis, double[] newLatBounds, double[] lonBounds, int delay) {
+        Map<TopocentricFrame, TimeIntervalArray> radiometerRadarOverlapEvents = new HashMap<>();
+        ArrayList<Double> radiometerRadarDelay = new ArrayList<>();
+        for(TopocentricFrame tf : lBandMergedEvents.keySet()) {
+            TimeIntervalArray radarTimeArray = lBandMergedEvents.get(tf);
+            TimeIntervalArray radiometerTimeArray = mergedRadiometerEvents.get(tf);
+            double timeDiff = 60.0*60*delay;
+            double[] radarRAS = radarTimeArray.getRiseAndSetTimesList();
+            double[] radiometerRAS = radiometerTimeArray.getRiseAndSetTimesList();
+            ArrayList<Double> correlatedRASList = new ArrayList<>();
+            for(int i = 0; i < radarRAS.length; i = i + 2) {
+                for (int j = 0; j < radiometerRAS.length; j = j + 2) {
+                    if(radiometerRAS[j] > radarRAS[i]-timeDiff && radiometerRAS[j+1] < radarRAS[i+1]) {
+                        correlatedRASList.add(radiometerRAS[j]);
+                        correlatedRASList.add(radiometerRAS[j+1]);
+                        radiometerRadarDelay.add(Math.abs(radarRAS[i]-radiometerRAS[j+1]));
+                    }
+                }
+            }
+            TimeScale utc = TimeScalesFactory.getUTC();
+            AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
+            AbsoluteDate endDate = startDate.shiftedBy(1 * 24 * 60 * 60); // 7 days in seconds
+            TimeIntervalArray correlatedTimeArray = new TimeIntervalArray(startDate, endDate);
+            for (int x = 0; x < correlatedRASList.size(); x = x + 2 ) {
+                correlatedTimeArray.addRiseTime(correlatedRASList.get(x));
+                correlatedTimeArray.addSetTime(correlatedRASList.get(x+1));
+            }
+            radiometerRadarOverlapEvents.put(tf,correlatedTimeArray);
+        }
+        double sum = 0;
+        for (int y = 0; y < radiometerRadarDelay.size(); y++) {
+            sum = sum + radiometerRadarDelay.get(y);
+        }
+        double averageDelayWithinTwoHours = sum/radiometerRadarDelay.size();
+        System.out.println("Average delay within " + delay + " hours: "+averageDelayWithinTwoHours);
+        System.out.println("Correlated percent coverage for " + delay + " hours: "+coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds));
     }
 
     protected void designSpacecraft(Rete r, SimpleArchitecture arch, QueryBuilder qb, MatlabFunctions m) {

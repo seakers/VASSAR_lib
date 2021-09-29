@@ -20,12 +20,12 @@ import static java.lang.Integer.parseInt;
 
 public class FullArchTest {
     public static void main(String[] args){
-        String path = "H:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -48,6 +48,7 @@ public class FullArchTest {
         int r = 1;
         int s = 3;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
+        ArrayList<OrbitInstrumentObject> radarRadiometerSatellites = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> fullSatellites = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> complementarySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
@@ -65,10 +66,11 @@ public class FullArchTest {
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"L-band_SAR","P-band_SAR"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"L-band_SAR"},orbitName);
                 OrbitInstrumentObject fullSatellite = new OrbitInstrumentObject(new String[]{"L-band_Reflectometer","P-band_Reflectometer","FMPL-2","P-band_SAR","L-band_SAR"},orbitName);
                 OrbitInstrumentObject complementarySatellite = new OrbitInstrumentObject(new String[]{"L-band_Reflectometer","P-band_Reflectometer","FMPL-2"},complementaryOrbitName);
                 radarOnlySatellites.add(radarOnlySatellite);
+                radarRadiometerSatellites.add(radarOnlySatellite);
                 fullSatellites.add(fullSatellite);
                 complementarySatellites.add(complementarySatellite);
             }
@@ -76,7 +78,7 @@ public class FullArchTest {
         SimpleArchitecture radarArchitecture = new SimpleArchitecture(radarOnlySatellites);
         radarArchitecture.setRepeatCycle(7);
         radarArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, radar satellites only");
-        architectures.add(radarArchitecture);
+        //architectures.add(radarArchitecture);
         SimpleArchitecture fullArchitecture = new SimpleArchitecture(fullSatellites);
         fullArchitecture.setRepeatCycle(7);
         fullArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, full satellites only");
@@ -95,8 +97,8 @@ public class FullArchTest {
         fullCompArchitecture.setRepeatCycle(7);
         fullCompArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, full and complementary satellites only");
         //architectures.add(fullCompArchitecture);
-        for(int i=0; i < 14; i++) {                   // Original value of 20
-            for(int j = 4; j <= 4; j++) {           // Number of planes.     Original value of 4
+        for(int i=1; i < 2; i++) {                   // Original value of 20
+            for(int j = 3; j <= 3; j++) {           // Number of planes.     Original value of 4
                 for(int k = 4; k <= 4; k++) {       // Satellites per plane. Original value of 4
                     ArrayList<OrbitInstrumentObject> arbitrarySatellites = new ArrayList<>();
                     for(int m = 0; m < j; m++) {
@@ -112,11 +114,13 @@ public class FullArchTest {
                             if(!orbitList.contains(orbitName)) {
                                 orbitList.add(orbitName);
                             }
-                            OrbitInstrumentObject satellite = new OrbitInstrumentObject(new String[]{"L-band_Reflectometer","P-band_Reflectometer","FMPL-2"},orbitName);
+                            OrbitInstrumentObject satellite = new OrbitInstrumentObject(new String[]{"FMPL-2"},orbitName);
                             arbitrarySatellites.add(satellite);
+                            radarRadiometerSatellites.add(satellite);
                         }
                     }
                     arbitrarySatellites.addAll(fullSatellites);
+                    //radarRadiometerSatellites.add(arbitrarySatellites);
                     SimpleArchitecture arbitraryArchitecture = new SimpleArchitecture(arbitrarySatellites);
                     int rc = alt_repeat.get(orbitIncCombos.get(i));
                     arbitraryArchitecture.setRepeatCycle(rc);
@@ -125,6 +129,8 @@ public class FullArchTest {
                 }
             }
         }
+        SimpleArchitecture radarRadiometerArchitecture = new SimpleArchitecture(radarRadiometerSatellites);
+        architectures.add(radarRadiometerArchitecture);
         ArrayList<OrbitInstrumentObject> cygnssSatellites = new ArrayList<>();
         int j = 1;
         int k = 8;
@@ -163,6 +169,7 @@ public class FullArchTest {
         JSONObject results = new JSONObject();
         JSONArray arches = new JSONArray();
         System.out.println("Starting to process architectures");
+        System.out.println(System.getProperty("user.home"));
         for(SimpleArchitecture architecture : architectures) {
             evaluationManager.init(1);
             long start = System.nanoTime();

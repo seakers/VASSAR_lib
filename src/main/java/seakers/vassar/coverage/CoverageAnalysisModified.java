@@ -94,7 +94,7 @@ public class CoverageAnalysisModified {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
+        this.endDate = startDate.shiftedBy(1 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -301,41 +301,58 @@ public class CoverageAnalysisModified {
             }
         }
         */
-        List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//        List<List<String>> records = new ArrayList<>();
+//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//            String line;
+//            while ((line = br.readLine()) != null) {
+//                String[] values = line.split(",");
+//                records.add(Arrays.asList(values));
+//            }
+//        }
+//        catch (Exception e) {
+//            System.out.println(e);
+//        }
+//        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
+//        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+//        double[] latitudes = linspace(-84.66,84.66,records.size());
+//        double longDistCheck = 0.0;
+//        double latDistCheck = 0.0;
+//        for (int j = 0; j < records.get(0).size(); j++) {
+//            for (int k = 0; k < records.size(); k++) {
+//                // Check for IGBP biome types
+//                // Change doubles in this if statement to change grid granularity
+//                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
+//                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+//                    igbpPoints.add(point);
+//                    latDistCheck = 0.0;
+//                    longDistCheck = 0.0;
+//                }
+//                latDistCheck = latDistCheck+180.0/records.size();
+//            }
+//            latDistCheck = 0.0;
+//            longDistCheck = longDistCheck+360.0/records.get(0).size();
+//        }
+
+        List<List<String>> plannerPointList = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
-                records.add(Arrays.asList(values));
+                plannerPointList.add(Arrays.asList(values));
             }
         }
         catch (Exception e) {
             System.out.println(e);
         }
-        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
-        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
-        double[] latitudes = linspace(-84.66,84.66,records.size());
-        double longDistCheck = 0.0;
-        double latDistCheck = 0.0;
-        for (int j = 0; j < records.get(0).size(); j++) {
-            for (int k = 0; k < records.size(); k++) {
-                // Check for IGBP biome types
-                // Change doubles in this if statement to change grid granularity
-                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
-                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
-                    igbpPoints.add(point);
-                    latDistCheck = 0.0;
-                    longDistCheck = 0.0;
-                }
-                latDistCheck = latDistCheck+180.0/records.size();
-            }
-            latDistCheck = 0.0;
-            longDistCheck = longDistCheck+360.0/records.get(0).size();
+        ArrayList<GeodeticPoint> plannerPoints = new ArrayList<>();
+        for (int r = 0; r < plannerPointList.size(); r++) {
+            GeodeticPoint gp = new GeodeticPoint(Double.parseDouble(plannerPointList.get(r).get(0)),Double.parseDouble(plannerPointList.get(r).get(1)),0.0);
+            plannerPoints.add(gp);
         }
-
+        ArrayList<GeodeticPoint> subset = new ArrayList(plannerPoints.subList(0,100));
         //create a coverage definition
         //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", plannerPoints, earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -374,7 +391,7 @@ public class CoverageAnalysisModified {
             throw new IllegalStateException("scenario failed to complete.");
         }
         long end = System.nanoTime();
-        //System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
+        System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return fovEvent.getEvents(covDef1);
 
     }
@@ -457,5 +474,16 @@ public class CoverageAnalysisModified {
             d[i] = min + i * (max - min) / (points - 1);
         }
         return d;
+    }
+    public static String getListAsCsvString(ArrayList<Double> list){
+
+        StringBuilder sb = new StringBuilder();
+        for(Double str:list){
+            if(sb.length() != 0){
+                sb.append(",");
+            }
+            sb.append(Double.toString(str));
+        }
+        return sb.toString();
     }
 }
