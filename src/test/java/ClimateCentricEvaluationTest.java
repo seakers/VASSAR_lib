@@ -1,3 +1,4 @@
+import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.Result;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
@@ -13,11 +14,11 @@ import java.util.Stack;
 public class ClimateCentricEvaluationTest {
 
     public static void main(String[] args){
-
+        OrekitConfig.init();
         String resourcesPath = "../VASSAR_resources";
 
         ClimateCentricParams params = new ClimateCentricParams(resourcesPath, "CRISP-ATTRIBUTES",
-                "test", "normal");
+                "test", "update_revtimes");
 
 
 //        for(String key: params.revtimes.keySet()){
@@ -35,5 +36,7 @@ public class ClimateCentricEvaluationTest {
         Result result = evaluationManager.evaluateArchitectureSync(archs.get(0), "Slow");
 
         System.out.println("science: " + result.getScience() + ", cost:" + result.getCost());
+        OrekitConfig.end();
+        System.exit(0);
     }
 }

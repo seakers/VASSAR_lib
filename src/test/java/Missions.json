@@ -1,0 +1,27 @@
+{
+  "missions": [
+    {
+      "name": "SMAP",
+      "orbit": "SSO-680-SSO-DD",
+      "instruments": [{"name": "SMAP_MWR"},
+                      {"name": "SMAP_RAD"}
+      ],
+      "facts": {
+          "lifetime": 5,
+          "launch-date": 2015
+      }
+    },
+    {
+      "name": "Landsat 8",
+      "orbit": "SSO-800-SSO-DD",
+      "instruments": [{"name": "OLI"},
+        {"name": "TIRS"}
+      ],
+      "facts": {
+          "lifetime": 5,
+          "launch-date": 2013,
+          "slew-rate": 0.0037
+      }
+    }
+  ]
+}

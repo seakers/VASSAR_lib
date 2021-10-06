@@ -12,8 +12,10 @@ package seakers.vassar;
 import seakers.vassar.architecture.AbstractArchitecture;
 
 import jess.*;
+import seakers.vassar.spacecraft.SpacecraftDescription;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.ArrayList;
 
@@ -22,6 +24,7 @@ public class Result implements Serializable {
 
     private double science;
     private double cost;
+    private ArrayList<Double> coverage;
     private ArrayList<ArrayList<ArrayList<Double>>> subobjectiveScores;
     private ArrayList<ArrayList<Double>> objectiveScores;
     private ArrayList<Double> panelScores;
@@ -33,12 +36,14 @@ public class Result implements Serializable {
     private ArrayList<Fact> capabilities;
     private ArrayList<Fact> costFacts;
     private String taskType;
+    private ArrayList<SpacecraftDescription> designs;
 
     //Constructors
     public Result(){}
 
     public Result(AbstractArchitecture arch, double science, double cost) {
         this.science = science;
+        this.coverage = new ArrayList<>();
         this.cost = cost;
         this.subobjectiveScores = null;
         this.subobjectiveScoresMap = null;
@@ -51,11 +56,13 @@ public class Result implements Serializable {
         taskType = "Fast";
         this.fuzzyScience = null;
         this.fuzzyCost = null;
+        this.designs = null;
     }
 
     public Result(AbstractArchitecture arch,
                   double science,
                   double cost,
+                  double coverage,
                   FuzzyValue fuzzy_science,
                   FuzzyValue fuzzy_cost,
                   ArrayList<ArrayList<ArrayList<Double>>> subobj_scores,
@@ -72,6 +79,7 @@ public class Result implements Serializable {
         this.objectiveScores = obj_scores;
         this.panelScores = panel_scores;
         this.subobjectiveScoresMap = subobj_scores_map;
+        this.designs = new ArrayList<>();
     }
 
     //Getters and Setters
@@ -103,6 +111,9 @@ public class Result implements Serializable {
         this.arch = arch;
     }
 
+    public void setCoverage(ArrayList<Double> coverage) { this.coverage = coverage; }
+    public ArrayList<Double> getCoverage() { return coverage; }
+
     public double getScience() {
         return science;
     }
@@ -117,9 +128,7 @@ public class Result implements Serializable {
         this.cost = cost;
     }
 
-    public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() {
-        return subobjectiveScores;
-    }
+    public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() { return subobjectiveScores; }
     public ArrayList<ArrayList<Double>> getObjectiveScores() {
         return objectiveScores;
     }
@@ -150,6 +159,12 @@ public class Result implements Serializable {
     public void setFuzzyCost(FuzzyValue fuzzyCost) {
         this.fuzzyCost = fuzzyCost;
     }
+
+    public void setDesigns(ArrayList<SpacecraftDescription> newDesigns){
+        this.designs = new ArrayList<>();
+        for (SpacecraftDescription newDesign : newDesigns) this.designs.add(new SpacecraftDescription(newDesign));
+    }
+    public ArrayList<SpacecraftDescription> getDesigns(){ return this.designs; }
 
     public static double SumDollar(ArrayList<Double> a) {
         double res = 0.0;

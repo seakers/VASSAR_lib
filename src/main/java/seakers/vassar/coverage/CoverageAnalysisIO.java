@@ -1,22 +1,8 @@
 package seakers.vassar.coverage;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.math3.util.FastMath;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
-import org.orekit.time.TimeScale;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-import seakers.orekit.object.CoveragePoint;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
@@ -25,10 +11,19 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.analysis.AnalysisMetric;
+import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
+import seakers.orekit.object.CoveragePoint;
 import seakers.vassar.RawSafety;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that computes coverage metrics for each satellite in the constellation
@@ -96,13 +91,13 @@ public class CoverageAnalysisIO {
 
 
         Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
-            
+
         String line;
         List<SimpleDateFormat> startTime = new ArrayList<>();
         List<AbsoluteDate> stopTime = new ArrayList<>();
         List<Double> riseTime = new ArrayList<>();
         List<Double> setTime = new ArrayList<>();
-        
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
             // Skip first line
@@ -117,24 +112,24 @@ public class CoverageAnalysisIO {
                 double lon = Double.parseDouble(entry[1]);
 
                 GeodeticPoint geoPoint = new GeodeticPoint(lat, lon, 0.0);
-                
+
                 //using a default body frame since we are simulating earth
                 //must use IERS_2003 and EME2000 frames to be consistent with STK
                 Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
                 BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                         Constants.WGS84_EARTH_FLATTENING, earthFrame);
-                
+
                 TopocentricFrame topos = new TopocentricFrame(earthShape, geoPoint, String.valueOf(definition.hashCode()));
                 AbsoluteDate head = new AbsoluteDate(entry[2], timeScale);
                 AbsoluteDate tail = new AbsoluteDate(entry[3], timeScale);
 
                 TimeIntervalArray timeInterval = new TimeIntervalArray(head, tail);
-                
+
                 for (int i = 0; i < columns; i = i + 2) {
                     timeInterval.addRiseTime(Double.parseDouble(entry[i + 4]));
                     timeInterval.addSetTime(Double.parseDouble(entry[i + 5]));
                 }
-                
+
                 out.put(topos, timeInterval);
             }
         }
@@ -145,8 +140,8 @@ public class CoverageAnalysisIO {
             CoverageAnalysisIO.unlockFile(filename);
         }
         return out;
-    } 
-    
+    }
+
     public void writeAccessDataCSV(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> fovEvents){
 
         String filename = getAccessDataFilename(definition);
@@ -240,11 +235,8 @@ public class CoverageAnalysisIO {
     }
 
     public File getAccessDataFile(String filename) {
-
-        return new File(
-                System.getProperty("orekit.coveragedatabase"),
-                filename
-                );
+        File dataFile = new File(System.getProperty("orekit.coveragedatabase"), filename);
+        return dataFile;
     }
 
     public Map<TopocentricFrame, TimeIntervalArray> readAccessDataBinary(AccessDataDefinition definition) {
@@ -308,6 +300,7 @@ public class CoverageAnalysisIO {
         private double fieldOfView;
         private double inclination;
         private double altitude;
+        private double trueAnom;
         private int numSats;
         private int numPlanes;
         private int granularity;
@@ -320,6 +313,22 @@ public class CoverageAnalysisIO {
             this.numSats = numSats;
             this.numPlanes = numPlanes;
             this.granularity = granularity;
+            this.trueAnom = 0;
+            if(raanLabel == null){
+                this.raan = "NA";
+            }else{
+                this.raan = raanLabel;
+            }
+        }
+
+        public AccessDataDefinition(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, int granularity, String raanLabel, double trueAnom){
+            this.fieldOfView = fieldOfView;
+            this.inclination = inclination;
+            this.altitude = altitude;
+            this.numSats = numSats;
+            this.numPlanes = numPlanes;
+            this.granularity = granularity;
+            this.trueAnom = trueAnom;
             if(raanLabel == null){
                 this.raan = "NA";
             }else{
@@ -342,6 +351,7 @@ public class CoverageAnalysisIO {
                     append(numPlanes).
                     append(granularity).
                     append(raan).
+                    append(trueAnom).
                     toHashCode();
         }
     }
