@@ -78,7 +78,7 @@ public class FullArchTest {
         SimpleArchitecture radarArchitecture = new SimpleArchitecture(radarOnlySatellites);
         radarArchitecture.setRepeatCycle(7);
         radarArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, radar satellites only");
-        //architectures.add(radarArchitecture);
+        architectures.add(radarArchitecture);
         SimpleArchitecture fullArchitecture = new SimpleArchitecture(fullSatellites);
         fullArchitecture.setRepeatCycle(7);
         fullArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, full satellites only");
@@ -130,7 +130,7 @@ public class FullArchTest {
             }
         }
         SimpleArchitecture radarRadiometerArchitecture = new SimpleArchitecture(radarRadiometerSatellites);
-        architectures.add(radarRadiometerArchitecture);
+        //architectures.add(radarRadiometerArchitecture);
         ArrayList<OrbitInstrumentObject> cygnssSatellites = new ArrayList<>();
         int j = 1;
         int k = 8;

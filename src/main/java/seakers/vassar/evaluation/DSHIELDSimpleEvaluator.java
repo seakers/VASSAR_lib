@@ -87,7 +87,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
         // Commented out for runtime, uncomment for full evaluation
         //result.setScience(evaluateScience(params,r,arch,qb,m));
-        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
         ArrayList<Double> coverage = new ArrayList<Double>();
         coverage.add(0.0);
         coverage.add(0.0);
@@ -112,7 +112,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         coverage.add(0.0);
         coverage.add(0.0);
         result.setCoverage(coverage);
-        //result.setCost(evaluateCosts(params,r,arch,qb,m));
+        result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
         this.resourcePool.freeResource(res);
@@ -504,18 +504,20 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-            Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
-            for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
-                Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
-                lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
-            }
-            Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerEvents.get(0));
-            for (int i = 0; i < radiometerEvents.size(); ++i) {
-                Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
-                mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
-            }
-            for (int f = 0; f < 11; f++) {
-                overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
+            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerEvents.isEmpty()) {
+                Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
+                for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
+                    lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
+                }
+                Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerEvents.get(0));
+                for (int i = 0; i < radiometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
+                    mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
+                }
+                for (int f = 0; f < 11; f++) {
+                    overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
+                }
             }
             System.out.println("Done processing coverage");
         } catch (Exception e) {
