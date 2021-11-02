@@ -87,7 +87,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
         // Commented out for runtime, uncomment for full evaluation
         //result.setScience(evaluateScience(params,r,arch,qb,m));
-        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
         ArrayList<Double> coverage = new ArrayList<Double>();
         coverage.add(0.0);
         coverage.add(0.0);
@@ -111,7 +111,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         coverage.add(0.0);
         coverage.add(0.0);
         coverage.add(0.0);
-        //result.setCoverage(coverage);
+        result.setCoverage(coverage);
         result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
@@ -507,7 +507,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerPlannerEvents.isEmpty()) {
+            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerEvents.isEmpty()) {
                 Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
                 for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
                     Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
