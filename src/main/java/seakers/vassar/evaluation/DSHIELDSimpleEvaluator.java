@@ -111,8 +111,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         coverage.add(0.0);
         coverage.add(0.0);
         coverage.add(0.0);
-        result.setCoverage(coverage);
-        //result.setCost(evaluateCosts(params,r,arch,qb,m));
+        //result.setCoverage(coverage);
+        result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
         this.resourcePool.freeResource(res);
@@ -309,6 +309,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandFieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandFieldOfViewEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> radiometerEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> radiometerPlannerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> reflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandReflectometerEvents = new ArrayList<>();
@@ -369,6 +370,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerEvents.add(accesses);
                     allEvents.add(accesses);
+                    Map<TopocentricFrame, TimeIntervalArray> plannerAccesses = coverageAnalysis.getPlannerAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
+                    radiometerPlannerEvents.add(accesses);
                 }
                 if(insList.contains("P-band_SAR")) {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
@@ -504,19 +507,25 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-            Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
-            for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
-                Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
-                lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
+            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerPlannerEvents.isEmpty()) {
+                Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
+                for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
+                    lBandMergedEvents = EventIntervalMerger.merge(lBandMergedEvents, lBandEvent, false);
+                }
+                Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerPlannerEvents.get(0));
+                for (int i = 0; i < radiometerPlannerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = radiometerPlannerEvents.get(i);
+                    mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
+                }
+//                for (int f = 0; f < 11; f++) {
+//                    overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
+//                }
+                coverage.add(overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, 2));
+            } else {
+                coverage.add(0.0);
             }
-            Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents = new HashMap<>(radiometerEvents.get(0));
-            for (int i = 0; i < radiometerEvents.size(); ++i) {
-                Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
-                mergedRadiometerEvents = EventIntervalMerger.merge(mergedRadiometerEvents, event, false);
-            }
-            for (int f = 0; f < 11; f++) {
-                overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
-            }
+
             System.out.println("Done processing coverage");
         } catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
@@ -532,7 +541,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         return coverage;
     }
 
-    protected void overlapResults(Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents, Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents, CoverageAnalysisModified coverageAnalysis, double[] newLatBounds, double[] lonBounds, int delay) {
+    protected double overlapResults(Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents, Map<TopocentricFrame, TimeIntervalArray> mergedRadiometerEvents, CoverageAnalysisModified coverageAnalysis, double[] newLatBounds, double[] lonBounds, int delay) {
         Map<TopocentricFrame, TimeIntervalArray> radiometerRadarOverlapEvents = new HashMap<>();
         ArrayList<Double> radiometerRadarDelay = new ArrayList<>();
         for(TopocentricFrame tf : lBandMergedEvents.keySet()) {
@@ -565,9 +574,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         for (int y = 0; y < radiometerRadarDelay.size(); y++) {
             sum = sum + radiometerRadarDelay.get(y);
         }
-        double averageDelayWithinTwoHours = sum/radiometerRadarDelay.size();
-        System.out.println("Average delay within " + delay + " hours: "+averageDelayWithinTwoHours);
+        double averageDelayWithinXHours = sum/radiometerRadarDelay.size();
+        System.out.println("Average delay within " + delay + " hours: "+averageDelayWithinXHours);
         System.out.println("Correlated percent coverage for " + delay + " hours: "+coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds));
+        return coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds);
     }
 
     protected void designSpacecraft(Rete r, SimpleArchitecture arch, QueryBuilder qb, MatlabFunctions m) {

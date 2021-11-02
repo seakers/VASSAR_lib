@@ -204,6 +204,171 @@ public class CoverageAnalysisModified {
         return this.computeAccesses(fieldOfView, FastMath.toDegrees(inclination), altitude, numSats, numPlanes, raan, 0.0, "radar");
     }
 
+    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
+        //initializes the look up tables for planteary position (required!)
+        OrekitConfig.init(4);
+
+        //define the start and end date of the simulation
+        TimeScale utc = TimeScalesFactory.getUTC();
+
+        //define the scenario parameters
+        double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
+        //must use IERS_2003 and EME2000 frames to be consistent with STK
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        Frame inertialFrame = FramesFactory.getEME2000();
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
+
+        //Enter satellite orbital parameters
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + altitude;
+        double i = inclination;
+
+        //define instruments and payload
+        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView), earthShape);
+        ArrayList<Instrument> payload = new ArrayList<>();
+        if(instrumentType.equals("radar")) {
+            OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+            OffNadirRectangularFOV fov_opposite = new OffNadirRectangularFOV(FastMath.toRadians(-45), FastMath.toRadians(15),FastMath.toRadians(15),0,earthShape);
+            Instrument view1 = new Instrument("view1", fov, 100, 100);
+            Instrument view2 = new Instrument("view2", fov_opposite, 100, 100);
+            payload.add(view1);
+            payload.add(view2);
+        } else if(instrumentType.equals("radiometer")) {
+            NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(fieldOfView),earthShape);
+            Instrument view = new Instrument("view", fov,100,100);
+            payload.add(view);
+        } else if(instrumentType.equals("reflectometer")) {
+            OffNadirRectangularFOV firstQuadrant = new OffNadirRectangularFOV(FastMath.toRadians(10),FastMath.toRadians(2.86),FastMath.toRadians(2.86),0,earthShape);
+            OffNadirRectangularFOV secondQuadrant = new OffNadirRectangularFOV(FastMath.toRadians(20),FastMath.toRadians(2.86),FastMath.toRadians(2.86),0,earthShape);
+            OffNadirRectangularFOV thirdQuadrant = new OffNadirRectangularFOV(FastMath.toRadians(-10),FastMath.toRadians(2.86),FastMath.toRadians(2.86),0,earthShape);
+            OffNadirRectangularFOV fourthQuadrant = new OffNadirRectangularFOV(FastMath.toRadians(-20),FastMath.toRadians(2.86),FastMath.toRadians(2.86),0,earthShape);
+            Instrument view1 = new Instrument("view1", firstQuadrant,100,100);
+            Instrument view2 = new Instrument("view2", secondQuadrant,100,100);
+            Instrument view3 = new Instrument("view3", thirdQuadrant,100,100);
+            Instrument view4 = new Instrument("view4", fourthQuadrant,100,100);
+            payload.add(view1);
+            payload.add(view2);
+            payload.add(view3);
+            payload.add(view4);
+        }
+
+        //number of total satellites
+        int t = numSatsPerPlane*numPlanes;
+
+        //number of planes
+        int p = numPlanes;
+
+        //number of phases
+        int f = 0;
+
+        //Create a walker constellation
+        Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
+
+        // Uncomment for coverage grid of land points between -75 and 75 latitude, 5 degree granularity
+        /*
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
+        for(int idx = 0; idx < records.size(); idx++) {
+            double lat = Double.parseDouble(records.get(idx).get(0));
+            double lon = Double.parseDouble(records.get(idx).get(1));
+            lon = lon - 180.0;
+            lat = Math.toRadians(lat);
+            lon = Math.toRadians(lon);
+            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
+            if(Math.abs(lat) <= Math.toRadians(75.0)) {
+                landPoints.add(landPoint);
+            }
+        }
+        */
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
+        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+        double[] latitudes = linspace(-84.66,84.66,records.size());
+        double longDistCheck = 0.0;
+        double latDistCheck = 0.0;
+        for (int j = 0; j < records.get(0).size(); j++) {
+            for (int k = 0; k < records.size(); k++) {
+                // Check for IGBP biome types
+                // Change doubles in this if statement to change grid granularity
+                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
+                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+                    igbpPoints.add(point);
+                    latDistCheck = 0.0;
+                    longDistCheck = 0.0;
+                }
+                latDistCheck = latDistCheck+180.0/records.size();
+            }
+            latDistCheck = 0.0;
+            longDistCheck = longDistCheck+360.0/records.get(0).size();
+        }
+
+        //create a coverage definition
+        //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
+
+        //assign the walker constellation to the coverage definition
+        covDef1.assignConstellation(walker);
+
+        HashSet<CoverageDefinition> covDefs = new HashSet<>();
+        covDefs.add(covDef1);
+
+        //set the type of propagation
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+
+        //can set the properties of the analyses
+        Properties propertiesEventAnalysis = new Properties();
+        propertiesEventAnalysis.setProperty("fov.saveAccess", "false");
+
+        //set the coverage event analyses
+        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
+        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
+        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
+        eventanalyses.add(fovEvent);
+
+        //build the scenario
+        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+                eventAnalysis(eventanalyses).covDefs(covDefs).
+                name("SMAP").properties(propertiesEventAnalysis).
+                propagatorFactory(pf).build();
+        long start = System.nanoTime();
+        try {
+            //System.out.println(String.format("Running Scenario %s", scen));
+            //System.out.println(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            //System.out.println(String.format("Number of satellites: %d", walker.getSatellites().size()));
+
+            //run the scenario
+            scen.call();
+        } catch (Exception ex) {
+            Logger.getLogger(CoverageExample.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("scenario failed to complete.");
+        }
+        long end = System.nanoTime();
+        System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
+        return fovEvent.getEvents(covDef1);
+
+    }
+
     /**
      * Computes the accesses for satellites sharing the same field of view
      * @param fieldOfView [deg]
@@ -214,7 +379,7 @@ public class CoverageAnalysisModified {
      * @param raan [deg]
      * @throws OrekitException [exception]
      */
-    private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
+    private Map<TopocentricFrame, TimeIntervalArray> computePlannerAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
         OrekitConfig.init(4);
 
@@ -334,7 +499,7 @@ public class CoverageAnalysisModified {
 //        }
 
         List<List<String>> plannerPointList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -460,6 +625,26 @@ public class CoverageAnalysisModified {
         else {
             // Newly compute the accesses
             Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computeAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan,trueAnom, instrumentType);
+
+            if (this.saveAccessData) {
+                this.coverageAnalysisIO.writeAccessData(definition, fovEvents);
+            }
+
+            return fovEvents;
+        }
+    }
+    public Map<TopocentricFrame, TimeIntervalArray> getPlannerAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException {
+        String raanLabel = Double.toString(raan);
+        CoverageAnalysisIO.AccessDataDefinition definition = new CoverageAnalysisIO.AccessDataDefinition(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, this.coverageGridGranularity, raanLabel, trueAnom);
+
+        String filename = this.coverageAnalysisIO.getAccessDataFilename(definition);
+        if (this.coverageAnalysisIO.getAccessDataFile(filename).exists()) {
+            // The access data exists
+            return this.coverageAnalysisIO.readAccessData(definition);
+        }
+        else {
+            // Newly compute the accesses
+            Map<TopocentricFrame, TimeIntervalArray> fovEvents = this.computePlannerAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan,trueAnom, instrumentType);
 
             if (this.saveAccessData) {
                 this.coverageAnalysisIO.writeAccessData(definition, fovEvents);

@@ -493,14 +493,14 @@ public class MatlabFunctions implements Userfunction {
                             Mcpu_min = Mcpu;
                             Mregconv_min = Mregconv;
                             Mwiring_min =  Mwiring;
-                            System.out.println("Battery type: " + batt);
-                            System.out.println("Batter capacity: " + charge_temp);
+//                            System.out.println("Battery type: " + batt);
+//                            System.out.println("Batter capacity: " + charge_temp);
                         }
                     }
                 }
             }
 
-            if(true) {
+            if(false) {
 //                System.out.println("EPS mass: " + Msa + " " + mbatt_min + " " + Nbat_min + " "
 //                + Mcpu_min + " " + Mregconv_min + " " + Mwiring_min);
                 double totalMass = Msa+mbatt_min*Nbat_min+Mcpu_min+Mregconv_min+Mwiring_min;
@@ -599,7 +599,7 @@ public class MatlabFunctions implements Userfunction {
             double commsPower = bestAntenna.getPower();
             //System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
-            if(true) {
+            if(false) {
                 System.out.println("comms mass: " + commsMass);
                 System.out.println("comms power: " + commsPower);
                 System.out.println("antenna dims: " + Arrays.toString(bestAntenna.getDims()));

@@ -30,6 +30,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
     private double allCoverage;
     private double allAvgRevisit;
     private double allMaxRevisit;
+    private double overlap;
     private double cost;
     private int numSatsPerPlane;
     private int numPlanes;
@@ -63,6 +64,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public double getAllAvgRevisit() { return allAvgRevisit; }
     public double getAllMaxRevisit() { return allMaxRevisit; }
     public double getAllCoverage() { return allCoverage; }
+    public double getOverlap() { return overlap; }
     public double getCost() { return cost; }
     public String getName() { return name; }
     public int getNumSatsPerPlane() { return numSatsPerPlane; }
@@ -98,6 +100,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
         this.maxRevisitP = coverage.get(19);
         this.avgRevisitL = coverage.get(20);
         this.maxRevisitL = coverage.get(21);
+        this.overlap = coverage.get(22);
     }
     public void setCost(double cost) {
         this.cost = cost;
