@@ -87,31 +87,31 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
         // Commented out for runtime, uncomment for full evaluation
         //result.setScience(evaluateScience(params,r,arch,qb,m));
-        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
-        ArrayList<Double> coverage = new ArrayList<Double>();
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        coverage.add(0.0);
-        result.setCoverage(coverage);
+        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+//        ArrayList<Double> coverage = new ArrayList<Double>();
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        coverage.add(0.0);
+//        result.setCoverage(coverage);
         result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
@@ -566,7 +566,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             TimeIntervalArray correlatedTimeArray = new TimeIntervalArray(startDate, endDate);
             for (int x = 0; x < correlatedRASList.size(); x = x + 2 ) {
                 correlatedTimeArray.addRiseTime(correlatedRASList.get(x));
-                correlatedTimeArray.addSetTime(correlatedRASList.get(x+1));
+                if(correlatedRASList.get(x+1) > correlatedTimeArray.getTail().durationFrom(startDate)) {
+                    correlatedTimeArray.addSetTime(correlatedTimeArray.getTail().durationFrom(startDate));
+                } else {
+                    correlatedTimeArray.addSetTime(correlatedRASList.get(x+1));
+                }
+
             }
             radiometerRadarOverlapEvents.put(tf,correlatedTimeArray);
         }

@@ -20,12 +20,12 @@ import static java.lang.Integer.parseInt;
 
 public class FullArchTest {
     public static void main(String[] args){
-        String path = "H:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -98,7 +98,7 @@ public class FullArchTest {
         fullCompArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, full and complementary satellites only");
         //architectures.add(fullCompArchitecture);
         for(int i=1; i < 2; i++) {                   // Original value of 20
-            for(int j = 1; j <= 3; j++) {           // Number of planes.     Original value of 4
+            for(int j = 1; j <= 4; j++) {           // Number of planes.     Original value of 4
                 for(int k = 1; k <= 4; k++) {       // Satellites per plane. Original value of 4
                     ArrayList<OrbitInstrumentObject> arbitrarySatellites = new ArrayList<>();
                     for(int m = 0; m < j; m++) {
@@ -210,7 +210,7 @@ public class FullArchTest {
             arches.add(arch);
             results.put("architectures",arches);
             try{
-                FileWriter writer = new FileWriter("fulloutput_11_1.json"); // may want to change this!
+                FileWriter writer = new FileWriter("fulloutput_11_2_local.json"); // may want to change this!
                 writer.write(results.toJSONString());
                 writer.close();
             } catch (Exception e) {

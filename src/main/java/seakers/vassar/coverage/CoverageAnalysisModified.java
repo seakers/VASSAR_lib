@@ -292,7 +292,7 @@ public class CoverageAnalysisModified {
         }
         */
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -499,7 +499,7 @@ public class CoverageAnalysisModified {
 //        }
 
         List<List<String>> plannerPointList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
