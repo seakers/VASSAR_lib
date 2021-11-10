@@ -214,7 +214,8 @@ public class MatlabFunctions implements Userfunction {
         String orb;
         try {
             id = vv.get(2).stringValue(c);
-            orb = vv.get(3).stringValue(c);
+            //orb = vv.get(3).stringValue(c);
+            orb = "LEO-polar";
             ValueVector coeffs = lvDatabase.get(id).getPayloadCoeffsOrbit(orb);
             return new Value( coeffs, RU.LIST );
         }

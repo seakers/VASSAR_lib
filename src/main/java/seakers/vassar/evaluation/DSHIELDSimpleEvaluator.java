@@ -360,6 +360,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     reflectometerEvents.add(reflAccesses);
                     lBandReflectometerEvents.add(reflAccesses);
                     allEvents.add(reflAccesses);
+                    System.out.println("reflectometer accesses");
                 }
                 if(insList.contains("Aquarius")) {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(16.5, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
@@ -370,7 +371,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerEvents.add(accesses);
                     allEvents.add(accesses);
-                    Map<TopocentricFrame, TimeIntervalArray> plannerAccesses = coverageAnalysis.getPlannerAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
+                    //Map<TopocentricFrame, TimeIntervalArray> plannerAccesses = coverageAnalysis.getPlannerAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerPlannerEvents.add(accesses);
                 }
                 if(insList.contains("P-band_SAR")) {
@@ -507,7 +508,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(lBandMergedEvents,newLatBounds,lonBounds) / 3600);
             }
-            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerEvents.isEmpty()) {
+            if(!lBandFieldOfViewEvents.isEmpty() && !radiometerPlannerEvents.isEmpty()) {
                 Map<TopocentricFrame, TimeIntervalArray> lBandMergedEvents = new HashMap<>(lBandFieldOfViewEvents.get(0));
                 for (int i = 0; i < lBandFieldOfViewEvents.size(); ++i) {
                     Map<TopocentricFrame, TimeIntervalArray> lBandEvent = lBandFieldOfViewEvents.get(i);
@@ -528,7 +529,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
             System.out.println("Done processing coverage");
         } catch (Exception e) {
-            System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
+            System.out.println("EXC in evaluateCoverage: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
             coverage.add(0.0);
             coverage.add(0.0);
@@ -579,10 +580,14 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         for (int y = 0; y < radiometerRadarDelay.size(); y++) {
             sum = sum + radiometerRadarDelay.get(y);
         }
-        double averageDelayWithinXHours = sum/radiometerRadarDelay.size();
-        System.out.println("Average delay within " + delay + " hours: "+averageDelayWithinXHours);
-        System.out.println("Correlated percent coverage for " + delay + " hours: "+coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds));
-        return coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds);
+        if(radiometerRadarDelay.isEmpty()) {
+            return 0.0;
+        } else {
+            double averageDelayWithinXHours = sum/radiometerRadarDelay.size();
+            System.out.println("Average delay within " + delay + " hours: "+averageDelayWithinXHours);
+            System.out.println("Correlated percent coverage for " + delay + " hours: "+coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds));
+            return coverageAnalysis.getPercentCoverage(radiometerRadarOverlapEvents,newLatBounds,lonBounds);
+        }
     }
 
     protected void designSpacecraft(Rete r, SimpleArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
