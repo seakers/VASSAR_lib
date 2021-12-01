@@ -18,11 +18,11 @@ public class HeteroArchProblem extends AbstractProblem {
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives());
-        solution.setVariable(0, EncodingUtils.newInt(1,1)); // number of radar satellites
+        solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
         solution.setVariable(1, new RealVariable(450.0,550.0)); // altitude of radar satellites
         solution.setVariable(2, new RealVariable(45.0,90.0)); // inclination of radar satellites
-        solution.setVariable(3, EncodingUtils.newInt(1,1)); // number of cubesat planes
-        solution.setVariable(4, EncodingUtils.newInt(1,1)); // cubesats per plane
+        solution.setVariable(3, EncodingUtils.newInt(1,5)); // number of cubesat planes
+        solution.setVariable(4, EncodingUtils.newInt(1,5)); // cubesats per plane
         solution.setVariable(5, new RealVariable(400.0,800.0)); // altitude of cubesat constellation
         solution.setVariable(6, new RealVariable(5.0,175.0)); // inclination of cubesat constellation
         return solution;
