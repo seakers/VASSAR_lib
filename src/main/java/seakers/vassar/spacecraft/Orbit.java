@@ -1,6 +1,7 @@
 package seakers.vassar.spacecraft;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hipparchus.util.FastMath;
 import org.orekit.utils.Constants;
 import seakers.orekit.object.OrbitWizard;
@@ -160,7 +161,7 @@ public class Orbit {
                 this.trueAnomNum = Double.parseDouble(trueAnom); // [deg]
             }
 
-            if (StringUtils.isNumeric(inclination)) {
+            if (NumberUtils.isCreatable(inclination)) {
                 this.inclinationNum = Double.parseDouble(inclination); // [deg]
             }
             else {
