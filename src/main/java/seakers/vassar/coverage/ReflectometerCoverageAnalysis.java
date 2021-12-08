@@ -88,7 +88,7 @@ public class ReflectometerCoverageAnalysis {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
+        this.endDate = startDate.shiftedBy(1 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -299,7 +299,7 @@ public class ReflectometerCoverageAnalysis {
 //        //create a coverage definition
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -329,10 +329,10 @@ public class ReflectometerCoverageAnalysis {
             latDistCheck = 0.0;
             longDistCheck = longDistCheck+360.0/records.get(0).size();
         }
-        //CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
         //CoverageDefinition covDef2 = new CoverageDefinition("GPS", landPoints, earthShape);
         //assign the walker constellation to the coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
         covDef1.assignConstellation(walker);
         //covDef1.assignConstellation(walker);
         //covDef2.assignConstellation(walker);
