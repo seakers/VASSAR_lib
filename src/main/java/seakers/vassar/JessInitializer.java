@@ -410,7 +410,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadFunctions(Rete r, String[] clps) {
+    private synchronized void loadFunctions(Rete r, String[] clps) {
         try {
             r.addUserfunction(new SameOrBetter());
             r.addUserfunction(new Improve());
@@ -721,7 +721,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
+    private synchronized void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
         try {
             Sheet meas = xls.getSheet(sheet);
             int numLines = meas.getRows();

@@ -360,7 +360,6 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     reflectometerEvents.add(reflAccesses);
                     lBandReflectometerEvents.add(reflAccesses);
                     allEvents.add(reflAccesses);
-                    System.out.println("reflectometer accesses");
                 }
                 if(insList.contains("Aquarius")) {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(16.5, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
@@ -374,15 +373,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     //Map<TopocentricFrame, TimeIntervalArray> plannerAccesses = coverageAnalysis.getPlannerAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerPlannerEvents.add(accesses);
                 }
+                Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                allEvents.add(accesses);
                 if(insList.contains("P-band_SAR")) {
-                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                    allEvents.add(accesses);
                     pBandFieldOfViewEvents.add(accesses);
                 }
                 if(insList.contains("L-band_SAR")) {
-                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
                     lBandFieldOfViewEvents.add(accesses);
-                    allEvents.add(accesses);
                 }
 
             }
@@ -483,6 +480,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(coverageAnalysis.getRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getMaxRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
                 coverage.add(coverageAnalysis.getPercentCoverage(mergedAllEvents, latBounds, lonBounds));
+                System.out.println("All avg revisit time: "+coverageAnalysis.getRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
+                System.out.println("All max revisit time: "+coverageAnalysis.getMaxRevisitTime(mergedAllEvents, newLatBounds, lonBounds) / 3600);
+                System.out.println("All coverage: "+coverageAnalysis.getPercentCoverage(mergedAllEvents, newLatBounds, lonBounds));
             }
 
 

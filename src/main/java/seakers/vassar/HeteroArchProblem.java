@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class HeteroArchProblem extends AbstractProblem {
     public HeteroArchProblem() {
-        super(7,4);
+        super(7,4,1);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives());
@@ -37,8 +37,9 @@ public class HeteroArchProblem extends AbstractProblem {
         double altCubeSats = Math.floor(EncodingUtils.getReal(solution.getVariable(5)) * 100) / 100;
         double incCubeSats = Math.floor(EncodingUtils.getReal(solution.getVariable(6)) * 100) / 100;
         double[] f = new double[numberOfObjectives];
+        double[] c = new double[numberOfConstraints];
 
-        String path = "D:/Documents/VASSAR/VASSAR_resources";
+        String path = "H:/Documents/VASSAR/VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
         int r = 1;
@@ -82,17 +83,23 @@ public class HeteroArchProblem extends AbstractProblem {
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal");
-        DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
-        ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
-        evaluationManager.init(1);
-        Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
-        evaluationManager.clear();
-        architecture.setCoverage(result.getCoverage());
-        f[0] = result.getCost();
-        f[1] = architecture.getAllAvgRevisit();
-        f[2] = architecture.getAllMaxRevisit();
-        f[3] = architecture.getOverlap();
-        solution.setObjectives(f);
+        try{
+            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal");
+            DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
+            ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
+            evaluationManager.init(1);
+            Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
+            evaluationManager.clear();
+            architecture.setCoverage(result.getCoverage());
+            f[0] = result.getCost();
+            f[1] = architecture.getAllAvgRevisit();
+            f[2] = architecture.getAllMaxRevisit();
+            c[0] = architecture.getAllCoverage()-1.0;
+            f[3] = -1*architecture.getOverlap();
+            solution.setObjectives(f);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

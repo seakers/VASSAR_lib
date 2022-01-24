@@ -5,11 +5,17 @@ import org.moeaframework.core.Solution;
 import seakers.vassar.HeteroArchProblem;
 
 import java.io.File;
+import java.util.Properties;
 
 public class DSHIELD_MOEA {
     public static void main(String[] args){
         try{
-            NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
+            Properties properties = new Properties();
+            properties.setProperty("populationSize","10");
+            properties.setProperty("maxEvaluations","10");
+            NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).withProperties(properties).distributeOnAllCores().run();
+
+            //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;
             for (Solution sol : result) {
                 System.out.println("Variables for solution " + count + ":");

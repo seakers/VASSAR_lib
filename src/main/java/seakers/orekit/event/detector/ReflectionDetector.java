@@ -179,7 +179,10 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
         Vector3D txPosInert = sTx.getPVCoordinates(inertialFrame).getPosition();
         Vector3D targetPosInert = target.getPVCoordinates(date,inertialFrame).getPosition();
 
-        Vector3D planeN = rxPosInert.normalize().crossProduct(txPosInert.normalize()).normalize();
+        Vector3D planeN = rxPosInert.normalize().crossProduct(txPosInert.normalize());
+        if(planeN.getNorm() != 0) {
+            planeN = planeN.normalize();
+        }
         Vector3D targetPosPlane = targetPosInert.normalize()
                 .subtract( planeN.scalarMultiply(targetPosInert.normalize().dotProduct(planeN) / (planeN.getNorm() * planeN.getNorm())) )
                 .scalarMultiply(targetPosInert.getNorm());
