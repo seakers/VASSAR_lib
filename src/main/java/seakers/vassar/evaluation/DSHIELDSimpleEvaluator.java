@@ -389,6 +389,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             double[] newLatBounds = new double[]{0,0};
             if (maxInclination < 75) {
                 newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
+            } else if (maxInclination > 90) {
+                newLatBounds = new double[]{FastMath.toRadians(-(180-maxInclination)), FastMath.toRadians(180-maxInclination)};
             } else {
                 newLatBounds = new double[]{FastMath.toRadians(-maxInclination), FastMath.toRadians(maxInclination)};
             }
