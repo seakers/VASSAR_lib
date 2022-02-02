@@ -66,7 +66,7 @@ public class ArchitectureEvaluationManager {
         int populationSize = population.size();
 
         for (AbstractArchitecture arch: population) {
-            AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", dcThreshold, massThreshold, packEffThreshold);
+            AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
             futures.add(executorService.submit(t));
         }
         int cnt = 1;
@@ -90,7 +90,7 @@ public class ArchitectureEvaluationManager {
     }
 
     public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, boolean debug, double dcThreshold, double massThreshold, double packEffThreshold) {
-        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", dcThreshold, massThreshold, packEffThreshold);
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
         t.setDebug(debug);
 
         Future<Result> future = executorService.submit(t);
@@ -119,7 +119,7 @@ public class ArchitectureEvaluationManager {
     }
 
     public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, boolean debug, double dcThreshold, double massThreshold, double packEffThreshold) {
-        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", dcThreshold, massThreshold, packEffThreshold);
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
         t.setDebug(debug);
 
         return executorService.submit(t);

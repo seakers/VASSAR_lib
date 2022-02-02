@@ -27,10 +27,10 @@ public class Architecture extends AbstractArchitecture{
         this.params = params;
         this.numSatellites = numSatellites;
 
-        if(!isFeasibleAssignment()){
-            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
-                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
-        }
+        //if(!isFeasibleAssignment()){
+            //throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+                    //Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        //}
     }
 
     public Architecture(int[] instrumentPartitioning, int[] orbitAssignment, int numSatellites, BaseParams params) {
@@ -40,10 +40,10 @@ public class Architecture extends AbstractArchitecture{
         this.params = params;
         this.numSatellites = numSatellites;
 
-        if(!isFeasibleAssignment()){
-            throw new IllegalArgumentException("Infeasible architecture defined: \n" +
-                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
-        }
+        //if(!isFeasibleAssignment()){
+            //throw new IllegalArgumentException("Infeasible architecture defined: \n" +
+                    //Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        //}
     }
 
     public Architecture(List<Set<String>> instrumentPartitioning, Map<Set<String>, String> orbitAssignment, int numSatellites, BaseParams params) {
@@ -82,10 +82,10 @@ public class Architecture extends AbstractArchitecture{
 
         this.numSatellites = numSatellites;
 
-        if(!isFeasibleAssignment()){
-            throw new IllegalArgumentException("Infeasible architecture defined: " +
-                    Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
-        }
+        //if(!isFeasibleAssignment()){
+            //throw new IllegalArgumentException("Infeasible architecture defined: " +
+                    //Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
+        //}
     }
 
     @Override

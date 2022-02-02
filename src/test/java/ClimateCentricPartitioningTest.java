@@ -19,7 +19,13 @@ public class ClimateCentricPartitioningTest {
 
         //BaseParams params = new Decadal2017AerosolsParams(path,"CRISP-ATTRIBUTES","test","normal");
         BaseParams params = new ClimateCentricPartitioningParams(path, "CRISP-ATTRIBUTES","test", "normal");
-        AbstractArchitectureEvaluator eval = new ArchitectureEvaluator();
+
+        double dcThreshold = 0.5;
+        double massThreshold = 3000.0; // [kg]
+        double packEffThreshold = 0.4; // [kg]
+        boolean considerFeasibility = false; // use false to test architectures with partitions not using restricted growth strings
+
+        AbstractArchitectureEvaluator eval = new ArchitectureEvaluator(considerFeasibility, dcThreshold, massThreshold, packEffThreshold);
         ArchitectureEvaluationManager evalManager = new ArchitectureEvaluationManager(params, eval);
         AbstractArchitecture testArch;
 
@@ -68,16 +74,12 @@ public class ClimateCentricPartitioningTest {
         //orbitAssignment.put(set5,"SSO-600-SSO-AM");
 
         // ARCHITECTURE CREATION METHOD 2
-        int[] instrumentPartitioning = new int[]{0,1,1,2,2,2,2,2,2,3,4,4};
-        int[] orbitAssignment = new int[]{0,1,2,2,2,-1,-1,-1,-1,-1,-1,-1};
+        int[] instrumentPartitioning = new int[]{2, 2, 2, 1, 4, 0, 3, 1, 4, 3, 0, 2};
+        int[] orbitAssignment = new int[]{1, 1, 0, 2, 4, -1, -1, -1, -1, -1, -1, -1};
 
         testArch = new Architecture(instrumentPartitioning, orbitAssignment, 1, params);
 
         System.out.println(testArch.ppString());
-
-        double dcThreshold = 0.5;
-        double massThreshold = 3000.0; // [kg]
-        double packEffThreshold = 0.4; // [kg]
 
         evalManager.reset();
         evalManager.init(1);

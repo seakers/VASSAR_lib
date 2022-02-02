@@ -28,7 +28,7 @@ public class ClimateCentricAssigningTest {
         //ArchitectureGenerator archGenerator = new ArchitectureGenerator(params);
         //List<AbstractArchitecture> archs = archGenerator.generateRandomPopulation(1);
 
-        String architectureString = "111111111100000000000011000000000000000000000000000000000000";
+        String architectureString = "000000000000000000100010000000000000000000010010000000010001";
         AbstractArchitecture arch = new Architecture(architectureString, params.getNumSatellites()[0], params);
 
         double dcThreshold = 0.5;

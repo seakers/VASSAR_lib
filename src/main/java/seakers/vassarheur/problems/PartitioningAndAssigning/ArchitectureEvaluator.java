@@ -21,27 +21,31 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
         super();
     }
 
-    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, double dcThreshold, double massThreshold, double packingEffThreshold) {
-        super(resourcePool, arch, type, dcThreshold, massThreshold, packingEffThreshold);
+    public ArchitectureEvaluator(boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
+        super(considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
     }
 
-    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        super(resourcePool, arch, type, 0.5, 3000.0, 0.4);
+    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
+        super(resourcePool, arch, type, considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
+    }
+
+    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility) {
+        super(resourcePool, arch, type, considerFeasibility, 0.5, 3000.0, 0.4);
     }
 
     public ArchitectureEvaluator getNewInstance(){
-        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type, super.dcThreshold, super.massThreshold, super.packingEffThreshold);
+        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type, super.considerFeasibility, super.dcThreshold, super.massThreshold, super.packingEffThreshold);
     }
 
-    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
-        return new ArchitectureEvaluator(resourcePool, arch, type, 0.5, 3000.0, 0.4);
+    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility){
+        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, 0.5, 3000.0, 0.4);
     }
 
-    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, double dcThreshold, double massThreshold, double packingEffThreshold){
-        return new ArchitectureEvaluator(resourcePool, arch, type, dcThreshold, massThreshold, packingEffThreshold);
+    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold){
+        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
     }
 
-    protected void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
+    public void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {
 
         Architecture arch = (Architecture) inputArch;
 

@@ -14,6 +14,7 @@ import seakers.vassarheur.architecture.AbstractArchitecture;
 import jess.*;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.TreeMap;
 import java.util.ArrayList;
 
@@ -34,6 +35,9 @@ public class Result implements Serializable {
     private ArrayList<Fact> costFacts;
     private String taskType;
     private ArrayList<Double> heuristics;
+    private ArrayList<ArrayList<Double>> operatorParameters;
+    private ArrayList<ArrayList<String>> satellitePayloads;
+    private ArrayList<String> satelliteOrbits;
 
     //Constructors
     public Result(){}
@@ -53,6 +57,9 @@ public class Result implements Serializable {
         this.fuzzyScience = null;
         this.fuzzyCost = null;
         this.heuristics = null;
+        this.operatorParameters = null;
+        this.satellitePayloads = null;
+        this.satelliteOrbits = null;
     }
 
     public Result(AbstractArchitecture arch,
@@ -75,6 +82,9 @@ public class Result implements Serializable {
         this.panelScores = panel_scores;
         this.subobjectiveScoresMap = subobj_scores_map;
         this.heuristics = null;
+        this.operatorParameters = null;
+        this.satellitePayloads = null;
+        this.satelliteOrbits = null;
     }
 
     public Result(AbstractArchitecture arch,
@@ -97,6 +107,63 @@ public class Result implements Serializable {
         this.panelScores = panel_scores;
         this.subobjectiveScoresMap = subobj_scores_map;
         this.heuristics = heuristics;
+        this.operatorParameters = null;
+        this.satellitePayloads = null;
+        this.satelliteOrbits = null;
+    }
+
+    public Result(AbstractArchitecture arch,
+                  double science,
+                  double cost,
+                  FuzzyValue fuzzy_science,
+                  FuzzyValue fuzzy_cost,
+                  ArrayList<ArrayList<ArrayList<Double>>> subobj_scores,
+                  ArrayList<ArrayList<Double>> obj_scores,
+                  ArrayList<Double> panel_scores,
+                  TreeMap<String,Double> subobj_scores_map, ArrayList<Double> heuristics,
+                  ArrayList<ArrayList<Double>> operatorParameters){
+
+        this.arch = arch;
+        this.science = science;
+        this.cost = cost;
+        this.fuzzyScience = fuzzy_science;
+        this.fuzzyCost = fuzzy_cost;
+        this.subobjectiveScores = subobj_scores;
+        this.objectiveScores = obj_scores;
+        this.panelScores = panel_scores;
+        this.subobjectiveScoresMap = subobj_scores_map;
+        this.heuristics = heuristics;
+        this.operatorParameters = operatorParameters;
+        this.satellitePayloads = null;
+        this.satelliteOrbits = null;
+    }
+
+    public Result(AbstractArchitecture arch,
+                  double science,
+                  double cost,
+                  FuzzyValue fuzzy_science,
+                  FuzzyValue fuzzy_cost,
+                  ArrayList<ArrayList<ArrayList<Double>>> subobj_scores,
+                  ArrayList<ArrayList<Double>> obj_scores,
+                  ArrayList<Double> panel_scores,
+                  TreeMap<String,Double> subobj_scores_map, ArrayList<Double> heuristics,
+                  ArrayList<ArrayList<Double>> operatorParameters,
+                  ArrayList<ArrayList<String>> satellitePayloads,
+                  ArrayList<String> satelliteOrbits){
+
+        this.arch = arch;
+        this.science = science;
+        this.cost = cost;
+        this.fuzzyScience = fuzzy_science;
+        this.fuzzyCost = fuzzy_cost;
+        this.subobjectiveScores = subobj_scores;
+        this.objectiveScores = obj_scores;
+        this.panelScores = panel_scores;
+        this.subobjectiveScoresMap = subobj_scores_map;
+        this.heuristics = heuristics;
+        this.operatorParameters = operatorParameters;
+        this.satellitePayloads = satellitePayloads;
+        this.satelliteOrbits = satelliteOrbits;
     }
 
     //Getters and Setters
@@ -178,6 +245,15 @@ public class Result implements Serializable {
 
     public void setHeuristics(ArrayList<Double> heuristics) { this.heuristics = heuristics; }
     public ArrayList<Double> getHeuristics() {return this.heuristics; }
+
+    public void setOperatorParameters(ArrayList<ArrayList<Double>> operatorParameters) { this.operatorParameters = operatorParameters; }
+    public ArrayList<ArrayList<Double>> getOperatorParameters() {return this.operatorParameters; }
+
+    public void setSatellitePayloads(ArrayList<ArrayList<String>> satellitePayloads) { this.satellitePayloads = satellitePayloads; }
+    public ArrayList<ArrayList<String>> getSatellitePayloads() {return this.satellitePayloads; }
+
+    public void setSatelliteOrbits(ArrayList<String> satelliteOrbits) { this.satelliteOrbits = satelliteOrbits; }
+    public ArrayList<String> getSatelliteOrbits() { return this.satelliteOrbits; }
 
     public static double SumDollar(ArrayList<Double> a) {
         double res = 0.0;

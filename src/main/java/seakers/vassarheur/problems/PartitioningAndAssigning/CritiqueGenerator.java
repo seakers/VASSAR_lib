@@ -16,9 +16,9 @@ import java.util.Vector;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch)
+    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch, boolean considerFeasibility)
     {
-        super(resourcePool, arch,"slow");
+        super(resourcePool, arch, "slow", considerFeasibility);
     }
 
     public List<String> getCritique() {

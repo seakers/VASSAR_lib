@@ -28,6 +28,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     protected ResourcePool resourcePool;
     protected String type;
     protected boolean debug;
+    protected boolean considerFeasibility;
     protected Set<Orbit> orbitsUsed;
     protected double dcThreshold;
     protected double massThreshold; //[kg]
@@ -38,28 +39,43 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         this.arch = null;
         this.type = null;
         this.debug = false;
+        this.considerFeasibility = true;
         this.dcThreshold = 0.0;
         this.massThreshold = 0.0;
         this.packingEffThreshold = 0.0;
         this.orbitsUsed = new HashSet<>();
     }
 
-    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
+    public AbstractArchitectureEvaluator(boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
+        this.resourcePool = null;
+        this.arch = null;
+        this.type = null;
+        this.debug = false;
+        this.considerFeasibility = considerFeasibility;
+        this.dcThreshold = dcThreshold;
+        this.massThreshold = massThreshold;
+        this.packingEffThreshold = packingEffThreshold;
+        this.orbitsUsed = new HashSet<>();
+    }
+
+    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
         this.debug = false;
+        this.considerFeasibility = considerFeasibility;
         this.dcThreshold = 0.5;
         this.massThreshold = 3000.0; // [kg]
         this.packingEffThreshold = 0.4; // [kg]
         this.orbitsUsed = new HashSet<>();
     }
 
-    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, double dcThreshold, double massThreshold, double packingEffThreshold) {
+    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
         this.debug = false;
+        this.considerFeasibility = considerFeasibility;
         this.dcThreshold = dcThreshold;
         this.massThreshold = massThreshold;
         this.packingEffThreshold = packingEffThreshold;
@@ -67,7 +83,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     }
 
     public abstract AbstractArchitectureEvaluator getNewInstance();
-    public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, double dcThreshold, double massThreshold, double packingEffThreshold);
+    public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold);
 
     public void checkInit(){
         if(this.resourcePool == null || this.arch == null || this.type == null){
@@ -81,9 +97,21 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     public Result call() {
 
         checkInit();
-
+        boolean evaluateArchitecture = true;
         if (!arch.isFeasibleAssignment()) {
-            return new Result(arch, 0.0, 1E5);
+            if (considerFeasibility) {
+                evaluateArchitecture = false;
+            }
+        }
+
+        if (!evaluateArchitecture) {
+            ArrayList<Double> infeasibleHeuristics = new ArrayList<>();
+            for (int i = 0; i < 6; i++) { // Assuming there are 6 heuristics
+                infeasibleHeuristics.add(10.0);
+            }
+            Result result = new Result(arch, 0.0, 1E5);
+            result.setHeuristics(infeasibleHeuristics);
+            return result;
         } else {
             Resource res = this.resourcePool.getResource();
             BaseParams params = res.getParams();
@@ -118,6 +146,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                     archHeuristicViolations.add(heuristicSum/archHeuristics.get(i).size());
                 }
                 result.setHeuristics(archHeuristicViolations);
+
+                // Extract and store operator parameters
+                ArrayList<ArrayList<Double>> operatorParameters = getOperatorParameters(r, qb);
+                result.setOperatorParameters(operatorParameters);
+
+                // Extract and store satellite payloads
+                ArrayList<ArrayList<String>> satellitePayloads = getSatellitePayloads(r, qb);
+                result.setSatellitePayloads(satellitePayloads);
             }
             catch (Exception e) {
                 System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
@@ -690,8 +726,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             interferenceViolations.add(interferenceViolation/10.0);
         }
 
-
-
         heuristicValues.add(dcViolations);
         heuristicValues.add(instrumentOrbitAssignmentViolations);
         heuristicValues.add(interferenceViolations);
@@ -700,6 +734,71 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         heuristicValues.add(synergyViolations);
 
         return heuristicValues;
+    }
+
+    /**
+     * Gets and stores required parameters used in the corresponding knowledge operators
+     * @param r
+     * @param qb
+     * @return {duty cycle, wet mass, packing efficiency} for each satellite
+     */
+    protected ArrayList<ArrayList<Double>> getOperatorParameters(Rete r, QueryBuilder qb) throws JessException {
+        ArrayList<ArrayList<Double>> operatorParameters = new ArrayList<>();
+        ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
+
+        for (int i = 0; i < satellites.size(); i++) {
+            ArrayList<Double> satelliteOperatorParameters = new ArrayList<>();
+            double dutyCycle = satellites.get(i).getSlotValue("payload-duty-cycle#").floatValue(r.getGlobalContext());
+            double satelliteWetMass = satellites.get(i).getSlotValue("satellite-wet-mass").floatValue(r.getGlobalContext());
+            double packingEfficiency = satellites.get(i).getSlotValue("lv-pack-efficiency#").floatValue(r.getGlobalContext());
+            satelliteOperatorParameters.add(dutyCycle);
+            satelliteOperatorParameters.add(satelliteWetMass);
+            satelliteOperatorParameters.add(packingEfficiency);
+            operatorParameters.add(satelliteOperatorParameters);
+        }
+
+        return operatorParameters;
+    }
+
+    /**
+     * Gets and stores payloads for each satellite to be used for the knowledge operators
+     * @param r
+     * @param qb
+     * @return Arraylist of payloads for each satellite
+     * @throws JessException
+     */
+    protected ArrayList<ArrayList<String>> getSatellitePayloads(Rete r, QueryBuilder qb) throws JessException {
+        ArrayList<ArrayList<String>> satellitePayloads = new ArrayList<>();
+        ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
+
+        for (int i = 0; i < satellites.size(); i++) {
+            ArrayList<String> currentSatellitePayload = new ArrayList<>();
+            ValueVector instrumentsString = satellites.get(i).getSlotValue("instruments").listValue(r.getGlobalContext());
+            for (int j = 0; j < instrumentsString.size(); j++) {
+                currentSatellitePayload.add(instrumentsString.get(j).stringValue(r.getGlobalContext()));
+            }
+            satellitePayloads.add(currentSatellitePayload);
+        }
+
+        return satellitePayloads;
+    }
+
+    /**
+     * Gets and stores satellite orbits to be used for the knowledge operators
+     * @param r
+     * @param qb
+     * @return Arraylist of satellite orbits
+     * @throws JessException
+     */
+    protected ArrayList<String> getSatelliteOrbits(Rete r, QueryBuilder qb) throws JessException {
+        ArrayList<String> satelliteOrbits = new ArrayList<>();
+        ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
+
+        for (int i = 0; i < satellites.size(); i++) {
+            satelliteOrbits.add(satellites.get(i).getSlotValue("orbit-string").stringValue(r.getGlobalContext()));
+        }
+
+        return satelliteOrbits;
     }
 
     /**
@@ -758,7 +857,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
      * @param instrumentName
      * @return
      */
-    protected Fact getInstrumentFact(ArrayList<Fact> instrumentFacts, String instrumentName, Rete r) throws JessException {
+    private Fact getInstrumentFact(ArrayList<Fact> instrumentFacts, String instrumentName, Rete r) throws JessException {
         Fact instrumentFact = null;
         for (int i = 0; i < instrumentFacts.size(); i++) {
             Fact currentInstrumentFact = instrumentFacts.get(i);
@@ -782,6 +881,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public boolean getConsiderFeasibility() {
+        return considerFeasibility;
     }
 }
 
