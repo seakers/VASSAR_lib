@@ -2,11 +2,17 @@ package seakers.vassar.evaluation;
 
 import jess.*;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
+import org.orekit.frames.Frame;
+import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.orbits.KeplerianOrbit;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
+import org.orekit.utils.Constants;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
@@ -19,6 +25,8 @@ import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
 import seakers.vassar.utils.MatlabFunctions;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.*;
 
 public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
@@ -525,9 +533,60 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 //                    overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, f);
 //                }
                 coverage.add(overlapResults(lBandMergedEvents, mergedRadiometerEvents, coverageAnalysis, newLatBounds, lonBounds, 2));
+
             } else {
                 coverage.add(0.0);
             }
+            if(!reflectometerEvents.isEmpty() && !radiometerEvents.isEmpty()) {
+                Map<TopocentricFrame, TimeIntervalArray> mergedReflEvents = new HashMap<>(reflectometerEvents.get(0));
+                for (int i = 0; i < reflectometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = reflectometerEvents.get(i);
+                    mergedReflEvents = EventIntervalMerger.merge(mergedReflEvents, event, false);
+                }
+                Map<TopocentricFrame, TimeIntervalArray> mergedRadioEvents = new HashMap<>(radiometerEvents.get(0));
+                for (int i = 0; i < radiometerEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = radiometerEvents.get(i);
+                    mergedRadioEvents = EventIntervalMerger.merge(mergedRadioEvents, event, false);
+                }
+
+                Map<TopocentricFrame, TimeIntervalArray> mergedReflRadioEvents = new HashMap<>();
+                mergedReflRadioEvents = EventIntervalMerger.merge(mergedReflEvents,mergedRadioEvents,false);
+                coverage.add(getSMRewards(mergedReflEvents));
+                coverage.add(getSMRewards(mergedRadioEvents));
+                coverage.add(getSMRewards(mergedReflRadioEvents));
+            } else {
+                coverage.add(0.0);
+                coverage.add(0.0);
+                coverage.add(0.0);
+            }
+            if(pBandFieldOfViewEvents.isEmpty()) {
+                coverage.add(0.0);
+            } else {
+                Map<TopocentricFrame, TimeIntervalArray> pBandMergedEvents = new HashMap<>(pBandFieldOfViewEvents.get(0));
+                for (int i = 0; i < pBandFieldOfViewEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> pBandEvent = pBandFieldOfViewEvents.get(i);
+                    pBandMergedEvents = EventIntervalMerger.merge(pBandMergedEvents, pBandEvent, false);
+                }
+                TimeScale utc = TimeScalesFactory.getUTC();
+                AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
+                double duration = 1.0; // days
+                ArrayList<org.orekit.orbits.Orbit> orbits = new ArrayList<>();
+                for (int i = 0; i < arch.getSatelliteList().size(); i++) {
+                    List<String> insList = Arrays.asList(arch.getSatelliteList().get(i).getInstrumentList());
+                    if(insList.contains("P-band_SAR") || insList.contains("L-band_SAR")) {
+                        String orbitName = arch.getSatelliteList().get(i).getOrbit();
+                        Orbit orb = new Orbit(orbitName);
+                        double mu = Constants.WGS84_EARTH_MU;
+                        Frame inertialFrame = FramesFactory.getEME2000();
+                        org.orekit.orbits.Orbit orekitOrbit = new KeplerianOrbit(orb.getAltitudeNum()+6371000, 0.0, Math.toRadians(orb.getInclinationNum()), 0.0, Math.toRadians(orb.getRaanNum()), Math.toRadians(orb.getTrueAnomNum()), PositionAngle.MEAN, inertialFrame, startDate, mu);
+                        orbits.add(orekitOrbit);
+                    }
+                }
+                DSHIELDSimplePlanner planner = new DSHIELDSimplePlanner(pBandFieldOfViewEvents, getRewardGrid(), orbits, startDate, duration);
+                coverage.add(getSMRewards(pBandMergedEvents));
+                coverage.add(planner.getReward());
+            }
+
 
             System.out.println("Done processing coverage");
         } catch (Exception e) {
@@ -657,6 +716,88 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 }
             }
         }
+    }
+
+    public double getSMRewards(Map<TopocentricFrame,TimeIntervalArray> events) {
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        Map<GeodeticPoint,Double> simPoints = new HashMap<>();
+        double gridGranularity = 1.0;
+        for (List<String> record : records) {
+            if (Objects.equals(record.get(1), "lat[deg]")) {
+                continue;
+            }
+            if(simPoints.size()==0) {
+                simPoints.put(new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0),Double.parseDouble(record.get(7)));
+                continue;
+            }
+            GeodeticPoint newPoint = new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0);
+            boolean tooClose = false;
+            for (GeodeticPoint gp : simPoints.keySet()) {
+                double dist = Math.sqrt(Math.pow(gp.getLatitude()-newPoint.getLatitude(),2)+Math.pow(gp.getLongitude()-newPoint.getLongitude(),2));
+                if (dist < Math.toRadians(gridGranularity)) {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if(!tooClose) {
+                simPoints.put(newPoint,Double.parseDouble(record.get(7)));
+            }
+        }
+        double reward = 0.0;
+        for (TopocentricFrame tf : events.keySet()) {
+            if(!events.get(tf).isEmpty()) {
+                reward = reward + simPoints.get(tf.getPoint());
+            }
+        }
+        return reward;
+    }
+
+    public Map<GeodeticPoint,Double> getRewardGrid() {
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        Map<GeodeticPoint,Double> simPoints = new HashMap<>();
+        double gridGranularity = 1.0;
+        for (List<String> record : records) {
+            if (Objects.equals(record.get(1), "lat[deg]")) {
+                continue;
+            }
+            if(simPoints.size()==0) {
+                simPoints.put(new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0),Double.parseDouble(record.get(7)));
+                continue;
+            }
+            GeodeticPoint newPoint = new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0);
+            boolean tooClose = false;
+            for (GeodeticPoint gp : simPoints.keySet()) {
+                double dist = Math.sqrt(Math.pow(gp.getLatitude()-newPoint.getLatitude(),2)+Math.pow(gp.getLongitude()-newPoint.getLongitude(),2));
+                if (dist < Math.toRadians(gridGranularity)) {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if(!tooClose) {
+                simPoints.put(newPoint,Double.parseDouble(record.get(7)));
+            }
+        }
+        return simPoints;
     }
 
     protected void updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {

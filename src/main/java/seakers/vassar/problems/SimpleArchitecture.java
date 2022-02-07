@@ -31,6 +31,11 @@ public class SimpleArchitecture extends AbstractArchitecture {
     private double allAvgRevisit;
     private double allMaxRevisit;
     private double overlap;
+    private double smRewardRefl;
+    private double smRewardRadio;
+    private double smRewardReflRadio;
+    private double smRewardRadar;
+    private double plannerReward;
     private double cost;
     private int numSatsPerPlane;
     private int numPlanes;
@@ -65,6 +70,11 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public double getAllMaxRevisit() { return allMaxRevisit; }
     public double getAllCoverage() { return allCoverage; }
     public double getOverlap() { return overlap; }
+    public double getSmRewardRefl() { return smRewardRefl; }
+    public double getSmRewardRadio() { return smRewardRadio; }
+    public double getSmRewardReflRadio() { return smRewardReflRadio; }
+    public double getSmRewardRadar() { return smRewardRadar; }
+    public double getPlannerReward() { return plannerReward; }
     public double getCost() { return cost; }
     public String getName() { return name; }
     public int getNumSatsPerPlane() { return numSatsPerPlane; }
@@ -101,6 +111,11 @@ public class SimpleArchitecture extends AbstractArchitecture {
         this.avgRevisitL = coverage.get(20);
         this.maxRevisitL = coverage.get(21);
         this.overlap = coverage.get(22);
+        this.smRewardRefl = coverage.get(23);
+        this.smRewardRadio = coverage.get(24);
+        this.smRewardReflRadio = coverage.get(25);
+        this.smRewardRadar = coverage.get(26);
+        this.plannerReward = coverage.get(27);
     }
     public void setCost(double cost) {
         this.cost = cost;

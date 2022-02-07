@@ -20,12 +20,12 @@ import static java.lang.Integer.parseInt;
 
 public class FullArchTest {
     public static void main(String[] args){
-        String path = "H:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "/home/ben/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -75,10 +75,40 @@ public class FullArchTest {
                 complementarySatellites.add(complementarySatellite);
             }
         }
-        SimpleArchitecture radarArchitecture = new SimpleArchitecture(radarOnlySatellites);
-        radarArchitecture.setRepeatCycle(7);
-        radarArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, radar satellites only");
+        //SimpleArchitecture radarArchitecture = new SimpleArchitecture(radarOnlySatellites);
+        //radarArchitecture.setRepeatCycle(7);
+        //radarArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, radar satellites only");
         //architectures.add(radarArchitecture);
+        for(int i=0; i < 14; i++) {                   // Original value of 20
+            for(int j = 1; j <= 1; j++) {           // Number of planes.     Original value of 4
+                for(int k = 3; k <= 3; k++) {       // Satellites per plane. Original value of 4
+                    ArrayList<OrbitInstrumentObject> radarSatellites = new ArrayList<>();
+                    for(int m = 0; m < j; m++) {
+                        for(int n = 0; n < k; n++) {
+                            int pu = 360 / (j*k);
+                            int delAnom = pu * j; //in plane spacing between satellites
+                            int delRAAN = pu * k; //node spacing
+                            int RAAN = delRAAN * m;
+                            int f = 1;
+                            int phasing = pu * f;
+                            int anom = (n * delAnom + phasing * m);
+                            String orbitName = orbitIncCombos.get(i)+"-"+RAAN+"-"+anom;
+                            if(!orbitList.contains(orbitName)) {
+                                orbitList.add(orbitName);
+                            }
+                            OrbitInstrumentObject satellite = new OrbitInstrumentObject(new String[]{"L-band_SAR","P-band_SAR"},orbitName);
+                            radarSatellites.add(satellite);
+                        }
+                    }
+                    //radarRadiometerSatellites.add(arbitrarySatellites);
+                    SimpleArchitecture radarArchitecture = new SimpleArchitecture(radarSatellites);
+                    int rc = alt_repeat.get(orbitIncCombos.get(i));
+                    radarArchitecture.setRepeatCycle(rc);
+                    radarArchitecture.setName(orbitIncCombos.get(i)+", repeat cycle of "+rc+" days, "+j+" planes, "+k+" satellites per plane, radar only satellites");
+                    architectures.add(radarArchitecture);
+                }
+            }
+        }
         SimpleArchitecture fullArchitecture = new SimpleArchitecture(fullSatellites);
         fullArchitecture.setRepeatCycle(7);
         fullArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, full satellites only");
@@ -157,7 +187,7 @@ public class FullArchTest {
         SimpleArchitecture cygnssArchitecture = new SimpleArchitecture(cygnssSatellites);
         cygnssArchitecture.setRepeatCycle(1);
         cygnssArchitecture.setName("CYGNSS, repeat cycle of x days, "+j+" planes, "+k+" satellites per plane, full satellites");
-        architectures.add(cygnssArchitecture);
+        //architectures.add(cygnssArchitecture);
 
 
         String[] orbList = new String[orbitList.size()];
@@ -209,10 +239,15 @@ public class FullArchTest {
             arch.put("percentCoverage",architecture.getPercentCoverage());
             arch.put("repeatCycle",architecture.getRepeatCycle());
             arch.put("overlap", architecture.getOverlap());
+            arch.put("smRewardRefl", architecture.getSmRewardRefl());
+            arch.put("smRewardRadio", architecture.getSmRewardRadio());
+            arch.put("smRewardReflRadio", architecture.getSmRewardReflRadio());
+            arch.put("smRewardRadar", architecture.getSmRewardRadar());
+            arch.put("plannerReward", architecture.getPlannerReward());
             arches.add(arch);
             results.put("architectures",arches);
             try{
-                FileWriter writer = new FileWriter("fulloutput_12_7_local.json"); // may want to change this!
+                FileWriter writer = new FileWriter("/home/ben/Dropbox/fulloutput_1_26_22_drop_1day.json"); // may want to change this!
                 writer.write(results.toJSONString());
                 writer.close();
             } catch (Exception e) {

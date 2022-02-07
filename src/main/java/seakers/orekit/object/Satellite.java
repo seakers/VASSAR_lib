@@ -82,12 +82,29 @@ public class Satellite implements OrekitObject, Serializable {
      * Constructor for new satellite instance with no attitude control and
      * default wet mass and default dry mass. No instruments are assigned to
      * this spacecraft
+     *  @param name satellite name
+     * @param orbit initial orbit to position satellite
+     * @param ssPayload
+     * @param tx
+     * @param rx
+     */
+    public Satellite(String name, Orbit orbit, Collection<Instrument> ssPayload, TransmitterAntenna tx, ReceiverAntenna rx) {
+        this(name, orbit, null, new ArrayList<>(),
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+    /**
+     * Constructor for new satellite instance with no attitude control and
+     * default wet mass and default dry mass. Instruments are assigned to
+     * this spacecraft
      *
      * @param name satellite name
      * @param orbit initial orbit to position satellite
      */
-    public Satellite(String name, Orbit orbit) {
-        this(name, orbit, null, new ArrayList<>(),
+    public Satellite(String name, Orbit orbit, Collection<Instrument> instruments) {
+        this(name, orbit, null, instruments,
                 new ReceiverAntenna(1., new HashSet<>()),
                 new TransmitterAntenna(1, new HashSet<>()),
                 Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
@@ -123,7 +140,7 @@ public class Satellite implements OrekitObject, Serializable {
      * @param wetMass the wet mass of the spacecraft
      */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments,
-            Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
+                     Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
         this.orbit = orbit;
         this.name = name;
         this.payload = new ArrayList<>(instruments);

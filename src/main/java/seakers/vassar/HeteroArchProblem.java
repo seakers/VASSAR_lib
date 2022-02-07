@@ -39,7 +39,7 @@ public class HeteroArchProblem extends AbstractProblem {
         double[] f = new double[numberOfObjectives];
         double[] c = new double[numberOfConstraints];
 
-        String path = "H:/Documents/VASSAR/VASSAR_resources";
+        String path = "/home/ben/Documents/VASSAR/VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
         int r = 1;
@@ -92,7 +92,7 @@ public class HeteroArchProblem extends AbstractProblem {
             evaluationManager.clear();
             architecture.setCoverage(result.getCoverage());
             f[0] = result.getCost();
-            f[1] = architecture.getAllAvgRevisit();
+            f[1] = architecture.getPlannerReward();
             f[2] = architecture.getAllMaxRevisit();
             c[0] = architecture.getAllCoverage()-1.0;
             f[3] = -1*architecture.getOverlap();

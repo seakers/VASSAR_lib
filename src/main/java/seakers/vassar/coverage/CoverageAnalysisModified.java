@@ -94,7 +94,8 @@ public class CoverageAnalysisModified {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(1 * 24 * 60 * 60); // 7 days in seconds
+        double simDays = 1.0;
+        this.endDate = startDate.shiftedBy(simDays*86400); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -206,7 +207,7 @@ public class CoverageAnalysisModified {
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init(4);
+        OrekitConfig.init(16);
 
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -264,68 +265,11 @@ public class CoverageAnalysisModified {
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
 
-        // Uncomment for coverage grid of land points between -75 and 75 latitude, 5 degree granularity
-        /*
-        List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-
-        ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
-        for(int idx = 0; idx < records.size(); idx++) {
-            double lat = Double.parseDouble(records.get(idx).get(0));
-            double lon = Double.parseDouble(records.get(idx).get(1));
-            lon = lon - 180.0;
-            lat = Math.toRadians(lat);
-            lon = Math.toRadians(lon);
-            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
-            if(Math.abs(lat) <= Math.toRadians(75.0)) {
-                landPoints.add(landPoint);
-            }
-        }
-        */
-        List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
-        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
-        double[] latitudes = linspace(-84.66,84.66,records.size());
-        double longDistCheck = 0.0;
-        double latDistCheck = 0.0;
-        for (int j = 0; j < records.get(0).size(); j++) {
-            for (int k = 0; k < records.size(); k++) {
-                // Check for IGBP biome types
-                // Change doubles in this if statement to change grid granularity
-                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
-                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
-                    igbpPoints.add(point);
-                    latDistCheck = 0.0;
-                    longDistCheck = 0.0;
-                }
-                latDistCheck = latDistCheck+180.0/records.size();
-            }
-            latDistCheck = 0.0;
-            longDistCheck = longDistCheck+360.0/records.get(0).size();
-        }
+        ArrayList<GeodeticPoint> covPoints = getCovPoints("simulationpoints");
 
         //create a coverage definition
         //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", covPoints, earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -653,6 +597,112 @@ public class CoverageAnalysisModified {
             return fovEvents;
         }
     }
+
+    public ArrayList<GeodeticPoint> getCovPoints(String pointType) {
+        List<List<String>> records = new ArrayList<>();
+        ArrayList<GeodeticPoint> covPoints = new ArrayList<>();
+        switch(pointType) {
+            case "igbp":
+                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String[] values = line.split(",");
+                        records.add(Arrays.asList(values));
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println(e);
+                }
+                ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
+                double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+                double[] latitudes = linspace(-84.66,84.66,records.size());
+                double longDistCheck = 0.0;
+                double latDistCheck = 0.0;
+                for (int j = 0; j < records.get(0).size(); j++) {
+                    for (int k = 0; k < records.size(); k++) {
+                        // Check for IGBP biome types
+                        // Change doubles in this if statement to change grid granularity
+                        if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
+                            GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+                            igbpPoints.add(point);
+                            latDistCheck = 0.0;
+                            longDistCheck = 0.0;
+                        }
+                        latDistCheck = latDistCheck+180.0/records.size();
+                    }
+                    latDistCheck = 0.0;
+                    longDistCheck = longDistCheck+360.0/records.get(0).size();
+                }
+                covPoints = igbpPoints;
+                break;
+            case "land75_5":
+                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String[] values = line.split(",");
+                        records.add(Arrays.asList(values));
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println(e);
+                }
+                ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
+                for(int idx = 0; idx < records.size(); idx++) {
+                    double lat = Double.parseDouble(records.get(idx).get(0));
+                    double lon = Double.parseDouble(records.get(idx).get(1));
+                    lon = lon - 180.0;
+                    lat = Math.toRadians(lat);
+                    lon = Math.toRadians(lon);
+                    GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
+                    if(Math.abs(lat) <= Math.toRadians(75.0)) {
+                        landPoints.add(landPoint);
+                    }
+                }
+                covPoints = landPoints;
+                break;
+            case "simulationpoints":
+                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String[] values = line.split(",");
+                        records.add(Arrays.asList(values));
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println(e);
+                }
+                ArrayList<GeodeticPoint> simPoints = new ArrayList<>();
+                double gridGranularity = 1.0;
+                for (List<String> record : records) {
+                    if (Objects.equals(record.get(1), "lat[deg]")) {
+                        continue;
+                    }
+                    if(simPoints.size()==0) {
+                        simPoints.add(new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0));
+                        continue;
+                    }
+                    GeodeticPoint newPoint = new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0);
+                    boolean tooClose = false;
+                    for (int i = 0; i < simPoints.size();i++) {
+                        double dist = Math.sqrt(Math.pow(simPoints.get(i).getLatitude()-newPoint.getLatitude(),2)+Math.pow(simPoints.get(i).getLongitude()-newPoint.getLongitude(),2));
+                        if (dist < Math.toRadians(gridGranularity)) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    if(!tooClose) {
+                        simPoints.add(newPoint);
+                    }
+                }
+                covPoints = simPoints;
+                break;
+            default:
+                covPoints = null;
+                break;
+        }
+        return covPoints;
+    }
+
     public static double[] linspace(double min, double max, int points) {
         double[] d = new double[points];
         for (int i = 0; i < points; i++){
