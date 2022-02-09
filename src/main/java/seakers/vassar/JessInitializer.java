@@ -576,7 +576,7 @@ public class JessInitializer {
             Sheet meas = xls.getSheet(sheet);
             String call = "(deffacts " + name + " ";
             int numFacts = meas.getRows();
-            int numSlots = meas.getColumns();
+            int numSlots = 61; //meas.getColumns();
 
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);

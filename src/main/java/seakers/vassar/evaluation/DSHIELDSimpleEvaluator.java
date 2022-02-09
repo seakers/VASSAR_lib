@@ -561,6 +561,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             }
             if(pBandFieldOfViewEvents.isEmpty()) {
                 coverage.add(0.0);
+                coverage.add(0.0);
             } else {
                 Map<TopocentricFrame, TimeIntervalArray> pBandMergedEvents = new HashMap<>(pBandFieldOfViewEvents.get(0));
                 for (int i = 0; i < pBandFieldOfViewEvents.size(); ++i) {
@@ -720,7 +721,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     public double getSMRewards(Map<TopocentricFrame,TimeIntervalArray> events) {
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -764,7 +765,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     public Map<GeodeticPoint,Double> getRewardGrid() {
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");

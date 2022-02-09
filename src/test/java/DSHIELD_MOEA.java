@@ -1,11 +1,33 @@
+import org.apache.commons.codec.Charsets;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.moeaframework.Executor;
 import org.moeaframework.core.NondominatedPopulation;
 import org.moeaframework.core.PopulationIO;
 import org.moeaframework.core.Solution;
 import seakers.vassar.HeteroArchProblem;
+import seakers.vassar.RadarArchProblem;
+import seakers.vassar.utils.ParameterStringBuilder;
+import seakers.vassar.utils.PythonInterface;
 
+import java.io.DataOutputStream;
 import java.io.File;
-import java.util.Properties;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class DSHIELD_MOEA {
     public static void main(String[] args){
@@ -13,7 +35,7 @@ public class DSHIELD_MOEA {
             Properties properties = new Properties();
             properties.setProperty("populationSize","10");
             properties.setProperty("maxEvaluations","10");
-            NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).withProperties(properties).distributeOnAllCores().run();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).withProperties(properties).run();
 
             //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;

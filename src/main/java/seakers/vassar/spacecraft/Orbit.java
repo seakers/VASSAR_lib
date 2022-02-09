@@ -161,7 +161,7 @@ public class Orbit {
                 this.trueAnomNum = Double.parseDouble(trueAnom); // [deg]
             }
 
-            if (NumberUtils.isParsable(inclination)) {
+            if (NumberUtils.isNumber(inclination)) {
                 this.inclinationNum = Double.parseDouble(inclination); // [deg]
             }
             else {

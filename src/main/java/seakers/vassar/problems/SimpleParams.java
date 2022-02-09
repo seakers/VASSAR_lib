@@ -20,7 +20,7 @@ public class SimpleParams extends BaseParams {
         super(resourcesPath, problemName, mode, name, runMode);
 
         // Uncomment for D-SHIELD
-        this.instrumentList = new String[]{"L-band_SAR","P-band_SAR","FMPL-2","L-band_Reflectometer","P-band_Reflectometer","P-band_ANT","L-band_ANT"};
+        this.instrumentList = new String[]{"CustomLANT","CustomLSAR"};
         // Uncomment for SMAP problem
         //this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
         this.orbitList = orbitList;
