@@ -1,15 +1,15 @@
 package seakers.vassar;
 
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.*;
 import org.json.simple.JSONObject;
@@ -24,20 +24,17 @@ import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RadarArchProblem extends AbstractProblem {
     public RadarArchProblem() {
-        super(7,5,1);
+        super(7,3,1);
     }
     public Solution newSolution() {
-        Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives());
+        Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
         solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
         solution.setVariable(1, new RealVariable(450.0,550.0)); // altitude of radar satellites
         solution.setVariable(2, new RealVariable(45.0,90.0)); // inclination of radar satellites
@@ -45,6 +42,7 @@ public class RadarArchProblem extends AbstractProblem {
         solution.setVariable(4, new RealVariable(1.0,20.0)); // dEl
         solution.setVariable(5, new RealVariable(1e5,1e6)); // chirpBW
         solution.setVariable(6, new RealVariable(1e-6,1e-5)); // pulse width
+        solution.setConstraint(0, 0.0);
         return solution;
     }
 
@@ -69,7 +67,11 @@ public class RadarArchProblem extends AbstractProblem {
         instrumentParams.add(new BasicNameValuePair("width", Double.toString(dEl)));
         instrumentParams.add(new BasicNameValuePair("pulseWidth",Double.toString(pulseWidth)));
         instrumentParams.add(new BasicNameValuePair("chirpBW",Double.toString(chirpBW)));
-        httpPost.setEntity(new UrlEncodedFormEntity(instrumentParams));
+        try {
+            httpPost.setEntity(new UrlEncodedFormEntity(instrumentParams));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         JSONObject radarResult = new JSONObject();
         CloseableHttpResponse response = null;
         try {
@@ -78,6 +80,11 @@ public class RadarArchProblem extends AbstractProblem {
             String jsonString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
             if(jsonString.equals("radar design not valid")) {
                 System.out.println("radar design not valid");
+                f[0] = 100000.0;
+                f[1] = 100000.0;
+                f[2] = 100000.0;
+                c[0] = 1.0;
+                return;
             } else {
                 JSONParser parser = new JSONParser();
                 radarResult = (JSONObject) parser.parse(jsonString);
@@ -87,7 +94,7 @@ public class RadarArchProblem extends AbstractProblem {
             e.printStackTrace();
         }
 
-        File xlsFile = new File("/home/ben/Documents/VASSAR_resources/problems/Designer/xls/Instrument Capability Definition.xls");
+        File xlsFile = new File("../VASSAR_resources/problems/Designer/xls/Instrument Capability Definition.xls");
         try {
             //Creating input stream
             FileInputStream inputStream = new FileInputStream(xlsFile);
@@ -97,7 +104,6 @@ public class RadarArchProblem extends AbstractProblem {
 
             //Reading first sheet of excel file
             Sheet sheet = workbook.getSheetAt(1);
-            System.out.println(sheet.getSheetName());
 
             //Getting the count of existing records
             int rowCount = sheet.getLastRowNum();
@@ -128,7 +134,7 @@ public class RadarArchProblem extends AbstractProblem {
         }
 
 
-        String path = "/home/ben/Documents/VASSAR_resources";
+        String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
         int r = 1;
@@ -164,11 +170,9 @@ public class RadarArchProblem extends AbstractProblem {
             evaluationManager.clear();
             architecture.setCoverage(result.getCoverage());
             f[0] = result.getCost();
-            f[1] = architecture.getPlannerReward();
-            f[2] = architecture.getAllMaxRevisit();
+            f[1] = architecture.getAllMaxRevisit();
             c[0] = architecture.getAllCoverage()-1.0;
-            f[3] = -1*architecture.getOverlap();
-            f[4] = Double.parseDouble((String) radarResult.get("NESZ [dB]"));
+            f[2] = (double) radarResult.get("NESZ [dB]");
             solution.setObjectives(f);
         } catch (Exception e) {
             e.printStackTrace();

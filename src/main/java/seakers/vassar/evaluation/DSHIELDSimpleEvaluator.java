@@ -297,7 +297,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-            r.eval("(facts MANIFEST)");
+            //r.eval("(facts MANIFEST)");
 
 
         }
@@ -721,7 +721,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     public double getSMRewards(Map<TopocentricFrame,TimeIntervalArray> events) {
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/20200101013000.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -765,7 +765,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     public Map<GeodeticPoint,Double> getRewardGrid() {
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/20200101013000.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");

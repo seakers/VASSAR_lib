@@ -386,7 +386,7 @@ public class CoverageAnalysisModified {
         // Uncomment for coverage grid of land points between -75 and 75 latitude, 5 degree granularity
         /*
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -411,7 +411,7 @@ public class CoverageAnalysisModified {
         }
         */
 //        List<List<String>> records = new ArrayList<>();
-//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\IGBP.csv"))) { 
 //            String line;
 //            while ((line = br.readLine()) != null) {
 //                String[] values = line.split(",");
@@ -443,7 +443,7 @@ public class CoverageAnalysisModified {
 //        }
 
         List<List<String>> plannerPointList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\planner_points.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/planner_points.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -603,7 +603,7 @@ public class CoverageAnalysisModified {
         ArrayList<GeodeticPoint> covPoints = new ArrayList<>();
         switch(pointType) {
             case "igbp":
-                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/IGBP.csv"))) { 
                     String line;
                     while ((line = br.readLine()) != null) {
                         String[] values = line.split(",");
@@ -636,7 +636,7 @@ public class CoverageAnalysisModified {
                 covPoints = igbpPoints;
                 break;
             case "land75_5":
-                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/LandLatLong75.csv"))) { 
                     String line;
                     while ((line = br.readLine()) != null) {
                         String[] values = line.split(",");
@@ -661,7 +661,7 @@ public class CoverageAnalysisModified {
                 covPoints = landPoints;
                 break;
             case "simulationpoints":
-                try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR_lib/src/test/java/20200101013000.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/20200101013000.csv"))) { 
                     String line;
                     while ((line = br.readLine()) != null) {
                         String[] values = line.split(",");

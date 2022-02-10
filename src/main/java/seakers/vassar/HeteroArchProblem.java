@@ -39,7 +39,7 @@ public class HeteroArchProblem extends AbstractProblem {
         double[] f = new double[numberOfObjectives];
         double[] c = new double[numberOfConstraints];
 
-        String path = "/home/ben/Documents/VASSAR/VASSAR_resources";
+        String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
         int r = 1;

@@ -271,7 +271,7 @@ public class ReflectometerCoverageAnalysis {
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
         
 //        List<List<String>> records = new ArrayList<>();
-//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+//        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\VASSAR_lib\\src\\test\\java\\LandLatLong75.csv"))) { 
 //            String line;
 //            while ((line = br.readLine()) != null) {
 //                String[] values = line.split(",");
@@ -299,7 +299,7 @@ public class ReflectometerCoverageAnalysis {
 //        //create a coverage definition
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");

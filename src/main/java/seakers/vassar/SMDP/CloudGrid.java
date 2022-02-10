@@ -29,7 +29,7 @@ public class CloudGrid {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\orekit\\CoverageDefinition1_Grid_Point_Information.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Documents\\VASSAR\\orekit\\CoverageDefinition1_Grid_Point_Information.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");

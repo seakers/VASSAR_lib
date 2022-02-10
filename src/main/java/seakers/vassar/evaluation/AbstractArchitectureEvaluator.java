@@ -450,7 +450,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");
-            r.eval("(facts MANIFEST)");
+            //r.eval("(facts MANIFEST)");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             Double[] oldmasses = new Double[missions.size()];
             for (int i = 0; i < missions.size(); i++) {
@@ -484,7 +484,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
             }
-            r.eval("(facts MANIFEST)");
+            //r.eval("(facts MANIFEST)");
         }
         catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());

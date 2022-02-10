@@ -143,7 +143,7 @@ public class SMDPPlanner {
                     }
                 }
             }
-            if(possibleActions.size() < 5 && currentTime+allowableTime < 86400) {
+            if(possibleActions.size() < 1 && currentTime+allowableTime < 86400) {
                 allowableTime = allowableTime + 3600;
             } else {
                 satisfied = true;

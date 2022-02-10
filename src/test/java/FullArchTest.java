@@ -20,12 +20,12 @@ import static java.lang.Integer.parseInt;
 
 public class FullArchTest {
     public static void main(String[] args){
-        String path = "/home/ben/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "../VASSAR_resources"; 
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/ben/Documents/VASSAR/VASSAR_lib/src/test/java/reduced_subset.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/reduced_subset.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -79,7 +79,7 @@ public class FullArchTest {
         //radarArchitecture.setRepeatCycle(7);
         //radarArchitecture.setName("LEO-502.5-89, repeat cycle of 7 days, 1 planes, 3 satellites per plane, radar satellites only");
         //architectures.add(radarArchitecture);
-        for(int i=0; i < 14; i++) {                   // Original value of 20
+        for(int i=0; i < 1; i++) {                   // Original value of 20
             for(int j = 1; j <= 1; j++) {           // Number of planes.     Original value of 4
                 for(int k = 3; k <= 3; k++) {       // Satellites per plane. Original value of 4
                     ArrayList<OrbitInstrumentObject> radarSatellites = new ArrayList<>();
@@ -201,7 +201,6 @@ public class FullArchTest {
         JSONObject results = new JSONObject();
         JSONArray arches = new JSONArray();
         System.out.println("Starting to process architectures");
-        System.out.println(System.getProperty("user.home"));
         for(SimpleArchitecture architecture : architectures) {
             evaluationManager.init(1);
             long start = System.nanoTime();
@@ -247,7 +246,7 @@ public class FullArchTest {
             arches.add(arch);
             results.put("architectures",arches);
             try{
-                FileWriter writer = new FileWriter("/home/ben/Dropbox/fulloutput_1_26_22_drop_1day.json"); // may want to change this!
+                FileWriter writer = new FileWriter("./src/test/output/fulloutput_1_26_22_drop_1day.json"); // may want to change this!
                 writer.write(results.toJSONString());
                 writer.close();
             } catch (Exception e) {

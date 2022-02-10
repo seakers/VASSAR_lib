@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.concurrent.*;
 
 public class DSHIELDsizingTest {
-    private static String resourcesPath = "D:/Documents/VASSAR/VASSAR_resources";
+    private static String resourcesPath = "../VASSAR_resources";
     private DSHIELDParams params;
     private ArrayList<SpacecraftDescription> designs;
 

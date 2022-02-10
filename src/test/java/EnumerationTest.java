@@ -20,12 +20,12 @@ import static java.lang.Integer.parseInt;
 
 public class EnumerationTest {
     public static void main(String[] args){
-        String path = "D:/Documents/VASSAR/VASSAR_resources"; // CHANGE THIS FOR YOUR IMPLEMENTATION
+        String path = "D:/Documents/VASSAR/VASSAR_resources"; 
         ArrayList<SimpleArchitecture> architectures = new ArrayList<>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/repeat_orbits_nonSSO_varinc.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/repeat_orbits_nonSSO_varinc.csv"))) { 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
