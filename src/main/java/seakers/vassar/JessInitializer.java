@@ -602,7 +602,12 @@ public class JessInitializer {
                             slot_value += " " + splitted[k];
                         }
                     }
-
+                    if (row[0].getContents().equals("Name CustomLSAR") && slot_name.equals("mass#")) {
+                        slot_value = String.valueOf(params.getElectronicsMass());
+                    }
+                    if (row[0].getContents().equals("Name CustomLANT") && slot_name.equals("mass#")) {
+                        slot_value = String.valueOf(params.getAntennaMass());
+                    }
                     call = call.concat( " (" + slot_name + " " + slot_value + ") ");
                 }
                 call = call.concat("(factHistory F" + params.nof + ")");

@@ -20,4 +20,13 @@ public class SMAPParams extends AssigningParams {
     public BaseParams copy(){
         return new SMAPParams(super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
+
+    public double getAntennaMass() {
+        return 0.0;
+    }
+
+    public double getElectronicsMass() {
+        return 0.0;
+    }
+
 }

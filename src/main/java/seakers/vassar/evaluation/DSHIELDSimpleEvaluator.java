@@ -29,6 +29,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
 
+@SuppressWarnings({"rawtypes"})
+
 public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
     protected ArrayList<SpacecraftDescription> designs;
     protected String[][] factList;
@@ -574,7 +576,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 ArrayList<org.orekit.orbits.Orbit> orbits = new ArrayList<>();
                 for (int i = 0; i < arch.getSatelliteList().size(); i++) {
                     List<String> insList = Arrays.asList(arch.getSatelliteList().get(i).getInstrumentList());
-                    if(insList.contains("P-band_SAR") || insList.contains("L-band_SAR")) {
+                    if(insList.contains("P-band_SAR") || insList.contains("L-band_SAR") || insList.contains("CustomLSAR")) {
                         String orbitName = arch.getSatelliteList().get(i).getOrbit();
                         Orbit orb = new Orbit(orbitName);
                         double mu = Constants.WGS84_EARTH_MU;

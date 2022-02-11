@@ -48,10 +48,7 @@ import java.util.logging.Logger;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seakers.orekit.util.Orbits.LTAN2RAAN;
 
-/**
- *
- * @author Prachi
- */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class CoverageAnalysisModified {
 
     private int numThreads;
@@ -325,7 +322,7 @@ public class CoverageAnalysisModified {
      */
     private Map<TopocentricFrame, TimeIntervalArray> computePlannerAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init(4);
+        OrekitConfig.init(16);
 
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -502,7 +499,6 @@ public class CoverageAnalysisModified {
         long end = System.nanoTime();
         System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return fovEvent.getEvents(covDef1);
-
     }
 
     public double getRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses){

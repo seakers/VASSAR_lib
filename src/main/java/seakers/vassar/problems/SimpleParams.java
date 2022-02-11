@@ -15,6 +15,8 @@ public class SimpleParams extends BaseParams {
     protected HashMap<String, Integer> orbitIndexes;
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
+    protected double antennaMass;
+    protected double electronicsMass;
 
     public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
@@ -40,9 +42,35 @@ public class SimpleParams extends BaseParams {
         super.init();
     }
 
+    public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode, double antennaMass, double electronicsMass){
+        super(resourcesPath, problemName, mode, name, runMode);
+
+        // Uncomment for D-SHIELD
+        this.instrumentList = new String[]{"CustomLANT","CustomLSAR"};
+        // Uncomment for SMAP problem
+        //this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
+        this.orbitList = orbitList;
+        this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
+        //this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
+        this.numInstr = instrumentList.length;
+        this.numOrbits = orbitList.length;
+        instrumentIndexes = new HashMap<>();
+        orbitIndexes = new HashMap<>();
+
+        for (int i = 0; i < numInstr; i++) {
+            instrumentIndexes.put(instrumentList[i], i);
+        }
+        for (int i = 0; i < numOrbits; i++) {
+            orbitIndexes.put(orbitList[i], i);
+        }
+        this.antennaMass = antennaMass;
+        this.electronicsMass = electronicsMass;
+        super.init();
+    }
+
     @Override
     public BaseParams copy(){
-        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode);
+        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.antennaMass, this.electronicsMass);
     }
 
     public void setInstrumentList(String[] instrumentList){
@@ -81,5 +109,11 @@ public class SimpleParams extends BaseParams {
 
     public int[] getNumSatellites(){
         return this.numSatellites;
+    }
+    public double getAntennaMass(){
+        return this.antennaMass;
+    }
+    public double getElectronicsMass(){
+        return this.electronicsMass;
     }
 }

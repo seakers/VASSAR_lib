@@ -23,4 +23,12 @@ public class DSHIELDParams extends AssigningParams {
     public BaseParams copy(){
         return new DSHIELDParams(super.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
+
+    public double getAntennaMass() {
+        return 0.0;
+    }
+
+    public double getElectronicsMass() {
+        return 0.0;
+    }
 }

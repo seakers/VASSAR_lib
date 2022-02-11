@@ -240,4 +240,7 @@ public abstract class BaseParams {
     public abstract int getNumOrbits();
     public abstract HashMap<String, Integer> getInstrumentIndexes();
     public abstract HashMap<String, Integer> getOrbitIndexes();
+
+    public abstract double getAntennaMass();
+    public abstract double getElectronicsMass();
 }

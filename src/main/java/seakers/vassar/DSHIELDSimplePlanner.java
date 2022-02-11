@@ -78,7 +78,6 @@ public class DSHIELDSimplePlanner {
         } catch (Exception ex) {
             throw new IllegalStateException("Ground track scenario failed to complete.");
         }
-        OrekitConfig.end();
         return gta.getHistory();
     }
 

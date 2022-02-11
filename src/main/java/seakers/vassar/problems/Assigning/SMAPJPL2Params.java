@@ -20,4 +20,12 @@ public class SMAPJPL2Params extends AssigningParams {
     public BaseParams copy(){
         return new SMAPJPL2Params(super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
+
+    public double getAntennaMass() {
+        return 0.0;
+    }
+
+    public double getElectronicsMass() {
+        return 0.0;
+    }
 }

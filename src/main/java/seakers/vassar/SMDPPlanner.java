@@ -35,7 +35,10 @@ public class SMDPPlanner {
         this.gamma = 0.999;
         this.dSolveInit = 1;
         ArrayList<GeodeticPoint> initialImages = new ArrayList<>();
+        long start = System.nanoTime();
         ArrayList<StateAction> stateActions = forwardSearch(new SatelliteState(0,0,0.0,initialImages));
+        long end = System.nanoTime();
+        System.out.printf("Planner took %.4f sec\n", (end - start) / Math.pow(10, 9));
         ArrayList<Observation> observations = new ArrayList<>();
         for (StateAction stateAction : stateActions) {
             Observation newObs = new Observation(stateAction.getA().getLocation(),stateAction.getA().gettStart(),stateAction.getA().gettEnd(),stateAction.getA().getReward());
@@ -77,10 +80,10 @@ public class SMDPPlanner {
         double initReward = rewardFunction(newSatelliteState,initRes.getA());
         double totalScore = initReward;
         initRes.getA().setReward(initReward);
-        System.out.println(newSatelliteState.getT());
-        System.out.println(totalScore);
-        System.out.println(resultList.size());
-        System.out.println(newSatelliteState.getImages());
+//        System.out.println(newSatelliteState.getT());
+//        System.out.println(totalScore);
+//        System.out.println(resultList.size());
+//        System.out.println(newSatelliteState.getImages());
         while(value != Double.NEGATIVE_INFINITY) {
             ActionResult res = SelectAction(newSatelliteState,dSolveInit);
             if(res.getA()==null) {
@@ -91,12 +94,12 @@ public class SMDPPlanner {
             totalScore = totalScore + reward;
             covPointRewards.put(res.getA().getLocation(),0.0);
             newSatelliteState = transitionFunction(newSatelliteState,res.getA());
-            System.out.println(newSatelliteState.getT());
+//            System.out.println(newSatelliteState.getT());
             resultList.add(new StateAction(newSatelliteState,res.getA()));
             value = res.getV();
-            System.out.println(totalScore);
-            System.out.println(resultList.size());
-            System.out.println(newSatelliteState.getImages());
+//            System.out.println(totalScore);
+//            System.out.println(resultList.size());
+//            System.out.println(newSatelliteState.getImages());
         }
         return resultList;
     }
@@ -124,6 +127,7 @@ public class SMDPPlanner {
         return newS;
     }
     public ArrayList<SatelliteAction> getActionSpace(SatelliteState s) {
+        long start = System.nanoTime();
         double currentTime = s.getT();
         double allowableTime = 15;
         double maxTorque = 1.047;
@@ -149,15 +153,9 @@ public class SMDPPlanner {
                 satisfied = true;
             }
         }
+        long end = System.nanoTime();
+        System.out.printf("getActionSpace took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return possibleActions;
-    }
-
-    public double[] linspace(double min, double max, int points) {
-        double[] d = new double[points];
-        for (int i = 0; i < points; i++){
-            d[i] = min + i * (max - min) / (points - 1);
-        }
-        return d;
     }
 
     public double getIncidenceAngle(GeodeticPoint point, double riseTime, double setTime, AbsoluteDate startDate, double orbitHeight, Collection<Record<String>> groundTrack) {
@@ -172,23 +170,18 @@ public class SMDPPlanner {
             double elapsedTime = date.durationFrom(startDate);
             sspMap.put(elapsedTime,ssp);
         }
-        double[] times = linspace(riseTime,setTime,(int)(setTime-riseTime));
-        if(times.length<2) {
-            times = new double[]{riseTime, setTime};
-        }
+        double accessTime = (riseTime+setTime)/2;
 
         double closestDist = 100000000000000000.0;
-        for (double time : times) {
-            double closestTime = 100 * 24 * 3600; // 100 days
-            GeodeticPoint closestPoint = null;
-            for (Double sspTime : sspMap.keySet()) {
-                if (Math.abs(sspTime - time) < closestTime) {
-                    closestTime = Math.abs(sspTime - time);
-                    closestPoint = sspMap.get(sspTime);
-                    double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
-                    if (dist < closestDist) {
-                        closestDist = dist;
-                    }
+        double closestTime = 100 * 24 * 3600; // 100 days
+        GeodeticPoint closestPoint;
+        for (Double sspTime : sspMap.keySet()) {
+            if (Math.abs(sspTime - accessTime) < closestTime) {
+                closestTime = Math.abs(sspTime - accessTime);
+                closestPoint = sspMap.get(sspTime);
+                double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
+                if (dist < closestDist) {
+                    closestDist = dist;
                 }
             }
         }

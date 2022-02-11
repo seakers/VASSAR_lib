@@ -22,4 +22,12 @@ public class ClimateCentricParams extends AssigningParams {
     public BaseParams copy(){
         return new ClimateCentricParams(super.resourcesPath, super.reqMode, super.name, super.runMode);
     }
+
+    public double getAntennaMass() {
+        return 0.0;
+    }
+
+    public double getElectronicsMass() {
+        return 0.0;
+    }
 }
