@@ -45,10 +45,10 @@ public class AntennaDesign {
     double[] frequencies_TDRS_forward = {2.0718e9, 13.775e9, 23e9};
     double[] EIRP_TDRSS_forward = {43.6, 46.5, 56.2};
 
-    public void designAntenna(double alt, double drymass, double payload_datarate, double Ptx, double Gtx, String band) throws Exception{
-        int[] indeces = bandIndex(band);
-        int band_type = indeces[0];
-        int band_i = indeces[1];
+    public void designAntenna(double alt, double drymass, double payload_datarate, double Ptx, double Gtx, String band) throws Exception{ // TODO shannon limit?
+        int[] indices = bandIndex(band);
+        int band_type = indices[0];
+        int band_i = indices[1];
         double dataPerDay = payload_datarate * 1e6 * 24 * 3600;
         double Rb_DL = dataPerDay/(2*15*60); // Contact Time/Access Time <- ~10-15 min per contact, ~2 contacts per day
 

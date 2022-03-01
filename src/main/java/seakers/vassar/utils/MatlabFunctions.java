@@ -214,8 +214,7 @@ public class MatlabFunctions implements Userfunction {
         String orb;
         try {
             id = vv.get(2).stringValue(c);
-            //orb = vv.get(3).stringValue(c);
-            orb = "LEO-polar";
+            orb = "LEO-polar"; // hard-coded
             ValueVector coeffs = lvDatabase.get(id).getPayloadCoeffsOrbit(orb);
             return new Value( coeffs, RU.LIST );
         }
@@ -295,7 +294,6 @@ public class MatlabFunctions implements Userfunction {
             vv2.add(heatpower * redundancy);
             vv2.add(minTemp);
             vv2.add(maxTemp);
-            //System.out.println("Avionics mass: "+mass);
             return new Value(vv2, RU.LIST);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -319,8 +317,7 @@ public class MatlabFunctions implements Userfunction {
         double dod;
 
         try {
-            String[] cellType = {"Multi", "Si", "GaAs", "DANI"};
-//            String[] cellType = {"DANI"};
+            String[] cellType = {"Multi", "Si", "GaAs", "DANI"}; // TODO What is DANI type cell?
             String[] battType = {"NiH2", "NiCd","LiIon"};
 
             ppa = vv.get(2).floatValue(c);
@@ -362,7 +359,6 @@ public class MatlabFunctions implements Userfunction {
             // Look for best combination of materials
             double Asa = 0.0;
             double Pbol = 0.0;
-            double charge = 0.0;
             double Meps = 0.0;
             double Msa = 0.0;
             double mbatt_min = 0.0;
@@ -494,8 +490,6 @@ public class MatlabFunctions implements Userfunction {
                             Mcpu_min = Mcpu;
                             Mregconv_min = Mregconv;
                             Mwiring_min =  Mwiring;
-//                            System.out.println("Battery type: " + batt);
-//                            System.out.println("Batter capacity: " + charge_temp);
                         }
                     }
                 }
@@ -559,7 +553,6 @@ public class MatlabFunctions implements Userfunction {
 
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
             String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-//            String[] bands_NEN = {"Xband"};
             double[] receiverPower = new double[250];
             double[] antennaGain = new double[50];
             double costMin = 1e10;
@@ -598,6 +591,21 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
+
+
+            switch(band_min) {
+                case 0: // UHF
+                    break;
+                case 1: // S-band
+                    commsMass = commsMass + 15.74; // Table 11-26, SMAD 3rd ed
+                case 2: // X-band
+                    commsMass = commsMass + 9.1; // Table 11-26, SMAD 3rd ed (7.6 + 1.5)
+                case 3: // Ka-band
+                    break;
+                default:
+                    break;
+
+            }
             //System.out.println("Gain: "+bestAntenna.getGain()+" Transmit Power: "+bestAntenna.getTransmitPower());
 
             if(false) {

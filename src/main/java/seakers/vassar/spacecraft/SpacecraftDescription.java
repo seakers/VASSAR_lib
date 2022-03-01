@@ -188,7 +188,21 @@ public class SpacecraftDescription {
             "updated2",
             "factHistory",
             "avionics-power#",
-            "comm-OBDH-power#"
+            "comm-OBDH-power#",
+            "ADCS-power#",
+            "avionics-redundancy",
+            "str-cost-nr#",
+            "prop-cost-nr#",
+            "adcs-cost-nr#",
+            "comm-cost-nr#",
+            "therm-cost-nr#",
+            "eps-cost-nr#",
+            "str-cost#",
+            "prop-cost#",
+            "adcs-cost#",
+            "comm-cost#",
+            "therm-cost#",
+            "eps-cost#"
         };
 
         fieldValues = new String[fieldNames.length];

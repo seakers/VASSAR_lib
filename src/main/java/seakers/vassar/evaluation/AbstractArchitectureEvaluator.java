@@ -408,6 +408,11 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
             r.eval("(run)");
+            r.eval("(focus LV-SELECTION4)");
+            r.eval("(run)");
+            r.eval("(focus LV-SELECTION5)");
+            r.eval("(run)");
+            // added LV 4 and 5
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -418,7 +423,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(run)");
             r.eval("(focus INFLATION)");
             r.eval("(run)");
-
             double cost = 0.0;
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
@@ -431,7 +435,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
-
             if (debug) {
                 res.setCostFacts(missions);
             }
@@ -450,7 +453,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");
-            //r.eval("(facts MANIFEST)");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             Double[] oldmasses = new Double[missions.size()];
             for (int i = 0; i < missions.size(); i++) {
@@ -484,7 +486,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
             }
-            //r.eval("(facts MANIFEST)");
         }
         catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());

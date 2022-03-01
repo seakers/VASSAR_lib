@@ -104,6 +104,7 @@ public class Designer {
             JSONObject propDesign = this.getPropDesign(d);
             JSONObject thermalDesign = this.getThermalDesign(d);
             JSONObject payloadDesign = this.getPayloadDesign(d);
+            JSONObject designCost = this.designCost(d);
 
             arch.put("Mission", mission);
             arch.put("Mass-Budget", massBudget);
@@ -114,6 +115,7 @@ public class Designer {
             arch.put("Prop-Design", propDesign);
             arch.put("Thermal-Design", thermalDesign);
             arch.put("Payload-Design", payloadDesign);
+            arch.put("Cost", designCost);
 
             archs.add(arch);
         }
@@ -121,6 +123,29 @@ public class Designer {
         out.put("designs", archs);
 
         return out;
+    }
+
+    private JSONObject designCost(SpacecraftDescription design){
+        JSONObject cost = new JSONObject();
+        JSONObject nonRecurringCosts = new JSONObject();
+            nonRecurringCosts.put("Structure", design.getValue("str-cost-nr#"));
+            nonRecurringCosts.put("Propulsion", design.getValue("prop-cost-nr#"));
+            nonRecurringCosts.put("ADCS", design.getValue("adcs-cost-nr#"));
+            nonRecurringCosts.put("Communications", design.getValue("comm-cost-nr#"));
+            nonRecurringCosts.put("Thermal", design.getValue("therm-cost-nr#"));
+            nonRecurringCosts.put("EPS", design.getValue("eps-cost-nr#"));
+
+        JSONObject recurringCosts = new JSONObject();
+            recurringCosts.put("Structure", design.getValue("str-cost#"));
+            recurringCosts.put("Propulsion", design.getValue("prop-cost#"));
+            recurringCosts.put("ADCS", design.getValue("adcs-cost#"));
+            recurringCosts.put("Communications", design.getValue("comm-cost#"));
+            recurringCosts.put("Thermal", design.getValue("therm-cost#"));
+            recurringCosts.put("EPS", design.getValue("eps-cost#"));
+
+        cost.put("Non-recurring Costs", nonRecurringCosts);
+        cost.put("Recurring Costs", recurringCosts);
+        return cost;
     }
 
     private JSONObject getMissionInfo(SpacecraftDescription design){

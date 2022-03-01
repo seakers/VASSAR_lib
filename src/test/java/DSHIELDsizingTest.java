@@ -48,7 +48,7 @@ public class DSHIELDsizingTest {
         properties.setDouble("mutationProbability", mutationProbability);
         Variation singlecross;
         Variation bitFlip;
-        Variation intergerMutation;
+        Variation integerMutation;
         Initialization initialization;
 
         //setup for epsilon MOEA
@@ -95,8 +95,8 @@ public class DSHIELDsizingTest {
 
             singlecross = new OnePointCrossover(crossoverProbability);
             bitFlip = new BitFlip(mutationProbability);
-            intergerMutation = new IntegerUM(mutationProbability);
-            CompoundVariation var = new CompoundVariation(singlecross, bitFlip, intergerMutation);
+            integerMutation = new IntegerUM(mutationProbability);
+            CompoundVariation var = new CompoundVariation(singlecross, bitFlip, integerMutation);
 
             Algorithm eMOEA = new EpsilonMOEA(assignmentProblem, population, archive, selection, var, initialization);
             ecs.submit(new TimedSearch(eMOEA, properties, params.pathSaveResults, "emoea_" + "ClimateCentric" + (i+startOn)));
