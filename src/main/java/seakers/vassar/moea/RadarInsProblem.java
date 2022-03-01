@@ -1,4 +1,4 @@
-package seakers.vassar;
+package seakers.vassar.moea;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -10,29 +10,32 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.problem.AbstractProblem;
+import seakers.vassar.Result;
 import seakers.vassar.evaluation.ArchitectureEvaluationManager;
 import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
 import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
+import seakers.vassar.utils.RadarDesign;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static java.lang.Double.NaN;
 
-public class RadarArchProblem extends AbstractProblem {
-    public RadarArchProblem() {
+public class RadarInsProblem extends AbstractProblem {
+    public RadarInsProblem() {
         super(7,4,2);
     }
     public Solution newSolution() {
@@ -42,8 +45,8 @@ public class RadarArchProblem extends AbstractProblem {
         solution.setVariable(2, new RealVariable(45.0,90.0)); // inclination of radar satellites
         solution.setVariable(3, new RealVariable(0.1,15.0)); // dAz
         solution.setVariable(4, new RealVariable(0.1,15.0)); // dEl
-        solution.setVariable(5, new RealVariable(1e5,80e6)); // chirpBW
-        solution.setVariable(6, new RealVariable(1e-6,100e-5)); // pulse width
+        solution.setVariable(5, new RealVariable(1e6,80e6)); // chirpBW
+        solution.setVariable(6, new RealVariable(1,1000)); // pulse width
         solution.setConstraint(0, 0.0);
         solution.setConstraint(1, 0.0);
         return solution;
@@ -66,10 +69,12 @@ public class RadarArchProblem extends AbstractProblem {
         RadarDesign rd = new RadarDesign(dAz,dEl);
 
         List<NameValuePair> instrumentParams = new ArrayList<NameValuePair>();
-        instrumentParams.add(new BasicNameValuePair("height", Double.toString(dAz)));
-        instrumentParams.add(new BasicNameValuePair("width", Double.toString(dEl)));
-        instrumentParams.add(new BasicNameValuePair("pulseWidth",Double.toString(pulseWidth)));
-        instrumentParams.add(new BasicNameValuePair("chirpBW",Double.toString(chirpBW)));
+        DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+        df.setMaximumFractionDigits(340);
+        instrumentParams.add(new BasicNameValuePair("height", df.format(dAz)));
+        instrumentParams.add(new BasicNameValuePair("width", df.format(dEl)));
+        instrumentParams.add(new BasicNameValuePair("pulseWidth",df.format(pulseWidth*1e-6)));
+        instrumentParams.add(new BasicNameValuePair("chirpBW",df.format(chirpBW)));
         try {
             httpPost.setEntity(new UrlEncodedFormEntity(instrumentParams));
         } catch (UnsupportedEncodingException e) {
@@ -90,7 +95,9 @@ public class RadarArchProblem extends AbstractProblem {
                 JSONParser parser = new JSONParser();
                 radarResult = (JSONObject) parser.parse(jsonString);
                 f[2] = (double) radarResult.get("NESZ [dB]");
-                f[3] = (double) radarResult.get("ground pixel along-track resolution [m]");
+                double atRes = (double) radarResult.get("ground pixel along-track resolution [m]");
+                double ctRes = (double) radarResult.get("ground pixel cross-track resolution [m]");
+                f[3] = -1e6/(atRes * ctRes);
                 c[1] = 0.0;
             }
             client.close();
@@ -183,6 +190,5 @@ public class RadarArchProblem extends AbstractProblem {
         }
         solution.setObjectives(f);
         solution.setConstraints(c);
-
     }
 }

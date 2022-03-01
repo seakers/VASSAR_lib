@@ -1,4 +1,4 @@
-package seakers.vassar;
+package seakers.vassar.moea;
 
 import org.moeaframework.core.Algorithm;
 import org.moeaframework.core.NondominatedPopulation;
@@ -10,7 +10,7 @@ import org.moeaframework.util.progress.ProgressListener;
 
 import java.io.*;
 
-public class MOEAProgressListener implements ProgressListener {
+public class MOEAInsConProgressListener implements ProgressListener {
     private int seedCount = 0;
 
     private int callCount = 0;
@@ -30,7 +30,7 @@ public class MOEAProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/inscon/running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -40,16 +40,10 @@ public class MOEAProgressListener implements ProgressListener {
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
             for (Solution sol : currentPop) {
-                System.out.println("Number of radar satellites: " + EncodingUtils.getInt(sol.getVariable(0)));
-                System.out.println("Altitude of radar satellites: " + sol.getVariable(1));
-                System.out.println("Inclination of radar satellites: " + sol.getVariable(2));
-                System.out.println("Radar dAz: " + sol.getVariable(3));
-                System.out.println("Radar dEl: " + sol.getVariable(4));
-                System.out.println("Radar chirp bw: " + sol.getVariable(5));
-                System.out.println("Radar pulse width: " + sol.getVariable(6));
+                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+sol.getVariable(1)+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/inscon/objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

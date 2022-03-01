@@ -1,9 +1,10 @@
-package seakers.vassar;
+package seakers.vassar.moea;
 
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.problem.AbstractProblem;
+import seakers.vassar.Result;
 import seakers.vassar.evaluation.ArchitectureEvaluationManager;
 import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
 import seakers.vassar.problems.OrbitInstrumentObject;
