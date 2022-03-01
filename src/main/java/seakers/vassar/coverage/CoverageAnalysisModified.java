@@ -204,7 +204,6 @@ public class CoverageAnalysisModified {
 
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init(16);
 
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -322,7 +321,6 @@ public class CoverageAnalysisModified {
      */
     private Map<TopocentricFrame, TimeIntervalArray> computePlannerAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init(16);
 
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -699,22 +697,11 @@ public class CoverageAnalysisModified {
         return covPoints;
     }
 
-    public static double[] linspace(double min, double max, int points) {
+    public double[] linspace(double min, double max, int points) {
         double[] d = new double[points];
         for (int i = 0; i < points; i++){
             d[i] = min + i * (max - min) / (points - 1);
         }
         return d;
-    }
-    public static String getListAsCsvString(ArrayList<Double> list){
-
-        StringBuilder sb = new StringBuilder();
-        for(Double str:list){
-            if(sb.length() != 0){
-                sb.append(",");
-            }
-            sb.append(Double.toString(str));
-        }
-        return sb.toString();
     }
 }

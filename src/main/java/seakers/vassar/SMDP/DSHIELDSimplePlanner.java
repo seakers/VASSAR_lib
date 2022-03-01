@@ -1,4 +1,4 @@
-package seakers.vassar;
+package seakers.vassar.SMDP;
 
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -22,7 +22,6 @@ import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
 import seakers.orekit.util.OrekitConfig;
-import seakers.vassar.problems.OrbitInstrumentObject;
 
 import java.util.*;
 

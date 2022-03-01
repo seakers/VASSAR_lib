@@ -16,6 +16,7 @@ import org.orekit.utils.Constants;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
+import seakers.vassar.SMDP.DSHIELDSimplePlanner;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
 import seakers.vassar.coverage.CoverageAnalysisModified;

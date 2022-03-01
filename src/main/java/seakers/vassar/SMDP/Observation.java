@@ -1,4 +1,4 @@
-package seakers.vassar;
+package seakers.vassar.SMDP;
 
 import org.orekit.bodies.GeodeticPoint;
 

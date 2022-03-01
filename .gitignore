@@ -14,3 +14,4 @@ backup/
 classes/
 lib/
 gradle/
+/src/test/output/

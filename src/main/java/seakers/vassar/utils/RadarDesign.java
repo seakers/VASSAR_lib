@@ -1,4 +1,4 @@
-package seakers.vassar;
+package seakers.vassar.utils;
 
 public class RadarDesign {
     private double antennaMass;

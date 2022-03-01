@@ -1,15 +1,10 @@
-package seakers.vassar;
+package seakers.vassar.SMDP;
 
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
-import seakers.vassar.SMDP.ActionResult;
-import seakers.vassar.SMDP.SatelliteAction;
-import seakers.vassar.SMDP.SatelliteState;
-import seakers.vassar.SMDP.StateAction;
 import seakers.orekit.analysis.Record;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.object.Satellite;
 
 import java.util.ArrayList;
 import java.util.Collection;

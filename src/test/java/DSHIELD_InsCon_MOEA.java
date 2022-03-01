@@ -3,11 +3,10 @@ import org.moeaframework.core.NondominatedPopulation;
 import org.moeaframework.core.PopulationIO;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
-import org.moeaframework.util.progress.ProgressListener;
 import seakers.orekit.util.OrekitConfig;
-import seakers.vassar.HeteroArchProblem;
-import seakers.vassar.MOEAProgressListener;
-import seakers.vassar.RadarArchProblem;
+import seakers.vassar.moea.MOEAInsConProgressListener;
+import seakers.vassar.moea.RadarInsProblem;
+
 import java.io.File;
 import java.util.*;
 
@@ -18,8 +17,8 @@ public class DSHIELD_InsCon_MOEA {
             Properties properties = new Properties();
             properties.setProperty("populationSize","48");
             properties.setProperty("maxEvaluations","4800");
-            MOEAProgressListener progressListener = new MOEAProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarArchProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
+            MOEAInsConProgressListener progressListener = new MOEAInsConProgressListener();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarInsProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
 
             //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;
@@ -34,7 +33,7 @@ public class DSHIELD_InsCon_MOEA {
                 System.out.println("Radar pulse width: " + sol.getVariable(6));
                 count++;
             }
-            PopulationIO.writeObjectives(new File("./src/test/output/objectives.txt"), result);
+            PopulationIO.writeObjectives(new File("./src/test/output/inscon/objectives.txt"), result);
             OrekitConfig.end();
         } catch (Exception e) {
             e.printStackTrace();
