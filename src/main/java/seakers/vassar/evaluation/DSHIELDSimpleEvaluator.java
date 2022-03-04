@@ -288,8 +288,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 r.eval("(focus COST-ESTIMATION)");
             }
             r.eval("(run)");
-            //r.eval("(focus INFLATION)");
-            //r.eval("(run)");
+            r.eval("(focus INFLATION)");
+            r.eval("(run)");
 
 
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");

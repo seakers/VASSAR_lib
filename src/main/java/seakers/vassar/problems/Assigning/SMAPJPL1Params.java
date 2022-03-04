@@ -28,4 +28,6 @@ public class SMAPJPL1Params extends AssigningParams {
     public double getElectronicsMass() {
         return 0.0;
     }
+
+    public double getDataRate() { return 0.0; }
 }

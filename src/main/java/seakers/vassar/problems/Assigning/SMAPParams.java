@@ -29,4 +29,6 @@ public class SMAPParams extends AssigningParams {
         return 0.0;
     }
 
+    public double getDataRate() { return 0.0; }
+
 }

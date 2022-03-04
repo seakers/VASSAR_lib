@@ -243,4 +243,5 @@ public abstract class BaseParams {
 
     public abstract double getAntennaMass();
     public abstract double getElectronicsMass();
+    public abstract double getDataRate();
 }

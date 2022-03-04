@@ -7,7 +7,7 @@ public class RadarDesign {
     private double maxPower;
     private double dataRate;
 
-    public RadarDesign(double dAz, double dEl) {
+    public RadarDesign(double dAz, double dEl, double pixelResAt, double numLooks) {
         double maxDim = Math.max(dAz, dEl);
         double feedLength = 3.3/30 * maxDim;
         double feedThickness = 0.05;
@@ -22,6 +22,15 @@ public class RadarDesign {
         antennaMass = feedMass + antennaMaterialMass;
         maxPower = 1000;
         electronicsMass = 21.253 * Math.log(maxPower) - 50.093;
+
+        // dataRate
+        double swath = 25;
+        double pixelResAcrossKm = pixelResAt * 0.001;
+        int bitsPerPixel = 8;
+        double pixelResAcrossSAR = pixelResAcrossKm * Math.sqrt(numLooks);
+        double numX = swath/pixelResAcrossSAR;
+        double rb_bps = numX * bitsPerPixel;
+        dataRate = rb_bps/1e6;
 
     }
 

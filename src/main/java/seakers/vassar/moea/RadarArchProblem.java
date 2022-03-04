@@ -52,7 +52,7 @@ public class RadarArchProblem extends AbstractProblem {
             System.out.println(e);
         }
         List<String> radar_design = records.get(radarIndex);
-        RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)));
+        RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),-Double.parseDouble(radar_design.get(5)),-Double.parseDouble(radar_design.get(6)));
         f[2] = Double.parseDouble(radar_design.get(4)); // snez
         f[3] = Double.parseDouble(radar_design.get(5)); // num looks
         String path = "../VASSAR_resources";
@@ -85,7 +85,7 @@ public class RadarArchProblem extends AbstractProblem {
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try{
-            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass());
+            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);

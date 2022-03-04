@@ -66,7 +66,7 @@ public class RadarInsProblem extends AbstractProblem {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://localhost:5000");
 
-        RadarDesign rd = new RadarDesign(dAz,dEl);
+
 
         List<NameValuePair> instrumentParams = new ArrayList<NameValuePair>();
         DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -82,6 +82,7 @@ public class RadarInsProblem extends AbstractProblem {
         }
         JSONObject radarResult = new JSONObject();
         CloseableHttpResponse response = null;
+        double atRes = 0.0;
         try {
             response = client.execute(httpPost);
             HttpEntity entity = response.getEntity();
@@ -95,7 +96,7 @@ public class RadarInsProblem extends AbstractProblem {
                 JSONParser parser = new JSONParser();
                 radarResult = (JSONObject) parser.parse(jsonString);
                 f[2] = (double) radarResult.get("NESZ [dB]");
-                double atRes = (double) radarResult.get("ground pixel along-track resolution [m]");
+                atRes = (double) radarResult.get("ground pixel along-track resolution [m]");
                 double ctRes = (double) radarResult.get("ground pixel cross-track resolution [m]");
                 f[3] = -1e6/(atRes * ctRes);
                 c[1] = 0.0;
@@ -104,6 +105,7 @@ public class RadarInsProblem extends AbstractProblem {
         } catch (IOException | ParseException | org.json.simple.parser.ParseException e) {
             e.printStackTrace();
         }
+        RadarDesign rd = new RadarDesign(dAz,dEl,atRes,f[3]);
 
 //        File xlsFile = new File("../VASSAR_resources/problems/Designer/xls/Instrument Capability Definition.xls");
 //        try {
@@ -175,7 +177,7 @@ public class RadarInsProblem extends AbstractProblem {
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try{
-            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass());
+            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);

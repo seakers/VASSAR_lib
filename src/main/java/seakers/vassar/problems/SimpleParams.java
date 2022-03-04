@@ -17,6 +17,7 @@ public class SimpleParams extends BaseParams {
     public int MAX_TOTAL_INSTR;
     protected double antennaMass;
     protected double electronicsMass;
+    protected double dataRate;
 
     public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
@@ -42,7 +43,7 @@ public class SimpleParams extends BaseParams {
         super.init();
     }
 
-    public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode, double antennaMass, double electronicsMass){
+    public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode, double antennaMass, double electronicsMass, double dataRate){
         super(resourcesPath, problemName, mode, name, runMode);
 
         // Uncomment for D-SHIELD
@@ -70,7 +71,7 @@ public class SimpleParams extends BaseParams {
 
     @Override
     public BaseParams copy(){
-        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.antennaMass, this.electronicsMass);
+        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.antennaMass, this.electronicsMass, this.dataRate);
     }
 
     public void setInstrumentList(String[] instrumentList){
@@ -115,5 +116,8 @@ public class SimpleParams extends BaseParams {
     }
     public double getElectronicsMass(){
         return this.electronicsMass;
+    }
+    public double getDataRate(){
+        return this.dataRate;
     }
 }
