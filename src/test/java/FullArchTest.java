@@ -1,5 +1,6 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.Result;
 import seakers.vassar.evaluation.ArchitectureEvaluationManager;
 import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
@@ -20,7 +21,8 @@ import static java.lang.Integer.parseInt;
 
 public class FullArchTest {
     public static void main(String[] args){
-        String path = "../VASSAR_resources"; 
+        String path = "../VASSAR_resources";
+        OrekitConfig.init(16);
         ArrayList<SimpleArchitecture> architectures = new ArrayList<SimpleArchitecture>();
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
@@ -253,7 +255,7 @@ public class FullArchTest {
                 e.printStackTrace();
             }
         }
-
+        OrekitConfig.end();
         System.out.println("DONE");
         System.exit(0);
     }

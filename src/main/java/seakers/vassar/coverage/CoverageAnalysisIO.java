@@ -235,7 +235,6 @@ public class CoverageAnalysisIO {
     }
 
     public File getAccessDataFile(String filename) {
-
         return new File(
                 System.getProperty("orekit.coveragedatabase"),
                 filename

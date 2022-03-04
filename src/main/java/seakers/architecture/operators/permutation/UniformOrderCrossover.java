@@ -14,7 +14,18 @@ import org.moeaframework.core.Variation;
 import org.moeaframework.core.variable.Permutation;
 
 /**
-
+ * "In uniform order-based crossover, two parents (say P1 and P2) are randomly
+ * selected and a random binary template is generated. Some of the genes for
+ * offspring C1 are filled by taking the genes from parent P1 where there is a
+ * one in the template. At this point we have C1 partially filled, but it has
+ * some gaps. The genes of parent P1 in the positions corresponding to zeros
+ * in the template are taken and sorted in the same order as they appear in
+ * parent P2. The sorted list is used to fill the gaps in C1. Offspring C2 is
+ * created using a similar process."
+ *
+ * Description obtained from Book "Search Methodologies" Chapter 4 "Genetic
+ * Algorithms" by Kumara Sastry, David E. Goldberg, Graham Kendall.
+ * 10.1007/978-1-4614-6940-7_4
  *
  * @author nozomihitomi
  */

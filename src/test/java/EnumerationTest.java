@@ -18,6 +18,8 @@ import java.util.List;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
+@SuppressWarnings({"unchecked"})
+
 public class EnumerationTest {
     public static void main(String[] args){
         String path = "D:/Documents/VASSAR/VASSAR_resources"; 
@@ -25,7 +27,7 @@ public class EnumerationTest {
         ArrayList<String> orbitIncCombos = new ArrayList<>();
         ArrayList<String> orbitList = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/repeat_orbits_nonSSO_varinc.csv"))) { 
+        try (BufferedReader br = new BufferedReader(new FileReader("D:/Documents/VASSAR/VASSAR_lib/src/test/java/repeat_orbits_nonSSO_varinc.csv"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -164,7 +166,7 @@ public class EnumerationTest {
             Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
             evaluationManager.clear();
             architecture.setCost(result.getCost());
-            architecture. setCoverage(result.getCoverage());
+            architecture.setCoverage(result.getCoverage());
             System.out.println(architecture.toString("")+"Cost: "+result.getCost()+", Revisit Time: "+result.getCoverage());
             JSONObject arch = new JSONObject();
             arch.put("name",architecture.getName());

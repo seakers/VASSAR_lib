@@ -96,35 +96,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             e.printStackTrace();
             this.resourcePool.freeResource(res);
         }
-        // Commented out for runtime, uncomment for full evaluation
-        //result.setScience(evaluateScience(params,r,arch,qb,m));
-        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
-//        ArrayList<Double> coverage = new ArrayList<Double>();
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        coverage.add(0.0);
-//        result.setCoverage(coverage);
-        result.setCost(evaluateCosts(params,r,arch,qb,m));
 
+        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+        result.setCost(evaluateCosts(params,r,arch,qb,m));
 
         this.resourcePool.freeResource(res);
 
@@ -280,6 +254,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval("(run)");
             r.eval("(focus LV-SELECTION5)");
             r.eval("(run)");
+            // LV SELECTION 4 and 5?
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -300,7 +275,6 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-            //r.eval("(facts MANIFEST)");
 
 
         }
@@ -346,7 +320,6 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 double inclination = orb.getInclinationNum(); // [deg]
                 if (inclination > maxInclination) {
                     maxInclination  = inclination;
-
                 }
                 double altitude = orb.getAltitudeNum(); // [m]
                 double raan = orb.getRaanNum();
