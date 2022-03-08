@@ -66,6 +66,7 @@ public class SimpleParams extends BaseParams {
         }
         this.antennaMass = antennaMass;
         this.electronicsMass = electronicsMass;
+        this.dataRate = dataRate;
         super.init();
     }
 

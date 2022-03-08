@@ -164,7 +164,7 @@ public class RadarInsProblem extends AbstractProblem {
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","CustomLANT"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR"},orbitName);
                 satellites.add(radarOnlySatellite);
             }
         }
@@ -174,6 +174,7 @@ public class RadarInsProblem extends AbstractProblem {
         String[] orbList = new String[orbitList.size()];
         System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
         System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
+        System.out.println("Data rate (kbps): "+rd.getDataRate());
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try{

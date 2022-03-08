@@ -30,7 +30,7 @@ public class MOEAInsConProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/inscon/running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/inscon/0307_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -43,7 +43,7 @@ public class MOEAInsConProgressListener implements ProgressListener {
                 System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+sol.getVariable(1)+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/inscon/objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/inscon/0307_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

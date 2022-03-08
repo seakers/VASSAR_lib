@@ -603,7 +603,7 @@ public class JessInitializer {
                         }
                     }
                     if (row[0].getContents().equals("Name CustomLSAR") && slot_name.equals("mass#")) {
-                        slot_value = String.valueOf(params.getElectronicsMass());
+                        slot_value = String.valueOf(params.getElectronicsMass()+params.getAntennaMass());
                     }
                     if (row[0].getContents().equals("Name CustomLSAR") && slot_name.equals("average-data-rate#")) {
                         slot_value = String.valueOf(params.getDataRate());

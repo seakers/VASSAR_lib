@@ -24,14 +24,17 @@ public class RadarDesign {
         electronicsMass = 21.253 * Math.log(maxPower) - 50.093;
 
         // dataRate
-        double swath = 25;
-        double pixelResAcrossKm = pixelResAt * 0.001;
-        int bitsPerPixel = 8;
-        double pixelResAcrossSAR = pixelResAcrossKm * Math.sqrt(numLooks);
-        double numX = swath/pixelResAcrossSAR;
-        double rb_bps = numX * bitsPerPixel;
-        dataRate = rb_bps/1e6;
-
+        if(pixelResAt == 0.0) {
+            dataRate = 0.0;
+        } else {
+            double swath = 25;
+            double pixelResAcrossKm = pixelResAt * 0.001;
+            int bitsPerPixel = 8;
+            double pixelResAcrossSAR = pixelResAcrossKm * Math.sqrt(-1*numLooks);
+            double numX = swath/pixelResAcrossSAR;
+            double rb_bps = numX * bitsPerPixel;
+            dataRate = rb_bps/1e6;
+        }
     }
 
     public double getAntennaMass() {

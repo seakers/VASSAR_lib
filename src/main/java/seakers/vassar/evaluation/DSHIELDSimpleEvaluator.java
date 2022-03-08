@@ -122,7 +122,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2021) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2022) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -275,7 +275,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-
+            r.eval("(facts MANIFEST)");
 
         }
         catch (JessException e) {

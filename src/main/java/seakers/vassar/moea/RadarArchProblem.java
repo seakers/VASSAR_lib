@@ -41,7 +41,7 @@ public class RadarArchProblem extends AbstractProblem {
         double[] c = new double[numberOfConstraints];
 
         List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/radardesigns.csv"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/pareto_front_030122.csv"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -52,9 +52,9 @@ public class RadarArchProblem extends AbstractProblem {
             System.out.println(e);
         }
         List<String> radar_design = records.get(radarIndex);
-        RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),-Double.parseDouble(radar_design.get(5)),-Double.parseDouble(radar_design.get(6)));
+        RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),Double.parseDouble(radar_design.get(5)),-Double.parseDouble(radar_design.get(6)));
         f[2] = Double.parseDouble(radar_design.get(4)); // snez
-        f[3] = Double.parseDouble(radar_design.get(5)); // num looks
+        f[3] = -Double.parseDouble(radar_design.get(6)); // num looks
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();

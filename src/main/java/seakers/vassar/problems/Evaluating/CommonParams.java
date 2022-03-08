@@ -15,6 +15,7 @@ public class CommonParams extends BaseParams {
     protected HashMap<String, Integer> orbitIndexes;
     protected double antennaMass;
     protected double electronicsMass;
+    protected double dataRate;
 
     public CommonParams(String[] orbitsList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
@@ -83,5 +84,8 @@ public class CommonParams extends BaseParams {
     }
     public double getElectronicsMass(){
         return this.electronicsMass;
+    }
+    public double getDataRate(){
+        return this.dataRate;
     }
 }
