@@ -153,6 +153,22 @@ public class EventAnalysisFactory {
         return ea;
     }
 
+    public EventAnalysis createReflectometerAnalysis(EventAnalysisEnum type,
+                                                  Constellation rxConstel, Constellation txConstel, Set<CoverageDefinition> covDefs, Properties prop, double th_g) {
+        EventAnalysis ea = null;
+
+        switch (type) {
+            case REFLECTOR:
+                ea = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs, propagatorFactory, false, false, txConstel,th_g);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Analysis type %s is unsupported.", type));
+        }
+
+        return ea;
+    }
+
     public EventAnalysis createReflectionAnalysis(EventAnalysisEnum type,
                                                   Constellation rxConstel, Constellation txConstel, Set<CoverageDefinition> covDefs, Properties prop, double th_g) {
         EventAnalysis ea = null;

@@ -19,6 +19,7 @@ import seakers.vassar.*;
 import seakers.vassar.SMDP.DSHIELDSimplePlanner;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
+import seakers.vassar.coverage.CoverageAnalysisIGBP;
 import seakers.vassar.coverage.CoverageAnalysisModified;
 import seakers.vassar.coverage.ReflectometerCoverageAnalysis;
 import seakers.vassar.problems.SimpleArchitecture;
@@ -36,6 +37,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
     protected ArrayList<SpacecraftDescription> designs;
     protected String[][] factList;
 
+    protected double[] smError;
+
     public DSHIELDSimpleEvaluator() {
         this.resourcePool = null;
         this.arch = null;
@@ -44,6 +47,18 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = null;
+        this.smError = null;
+    }
+
+    public DSHIELDSimpleEvaluator(double[] smError) {
+        this.resourcePool = null;
+        this.arch = null;
+        this.type = null;
+        this.debug = false;
+        this.orbitsUsed = new HashSet<>();
+        this.designs = new ArrayList<>();
+        this.factList = null;
+        this.smError = smError;
     }
 
     public DSHIELDSimpleEvaluator(String[][] factList) {
@@ -54,9 +69,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = factList;
+        this.smError = null;
     }
 
-    public DSHIELDSimpleEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
+    public DSHIELDSimpleEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList, double[] smError) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
@@ -64,16 +80,17 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = factList;
+        this.smError = smError;
     }
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance() {
-        return new DSHIELDSimpleEvaluator(super.resourcePool, super.arch, super.type, this.factList);
+        return new DSHIELDSimpleEvaluator(super.resourcePool, super.arch, super.type, this.factList,this.smError);
     }
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        return new DSHIELDSimpleEvaluator(resourcePool, arch, type, this.factList);
+        return new DSHIELDSimpleEvaluator(resourcePool, arch, type, this.factList,this.smError);
     }
 
     @Override
@@ -299,15 +316,17 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> allEvents = new ArrayList<>();
-            CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, 5, false, true, params.orekitResourcesPath);
-            ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(4, 5, true, true, params.orekitResourcesPath);
+            int coverageGridGranularity = 20;
+            CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
+            ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
+            CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
             for(int i = 0; i < arch.getSatelliteList().size(); i++) {
                 String orbName = arch.getSatelliteList().get(i).getOrbit();
                 Orbit orb = new Orbit(orbName);
-
+                double radiometerFOV = arch.getSatelliteList().get(0).getFov();
 
                 double fieldOfView = 0.0;
                 for(int j = 0; j < arch.getSatelliteList().get(i).getInstrumentList().length; j++) {
@@ -339,8 +358,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 //                    allEvents.add(reflAccesses);
 //                }
                 if(insList.contains("L-band_Reflectometer")) {
-                    //Map<TopocentricFrame, TimeIntervalArray> reflAccesses = reflAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "L-band");
-                    Map<TopocentricFrame, TimeIntervalArray> reflAccesses = coverageAnalysis.getAccesses(fieldOfView,inclination,altitude,numSatsPerPlane,numPlanes,raan,trueAnom,"reflectometer");
+                    Map<TopocentricFrame, TimeIntervalArray> reflAccesses = reflAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "L-band");
+                    //Map<TopocentricFrame, TimeIntervalArray> reflAccesses = coverageAnalysis.getAccesses(fieldOfView,inclination,altitude,numSatsPerPlane,numPlanes,raan,trueAnom,"reflectometer");
                     reflectometerEvents.add(reflAccesses);
                     lBandReflectometerEvents.add(reflAccesses);
                     allEvents.add(reflAccesses);
@@ -350,22 +369,33 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     radiometerEvents.add(accesses);
                     allEvents.add(accesses);
                 }
-                if(insList.contains("FMPL-2")) {
+                if(insList.contains("FMPL-2") || insList.contains("FMPL_2")) {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerEvents.add(accesses);
                     allEvents.add(accesses);
                     //Map<TopocentricFrame, TimeIntervalArray> plannerAccesses = coverageAnalysis.getPlannerAccesses(19.6, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
                     radiometerPlannerEvents.add(accesses);
                 }
-                Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                allEvents.add(accesses);
-                if(insList.contains("P-band_SAR")) {
+                if(insList.contains("CustomRadiometer")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(radiometerFOV, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radiometer");
+                    radiometerEvents.add(accesses);
+                    allEvents.add(accesses);
+                }
+                if(insList.contains("P-band_SAR") || insList.contains("CustomPSAR")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                    allEvents.add(accesses);
                     pBandFieldOfViewEvents.add(accesses);
                 }
-                if(insList.contains("L-band_SAR")) {
+                if(insList.contains("L-band_SAR") || insList.contains("CustomLSAR")) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                    allEvents.add(accesses);
                     lBandFieldOfViewEvents.add(accesses);
                 }
-
+                if(insList.contains("CustomLSAR") && this.smError != null) {
+                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                    allEvents.add(accesses);
+                    lBandFieldOfViewEvents.add(accesses);
+                }
             }
             double[] newLatBounds = new double[]{0,0};
             if (maxInclination < 75) {
@@ -513,7 +543,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             } else {
                 coverage.add(0.0);
             }
-            if(!reflectometerEvents.isEmpty() && !radiometerEvents.isEmpty()) {
+            if(false) {
                 Map<TopocentricFrame, TimeIntervalArray> mergedReflEvents = new HashMap<>(reflectometerEvents.get(0));
                 for (int i = 0; i < reflectometerEvents.size(); ++i) {
                     Map<TopocentricFrame, TimeIntervalArray> event = reflectometerEvents.get(i);
@@ -535,7 +565,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(0.0);
                 coverage.add(0.0);
             }
-            if(pBandFieldOfViewEvents.isEmpty()) {
+            if(true) { // TODO: hardcoded true
                 coverage.add(0.0);
                 coverage.add(0.0);
             } else {
@@ -562,6 +592,16 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 DSHIELDSimplePlanner planner = new DSHIELDSimplePlanner(pBandFieldOfViewEvents, getRewardGrid(), orbits, startDate, duration);
                 coverage.add(getSMRewards(pBandMergedEvents));
                 coverage.add(planner.getReward());
+            }
+            if(this.smError != null) {
+                Map<TopocentricFrame, TimeIntervalArray> mergedAllEvents = new HashMap<>(allEvents.get(0));
+                for (int i = 0; i < allEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = allEvents.get(i);
+                    mergedAllEvents = EventIntervalMerger.merge(mergedAllEvents, event, false);
+                }
+                coverage.add(getScienceValueFOR(mergedAllEvents,coverageAnalysisIGBP.getCovPoints()));
+            } else {
+                coverage.add(0.0);
             }
 
 
@@ -693,6 +733,18 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 }
             }
         }
+    }
+
+    public double getScienceValueFOR(Map<TopocentricFrame,TimeIntervalArray> events, Map<GeodeticPoint,Integer> igbpClasses) {
+        double score = 0.0;
+        for(TopocentricFrame tf : events.keySet()) {
+            TimeIntervalArray tia = events.get(tf);
+            if(!tia.isEmpty()) {
+                Integer igbpClass = igbpClasses.get(tf.getPoint());
+                score += this.smError[igbpClass-1];
+            }
+        }
+        return score;
     }
 
     public double getSMRewards(Map<TopocentricFrame,TimeIntervalArray> events) {

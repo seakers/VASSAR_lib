@@ -167,8 +167,8 @@ public class ReflectionEventAnalysis extends AbstractGroundEventAnalysis {
         ArrayList<SubRoutine> subRoutines = new ArrayList<>();
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             for (Satellite rx : rxConstel.getSatellites()) {
-                double fovStepSize = rx.getOrbit().getKeplerianPeriod() / 10.;
-                double threshold = 1e-2;
+                double fovStepSize = rx.getOrbit().getKeplerianPeriod() / 100.;
+                double threshold = 1e-3;
                 ReflectionSubRoutine subRoutine = new ReflectionSubRoutine(rx,propagatorFactory.createPropagator(rx.getOrbit(),rx.getGrossMass()),cdef,txConstel,fovStepSize,threshold);
                 subRoutines.add(subRoutine);
             }

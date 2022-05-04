@@ -298,41 +298,41 @@ public class ReflectometerCoverageAnalysis {
 //
 //        //create a coverage definition
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", landPoints, earthShape);
-        List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) { 
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
-        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
-        double[] latitudes = linspace(-84.66,84.66,records.size());
-        double longDistCheck = 0.0;
-        double latDistCheck = 0.0;
-        for (int j = 0; j < records.get(0).size(); j++) {
-            for (int k = 0; k < records.size(); k++) {
-                // Check for IGBP biome types
-                // Change doubles in this if statement to change grid granularity
-                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
-                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
-                    igbpPoints.add(point);
-                    latDistCheck = 0.0;
-                    longDistCheck = 0.0;
-                }
-                latDistCheck = latDistCheck+180.0/records.size();
-            }
-            latDistCheck = 0.0;
-            longDistCheck = longDistCheck+360.0/records.get(0).size();
-        }
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
+//        List<List<String>> records = new ArrayList<>();
+//        try (BufferedReader br = new BufferedReader(new FileReader("H:\\Documents\\VASSAR\\IGBP.csv"))) {
+//            String line;
+//            while ((line = br.readLine()) != null) {
+//                String[] values = line.split(",");
+//                records.add(Arrays.asList(values));
+//            }
+//        }
+//        catch (Exception e) {
+//            System.out.println(e);
+//        }
+//        ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
+//        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+//        double[] latitudes = linspace(-84.66,84.66,records.size());
+//        double longDistCheck = 0.0;
+//        double latDistCheck = 0.0;
+//        for (int j = 0; j < records.get(0).size(); j++) {
+//            for (int k = 0; k < records.size(); k++) {
+//                // Check for IGBP biome types
+//                // Change doubles in this if statement to change grid granularity
+//                if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
+//                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+//                    igbpPoints.add(point);
+//                    latDistCheck = 0.0;
+//                    longDistCheck = 0.0;
+//                }
+//                latDistCheck = latDistCheck+180.0/records.size();
+//            }
+//            latDistCheck = 0.0;
+//            longDistCheck = longDistCheck+360.0/records.get(0).size();
+//        }
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", igbpPoints, earthShape);
         //CoverageDefinition covDef2 = new CoverageDefinition("GPS", landPoints, earthShape);
         //assign the walker constellation to the coverage definition
-        //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
         covDef1.assignConstellation(walker);
         //covDef1.assignConstellation(walker);
         //covDef2.assignConstellation(walker);
@@ -375,7 +375,7 @@ public class ReflectometerCoverageAnalysis {
 //            Logger.getLogger(CoverageExample.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("scenario failed to complete.");
         }
-
+        System.out.println("finished reflectometer calc");
         Map<TopocentricFrame, TimeIntervalArray> accesses = reflEvent.getEvents(covDef1);
         return accesses;
 

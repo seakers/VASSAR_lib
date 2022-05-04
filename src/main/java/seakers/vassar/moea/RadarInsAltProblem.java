@@ -1,15 +1,15 @@
 package seakers.vassar.moea;
 
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.moeaframework.core.Solution;
@@ -24,7 +24,8 @@ import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
 import seakers.vassar.utils.RadarDesign;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -34,14 +35,15 @@ import java.util.Locale;
 
 import static java.lang.Double.NaN;
 
-public class RadarInsProblem extends AbstractProblem {
-    public RadarInsProblem() {
-        super(7,4,2);
+public class RadarInsAltProblem extends AbstractProblem {
+    public RadarInsAltProblem() {
+        super(8,4,2);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
         solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
-        solution.setVariable(1, new RealVariable(450.0,550.0)); // altitude of radar satellites
+        solution.setVariable(7, EncodingUtils.newInt(1,4)); // number of planes
+        solution.setVariable(1, new RealVariable(300.0,1000.0)); // altitude of radar satellites
         solution.setVariable(2, new RealVariable(45.0,90.0)); // inclination of radar satellites
         solution.setVariable(3, new RealVariable(0.1,15.0)); // dAz
         solution.setVariable(4, new RealVariable(0.1,15.0)); // dEl
@@ -53,7 +55,8 @@ public class RadarInsProblem extends AbstractProblem {
     }
 
     public void evaluate(Solution solution) {
-        int numRadarSats = EncodingUtils.getInt(solution.getVariable(0));
+        int numSatsPerPlane = EncodingUtils.getInt(solution.getVariable(0));
+        int numPlanes = EncodingUtils.getInt(solution.getVariable(7));
         double altRadarSats = Math.floor(EncodingUtils.getReal(solution.getVariable(1)) * 100) / 100;
         double incRadarSats = Math.floor(EncodingUtils.getReal(solution.getVariable(2)) * 100) / 100;
         double dAz = Math.floor(EncodingUtils.getReal(solution.getVariable(3)) * 100) / 100;
@@ -75,6 +78,7 @@ public class RadarInsProblem extends AbstractProblem {
         instrumentParams.add(new BasicNameValuePair("width", df.format(dEl)));
         instrumentParams.add(new BasicNameValuePair("pulseWidth",df.format(pulseWidth*1e-6)));
         instrumentParams.add(new BasicNameValuePair("chirpBW",df.format(chirpBW)));
+        instrumentParams.add(new BasicNameValuePair("altitude",df.format(altRadarSats)));
         try {
             httpPost.setEntity(new UrlEncodedFormEntity(instrumentParams));
         } catch (UnsupportedEncodingException e) {
@@ -108,55 +112,16 @@ public class RadarInsProblem extends AbstractProblem {
         }
         RadarDesign rd = new RadarDesign(dAz,dEl,atRes,ctRes,f[3],altRadarSats);
 
-//        File xlsFile = new File("../VASSAR_resources/problems/Designer/xls/Instrument Capability Definition.xls");
-//        try {
-//            //Creating input stream
-//            FileInputStream inputStream = new FileInputStream(xlsFile);
-//
-//            //Creating workbook from input stream
-//            Workbook workbook = WorkbookFactory.create(inputStream);
-//
-//            //Reading first sheet of excel file
-//            Sheet sheet = workbook.getSheetAt(1);
-//
-//            //Getting the count of existing records
-//            int rowCount = sheet.getLastRowNum();
-//
-//            Row lElecRow = sheet.getRow(22); // CustomLSAR
-//            Cell lElecMass = lElecRow.getCell(26);
-//            Row lAntRow = sheet.getRow(24); // CustomLANT
-//            Cell lAntMass = lAntRow.getCell(26);
-//            lElecMass.setCellValue("mass# "+Math.floor(rd.getElectronicsMass() * 100) / 100);
-//            lAntMass.setCellValue("mass# "+Math.floor(rd.getAntennaMass() * 100) / 100);
-//
-//            //Close input stream
-//            inputStream.close();
-//
-//            //Crating output stream and writing the updated workbook
-//            FileOutputStream os = new FileOutputStream(xlsFile);
-//            workbook.write(os);
-//
-//            //Close the workbook and output stream
-//            workbook.close();
-//            os.close();
-//
-//            System.out.println("Excel file has been updated successfully.");
-//
-//        } catch (EncryptedDocumentException | IOException e) {
-//            System.err.println("Exception while updating an existing excel file.");
-//            e.printStackTrace();
-//        }
-
-
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
-        int r = 1;
+        int r = numPlanes;
+        int s = numSatsPerPlane;
         for(int m = 0; m < r; m++) {
-            for(int n = 0; n < numRadarSats; n++) {
-                int pu = 360 / (r* numRadarSats);
+            for(int n = 0; n < s; n++) {
+                int pu = 360 / (r*s);
                 int delAnom = pu * r; //in plane spacing between satellites
-                int delRAAN = pu * numRadarSats; //node spacing
+                int delRAAN = pu * s; //node spacing
                 int RAAN = delRAAN * m;
                 int g = 1;
                 int phasing = pu * g;
@@ -165,7 +130,7 @@ public class RadarInsProblem extends AbstractProblem {
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","P-band_SAR"},orbitName);
                 satellites.add(radarOnlySatellite);
             }
         }

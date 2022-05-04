@@ -119,7 +119,7 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
         boolean targetVisRx;
         boolean targetVisTx = false;
         boolean rxVisTx = false;
-        boolean coplanar = false;
+        boolean specular = false;
 
         // check if coplanar
         targetVisRx = instrument.getFOV().g_FOV(s, target) > 0;
@@ -137,16 +137,16 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
                 // if target is visible to tx sat, check if rx is also in fov and if coplanar
                 if(targetVisTx) {
                     rxVisTx = checkFOV(s,sTx);
-                    coplanar = checkCoplanar(s,sTx);
+                    specular = checkCoplanar(s,sTx);
 
-                    if(rxVisTx && coplanar) break;
+                    if(rxVisTx && specular) break;
                 }
             }
 
-            if(targetVisTx && rxVisTx && coplanar) break;
+            if(targetVisTx && rxVisTx && specular) break;
         }
 
-        if(targetVisTx && rxVisTx && coplanar){
+        if(targetVisTx && rxVisTx && specular){
             return 1;
         }
         return -1;
@@ -195,16 +195,11 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
             final Vector3D targetToRX
                     = rxPosInert.subtract(targetPosInert);
             final double thetaRX
-                    = Vector3D.angle(targetToRX,rxPosInert);
+                    = Vector3D.angle(targetToRX,targetPosInert);
             final double thetaTX
-                    = Vector3D.angle(targetToTX,txPosInert);
-            final double heightratio = sTx.getA()/sRx.getA();
-            final double angleratio = Math.sin(thetaRX)/Math.sin(thetaTX);
-            final double transmit = Math.sin(thetaTX)*sTx.getA();
-            final double low = Math.sin(thetaRX-th_err)*sRx.getA();
-            final double high = Math.sin(thetaRX+th_err)*sRx.getA();
+                    = Vector3D.angle(targetToTX,targetPosInert);
 
-            if(transmit > low && transmit < high) {
+            if((thetaRX-thetaTX) < th_err) {
                 inView = true;
 //                System.out.println(date);
             }

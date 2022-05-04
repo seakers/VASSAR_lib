@@ -23,7 +23,7 @@ public class SimpleParams extends BaseParams {
         super(resourcesPath, problemName, mode, name, runMode);
 
         // Uncomment for D-SHIELD
-        this.instrumentList = new String[]{"CustomLANT","CustomLSAR"};
+        this.instrumentList = new String[]{"CustomLANT","CustomLSAR", "L-band_SAR", "P-band_SAR", "L-band_ANT", "FMPL_2", "L-band_Reflectometer"};
         // Uncomment for SMAP problem
         //this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
         this.orbitList = orbitList;
@@ -47,7 +47,7 @@ public class SimpleParams extends BaseParams {
         super(resourcesPath, problemName, mode, name, runMode);
 
         // Uncomment for D-SHIELD
-        this.instrumentList = new String[]{"CustomLANT","CustomLSAR"};
+        this.instrumentList = new String[]{"CustomLANT","CustomLSAR","CustomRadiometer","L-band_Reflectometer"};
         // Uncomment for SMAP problem
         //this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
         this.orbitList = orbitList;

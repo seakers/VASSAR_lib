@@ -5,7 +5,7 @@ plugins {
 }
 apply plugin : "java"
 ext {
-    javaMainClass = "seakers.vassar.DSHIELD_InsCon_MOEA"
+    javaMainClass = "DSHIELD_InsCon_MOEA"
 }
 
 application {

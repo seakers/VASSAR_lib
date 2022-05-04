@@ -36,7 +36,6 @@ import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
-import seakers.orekit.util.OrekitConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,7 +48,7 @@ import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seakers.orekit.util.Orbits.LTAN2RAAN;
 
 @SuppressWarnings({"rawtypes","unchecked"})
-public class CoverageAnalysisModified {
+public class CoverageAnalysisIGBP {
 
     private int numThreads;
     private int coverageGridGranularity;
@@ -62,15 +61,15 @@ public class CoverageAnalysisModified {
     private AbsoluteDate startDate;
     private AbsoluteDate endDate;
 
-    public CoverageAnalysisModified(int numThreads, int coverageGridGranularity) throws OrekitException{
+    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity) throws OrekitException{
         this(numThreads, coverageGridGranularity, true, true);
     }
 
-    public CoverageAnalysisModified(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
+    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
         this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
     }
 
-    public CoverageAnalysisModified(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
+    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
 
         this.cwd = cwd;
 
@@ -261,11 +260,11 @@ public class CoverageAnalysisModified {
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, FastMath.toRadians(i), t, p, f, inertialFrame, startDate, mu, FastMath.toRadians(raan), FastMath.toRadians(trueAnom));
 
-        ArrayList<GeodeticPoint> covPoints = getCovPoints("simulationpoints");
+        Map<GeodeticPoint,Integer> covPoints = getCovPoints();
 
         //create a coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
-        //CoverageDefinition covDef1 = new CoverageDefinition("covdef1", covPoints, earthShape);
+        //CoverageDefinition covDef1 = new CoverageDefinition("covdef", this.coverageGridGranularity, earthShape, this.gridStyle);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", covPoints.keySet(), earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -294,7 +293,7 @@ public class CoverageAnalysisModified {
         long start = System.nanoTime();
         try {
             //System.out.println(String.format("Running Scenario %s", scen));
-            //System.out.println(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            System.out.println(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
             //System.out.println(String.format("Number of satellites: %d", walker.getSatellites().size()));
 
             //run the scenario
@@ -485,7 +484,7 @@ public class CoverageAnalysisModified {
         long start = System.nanoTime();
         try {
             //System.out.println(String.format("Running Scenario %s", scen));
-            //System.out.println(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            System.out.println(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
             //System.out.println(String.format("Number of satellites: %d", walker.getSatellites().size()));
 
             //run the scenario
@@ -592,108 +591,46 @@ public class CoverageAnalysisModified {
         }
     }
 
-    public ArrayList<GeodeticPoint> getCovPoints(String pointType) {
+    public Map<GeodeticPoint,Integer> getCovPoints() {
         List<List<String>> records = new ArrayList<>();
-        ArrayList<GeodeticPoint> covPoints = new ArrayList<>();
-        switch(pointType) {
-            case "igbp":
-                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/IGBP.csv"))) { 
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] values = line.split(",");
-                        records.add(Arrays.asList(values));
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println(e);
-                }
-                ArrayList<GeodeticPoint> igbpPoints = new ArrayList<>();
-                double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
-                double[] latitudes = linspace(-84.66,84.66,records.size());
-                double longDistCheck = 0.0;
-                double latDistCheck = 0.0;
-                for (int j = 0; j < records.get(0).size(); j++) {
-                    for (int k = 0; k < records.size(); k++) {
-                        // Check for IGBP biome types
-                        // Change doubles in this if statement to change grid granularity
-                        if (latDistCheck > 1.0 && longDistCheck > 1.0 && (records.get(k).get(j).equals("1") || records.get(k).get(j).equals("2") || records.get(k).get(j).equals("3") || records.get(k).get(j).equals("4") || records.get(k).get(j).equals("5") || records.get(k).get(j).equals("8") || records.get(k).get(j).equals("9"))) {
-                            GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
-                            igbpPoints.add(point);
-                            latDistCheck = 0.0;
-                            longDistCheck = 0.0;
-                        }
-                        latDistCheck = latDistCheck+180.0/records.size();
-                    }
-                    latDistCheck = 0.0;
-                    longDistCheck = longDistCheck+360.0/records.get(0).size();
-                }
-                covPoints = igbpPoints;
-                break;
-            case "land75_5":
-                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/LandLatLong75.csv"))) { 
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] values = line.split(",");
-                        records.add(Arrays.asList(values));
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println(e);
-                }
-                ArrayList<GeodeticPoint> landPoints = new ArrayList<>();
-                for(int idx = 0; idx < records.size(); idx++) {
-                    double lat = Double.parseDouble(records.get(idx).get(0));
-                    double lon = Double.parseDouble(records.get(idx).get(1));
-                    lon = lon - 180.0;
-                    lat = Math.toRadians(lat);
-                    lon = Math.toRadians(lon);
-                    GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
-                    if(Math.abs(lat) <= Math.toRadians(75.0)) {
-                        landPoints.add(landPoint);
-                    }
-                }
-                covPoints = landPoints;
-                break;
-            case "simulationpoints":
-                try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/20200101013000.csv"))) { 
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] values = line.split(",");
-                        records.add(Arrays.asList(values));
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println(e);
-                }
-                ArrayList<GeodeticPoint> simPoints = new ArrayList<>();
-                double gridGranularity = 1.0;
-                for (List<String> record : records) {
-                    if (Objects.equals(record.get(1), "lat[deg]")) {
-                        continue;
-                    }
-                    if(simPoints.size()==0) {
-                        simPoints.add(new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0));
-                        continue;
-                    }
-                    GeodeticPoint newPoint = new GeodeticPoint(Math.toRadians(Double.parseDouble(record.get(1))), Math.toRadians(Double.parseDouble(record.get(2))), 0.0);
-                    boolean tooClose = false;
-                    for (int i = 0; i < simPoints.size();i++) {
-                        double dist = Math.sqrt(Math.pow(simPoints.get(i).getLatitude()-newPoint.getLatitude(),2)+Math.pow(simPoints.get(i).getLongitude()-newPoint.getLongitude(),2));
-                        if (dist < Math.toRadians(gridGranularity)) {
-                            tooClose = true;
-                            break;
-                        }
-                    }
-                    if(!tooClose) {
-                        simPoints.add(newPoint);
-                    }
-                }
-                covPoints = simPoints;
-                break;
-            default:
-                covPoints = null;
-                break;
+        Map<GeodeticPoint,Integer> covPoints = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/IGBP.csv"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
         }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        Map<GeodeticPoint,Integer> igbpPoints = new HashMap<>();
+        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+        double[] latitudes = linspace(-84.66,84.66,records.size());
+        Map<String,Integer> biomeMap = new HashMap<>();
+        biomeMap.put("1",1);
+        biomeMap.put("2",1);
+        biomeMap.put("4",1);
+        biomeMap.put("5",1);
+        biomeMap.put("6",2);
+        biomeMap.put("7",2);
+        biomeMap.put("8",3);
+        biomeMap.put("9",3);
+        biomeMap.put("10",3);
+        biomeMap.put("12",4);
+        biomeMap.put("14",4);
+        biomeMap.put("16",5);
+        for (int j = 0; j < records.get(0).size(); j++) {
+            for (int k = 0; k < records.size(); k++) {
+                // Check for IGBP biome types
+                String biome = records.get(k).get(j);
+                if (biomeMap.containsKey(biome)) {
+                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+                    igbpPoints.put(point,biomeMap.get(biome));
+                }
+            }
+        }
+        covPoints = igbpPoints;
         return covPoints;
     }
 

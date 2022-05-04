@@ -36,6 +36,8 @@ public class SimpleArchitecture extends AbstractArchitecture {
     private double smRewardReflRadio;
     private double smRewardRadar;
     private double plannerReward;
+
+    private double scienceReward;
     private double cost;
     private int numSatsPerPlane;
     private int numPlanes;
@@ -75,6 +77,8 @@ public class SimpleArchitecture extends AbstractArchitecture {
     public double getSmRewardReflRadio() { return smRewardReflRadio; }
     public double getSmRewardRadar() { return smRewardRadar; }
     public double getPlannerReward() { return plannerReward; }
+
+    public double getScienceReward() { return scienceReward; }
     public double getCost() { return cost; }
     public String getName() { return name; }
     public int getNumSatsPerPlane() { return numSatsPerPlane; }
@@ -116,6 +120,7 @@ public class SimpleArchitecture extends AbstractArchitecture {
         this.smRewardReflRadio = coverage.get(25);
         this.smRewardRadar = coverage.get(26);
         this.plannerReward = coverage.get(27);
+        this.scienceReward = coverage.get(28);
     }
     public void setCost(double cost) {
         this.cost = cost;

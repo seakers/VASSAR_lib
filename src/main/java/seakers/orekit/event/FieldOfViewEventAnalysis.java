@@ -158,11 +158,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     if (sr == null) {
                         throw new IllegalStateException("Subroutine failed in field of view event.");
                     }
-                    FieldOfViewSubRoutine fovsr = (FieldOfViewSubRoutine)sr;
+                    FieldOfViewSubRoutine fovsr = (FieldOfViewSubRoutine) sr;
                     Satellite sat = fovsr.getSat();
                     HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = fovsr.getSatAccesses();
                     processAccesses(sat, cdef, satAccesses);
-                    
+
                     if (saveToDB) {
                         File file = new File(
                                 System.getProperty("orekit.coveragedatabase"),
@@ -170,10 +170,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         writeAccesses(file, satAccesses);
                     }
                 }
-            } catch (InterruptedException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+                for (Satellite sat : getUniqueSatellites(cdef)) {
+                    System.out.println(sat);
+                }
             }
 
             //Make all time intervals stored in finalAccesses immutable

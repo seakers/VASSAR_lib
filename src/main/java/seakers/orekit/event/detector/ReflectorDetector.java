@@ -157,11 +157,9 @@ public class ReflectorDetector extends AbstractEventDetector<ReflectorDetector> 
                     = Vector3D.angle(targetToRX,rxPosInert);
             final double thetaTX
                     = Vector3D.angle(targetToTX,txPosInert);
-            final double heightratio = pfTransmitter.getInitialState().getA()/s.getA();
-            final double angleratio = Math.sin(thetaRX)/Math.sin(thetaTX);
-            final double spec = Math.abs(heightratio - angleratio);
+            final double anglediff = Math.abs(Math.sin(thetaRX) - Math.sin(thetaTX));
             //System.out.println(s.getDate());
-            if(spec < 0.05) {
+            if(anglediff < 0.05) {
                 inView = 1.0;
             }
         } else {

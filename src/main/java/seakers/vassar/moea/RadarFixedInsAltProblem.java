@@ -18,77 +18,58 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class RadarArchProblem extends AbstractProblem {
-    public RadarArchProblem() {
-        super(4,4,1);
+public class RadarFixedInsAltProblem extends AbstractProblem {
+    public RadarFixedInsAltProblem() {
+        super(3,2,1);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
-        solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
-        solution.setVariable(1, new RealVariable(450.0,550.0)); // altitude of radar satellites
+        solution.setVariable(0, EncodingUtils.newInt(1,5)); // sats per plane
+        solution.setVariable(1, EncodingUtils.newInt(1,4)); // num planes
         solution.setVariable(2, new RealVariable(45.0,90.0)); // inclination of radar satellites
-        solution.setVariable(3, EncodingUtils.newInt(0,47)); // radar design
         solution.setConstraint(0, 0.0);
         return solution;
     }
 
     public void evaluate(Solution solution) {
-        int numRadarSats = EncodingUtils.getInt(solution.getVariable(0));
-        double altRadarSats = Math.floor(EncodingUtils.getReal(solution.getVariable(1)) * 100) / 100;
+        int numSatsPerPlane = EncodingUtils.getInt(solution.getVariable(0));
+        int numPlanes = EncodingUtils.getInt(solution.getVariable(1));
         double incRadarSats = Math.floor(EncodingUtils.getReal(solution.getVariable(2)) * 100) / 100;
-        int radarIndex = EncodingUtils.getInt(solution.getVariable(3));
         double[] f = new double[numberOfObjectives];
         double[] c = new double[numberOfConstraints];
 
-        List<List<String>> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/pareto_front_030122.csv"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-        List<String> radar_design = records.get(radarIndex);
-        double atRes = Double.parseDouble(radar_design.get(5));
-        double numLooks = Double.parseDouble(radar_design.get(6));
-        double ctRes = -1e6/(atRes*numLooks);
-        RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),atRes,ctRes,numLooks,altRadarSats);
-        f[2] = Double.parseDouble(radar_design.get(4)); // snez
-        f[3] = -Double.parseDouble(radar_design.get(6)); // num looks
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
-        int r = 1;
+        int r = numPlanes;
+        int s = numSatsPerPlane;
         for(int m = 0; m < r; m++) {
-            for(int n = 0; n < numRadarSats; n++) {
-                int pu = 360 / (r* numRadarSats);
+            for(int n = 0; n < s; n++) {
+                int pu = 360 / (r* s);
                 int delAnom = pu * r; //in plane spacing between satellites
-                int delRAAN = pu * numRadarSats; //node spacing
+                int delRAAN = pu * s; //node spacing
                 int RAAN = delRAAN * m;
                 int g = 1;
                 int phasing = pu * g;
                 int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-"+altRadarSats+"-"+incRadarSats+"-"+RAAN+"-"+anom;
+                String orbitName = "LEO-500-"+incRadarSats+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","CustomLANT"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"L-band_SAR","P-band_SAR"},orbitName);
                 satellites.add(radarOnlySatellite);
             }
         }
         SimpleArchitecture architecture = new SimpleArchitecture(satellites);
         architecture.setRepeatCycle(0);
-        architecture.setName(incRadarSats+", "+altRadarSats+", " );
+        architecture.setName(incRadarSats+", 500, " );
         String[] orbList = new String[orbitList.size()];
-        System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
-        System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
+        //System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
+        //System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try{
-            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
+            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal");
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);

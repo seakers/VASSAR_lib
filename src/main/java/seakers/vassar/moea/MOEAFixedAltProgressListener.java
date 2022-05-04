@@ -10,7 +10,7 @@ import org.moeaframework.util.progress.ProgressListener;
 
 import java.io.*;
 
-public class MOEAInsConProgressListener implements ProgressListener {
+public class MOEAFixedAltProgressListener implements ProgressListener {
     private int seedCount = 0;
 
     private int callCount = 0;
@@ -30,7 +30,7 @@ public class MOEAInsConProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/inscon/0308_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/radar_fixedalt/0426_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -40,10 +40,10 @@ public class MOEAInsConProgressListener implements ProgressListener {
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
             for (Solution sol : currentPop) {
-                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+sol.getVariable(1)+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
+                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/inscon/0308_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/radar_fixedalt/0426_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }
