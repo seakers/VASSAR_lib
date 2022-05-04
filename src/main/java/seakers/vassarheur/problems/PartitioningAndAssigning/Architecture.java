@@ -4,6 +4,7 @@ import seakers.vassarheur.architecture.AbstractArchitecture;
 import seakers.vassarheur.BaseParams;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class Architecture extends AbstractArchitecture{
 
@@ -31,6 +32,18 @@ public class Architecture extends AbstractArchitecture{
             //throw new IllegalArgumentException("Infeasible architecture defined: \n" +
                     //Arrays.toString(this.instrumentPartitioning) + " | " + Arrays.toString(this.orbitAssignment));
         //}
+    }
+
+    public Architecture(String valString, int numSatellites, BaseParams params) {
+        super();
+        int[] instrumentPartitions = getInstrumentPartitionsFromString(valString);
+        int[] orbitAssignments = getOrbitAssignmentsFromString(valString, params);
+
+        this.instrumentPartitioning = instrumentPartitions;
+        this.orbitAssignment = orbitAssignments;
+        this.params = params;
+        this.numSatellites = numSatellites;
+
     }
 
     public Architecture(int[] instrumentPartitioning, int[] orbitAssignment, int numSatellites, BaseParams params) {
@@ -144,5 +157,38 @@ public class Architecture extends AbstractArchitecture{
             sj.add(""+i);
         }
         return sj.toString();
+    }
+
+    private int[] getInstrumentPartitionsFromString(String archString) {
+        String[] partitionStrings = archString.split(Pattern.quote("|"),2);
+        ArrayList<Integer> instrumentPartitioningArrayList = new ArrayList<>();
+        String instrumentPartitionString = partitionStrings[0];
+        for (int i = 0; i < instrumentPartitionString.length(); i++) {
+            String val = instrumentPartitionString.substring(i,i+1);
+            if (!val.equalsIgnoreCase(" ")) {
+                instrumentPartitioningArrayList.add(Integer.parseInt(val));
+            }
+        }
+        return instrumentPartitioningArrayList.stream().mapToInt(i->i).toArray();
+    }
+
+    private int[] getOrbitAssignmentsFromString(String archString, BaseParams params) {
+        String[] partitionStrings = archString.split(Pattern.quote("|"),2);
+        int[] orbitAssignment = new int[params.getNumInstr()];
+        Arrays.fill(orbitAssignment, -1);
+        String orbitAssignmentString = partitionStrings[1];
+        int index = 0;
+        for (int i = 0; i < orbitAssignmentString.length(); i++) {
+            String val = orbitAssignmentString.substring(i,i+1);
+            if (!val.equalsIgnoreCase(" ")) {
+                if (val.equalsIgnoreCase("-")) {
+                    break;
+                } else {
+                    orbitAssignment[index] = Integer.parseInt(val);
+                    index += 1;
+                }
+            }
+        }
+        return orbitAssignment;
     }
 }

@@ -74,10 +74,14 @@ public class ClimateCentricPartitioningTest {
         //orbitAssignment.put(set5,"SSO-600-SSO-AM");
 
         // ARCHITECTURE CREATION METHOD 2
-        int[] instrumentPartitioning = new int[]{2, 2, 2, 1, 4, 0, 3, 1, 4, 3, 0, 2};
-        int[] orbitAssignment = new int[]{1, 1, 0, 2, 4, -1, -1, -1, -1, -1, -1, -1};
+        //int[] instrumentPartitioning = new int[]{2, 2, 2, 1, 4, 0, 3, 1, 4, 3, 0, 2};
+        //int[] orbitAssignment = new int[]{1, 1, 0, 2, 4, -1, -1, -1, -1, -1, -1, -1};
 
-        testArch = new Architecture(instrumentPartitioning, orbitAssignment, 1, params);
+        //testArch = new Architecture(instrumentPartitioning, orbitAssignment, 1, params);
+
+        // ARCHITECTURE CREATION METHOD 3
+        String archString = "0 0 0 0 0 0 1 1 2 2 2 2 | 1 3 4 -1 -1 -1 -1 -1 -1 -1 -1 -1";
+        testArch = new Architecture(archString, 1, params);
 
         System.out.println(testArch.ppString());
 

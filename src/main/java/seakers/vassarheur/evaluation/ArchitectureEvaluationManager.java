@@ -130,6 +130,10 @@ public class ArchitectureEvaluationManager {
         futures.clear();
     }
 
+    public AbstractArchitectureEvaluator getEvaluator() {
+        return evaluator;
+    }
+
     public ResourcePool getResourcePool()
     {
         return resourcePool;

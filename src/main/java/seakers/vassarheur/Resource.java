@@ -21,7 +21,7 @@ public class Resource {
         this.qb = new QueryBuilder(this.r);
         this.m = new MatlabFunctions(this);
         this.r.addUserfunction(this.m);
-        
+
         JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m);
     }
 

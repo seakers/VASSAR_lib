@@ -333,7 +333,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadInstrumentTemplate(Rete r, Workbook xls) {
+    public void loadInstrumentTemplate(Rete r, Workbook xls) {
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
             HashMap<Integer, String> keysToAttribs = new HashMap<>();
@@ -1041,7 +1041,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
+    public void loadCapabilityRules(Rete r, Workbook xls, String clp) {
         try {
             r.batch(clp);
             for (String instrument: params.getInstrumentList()) {

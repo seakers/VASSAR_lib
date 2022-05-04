@@ -46,7 +46,7 @@ public class ResourcePool
         }
     }
 
-    public void poolClean(){
+    public synchronized void poolClean(){
         for (Resource r:pool){
             r.cleanRete();
         }

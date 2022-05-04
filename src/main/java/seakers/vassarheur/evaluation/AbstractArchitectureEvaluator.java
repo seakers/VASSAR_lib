@@ -136,15 +136,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
                 // Compute and add heuristic values to result (added by roshansuresh)
                 ArrayList<ArrayList<Double>> archHeuristics = computeHeuristics(r, arch, qb, params);
-                ArrayList<Double> archHeuristicViolations = new ArrayList<>();
-                for (int i = 0; i < archHeuristics.size(); i++) {
-                    ArrayList<Double> currentHeuristics = archHeuristics.get(i);
-                    double heuristicSum = 0;
-                    for (double d : currentHeuristics) {
-                        heuristicSum += d;
-                    }
-                    archHeuristicViolations.add(heuristicSum/archHeuristics.get(i).size());
-                }
+                ArrayList<Double> archHeuristicViolations = computeHeuristicsArchitecture(archHeuristics);
+
                 result.setHeuristics(archHeuristicViolations);
 
                 // Extract and store operator parameters
@@ -154,13 +147,18 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 // Extract and store satellite payloads
                 ArrayList<ArrayList<String>> satellitePayloads = getSatellitePayloads(r, qb);
                 result.setSatellitePayloads(satellitePayloads);
+
+                // Extract and store satellite orbits
+                ArrayList<String> satelliteOrbits = getSatelliteOrbits(r, qb);
+                result.setSatelliteOrbits(satelliteOrbits);
             }
             catch (Exception e) {
                 System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
                 e.printStackTrace();
+            }
+            finally {
                 this.resourcePool.freeResource(res);
             }
-            this.resourcePool.freeResource(res);
 
             return result;
         }
@@ -466,24 +464,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             long t0 = System.currentTimeMillis();
             //r.eval("(watch all)");
 
-            r.setFocus("MANIFEST0");
-            r.run();
-
-            r.eval("(focus MANIFEST)");
-            r.eval("(run)");
-
-            designSpacecraft(r, arch, qb, m);
-
-            r.eval("(focus LV-SELECTION0)");
-            r.eval("(run)");
-            r.eval("(focus LV-SELECTION1)");
-            r.eval("(run)");
-            r.eval("(focus CONSTELLATION-ASSERT)");
-            r.eval("(run)");
-            r.eval("(focus CONSTELLATION-COST-ESTIMATION)");
-            r.eval("(run)");
-            r.eval("(focus LV-SELECTION4)");
-            r.eval("(run)");
+            evaluateHeuristicParameters(r, arch, qb, m);
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -516,6 +497,27 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void evaluateHeuristicParameters(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) throws JessException {
+        r.setFocus("MANIFEST0");
+        r.run();
+
+        r.eval("(focus MANIFEST)");
+        r.eval("(run)");
+
+        designSpacecraft(r, arch, qb, m);
+
+        r.eval("(focus LV-SELECTION0)");
+        r.eval("(run)");
+        r.eval("(focus LV-SELECTION1)");
+        r.eval("(run)");
+        r.eval("(focus CONSTELLATION-ASSERT)");
+        r.eval("(run)");
+        r.eval("(focus CONSTELLATION-COST-ESTIMATION)");
+        r.eval("(run)");
+        r.eval("(focus LV-SELECTION4)");
+        r.eval("(run)");
     }
 
     protected void designSpacecraft(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
@@ -576,7 +578,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
      * @throws JessException
      */
 
-    protected ArrayList<ArrayList<Double>> computeHeuristics (Rete r, AbstractArchitecture arch, QueryBuilder qb, BaseParams params) throws JessException {
+    public ArrayList<ArrayList<Double>> computeHeuristics (Rete r, AbstractArchitecture arch, QueryBuilder qb, BaseParams params) throws JessException {
         ArrayList<ArrayList<Double>> heuristicValues = new ArrayList<>();
 
         ArrayList<Double> dcViolations = new ArrayList<>();
@@ -636,7 +638,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             // Compute spacecraft mass violation
             double satelliteWetMass = satellites.get(i).getSlotValue("satellite-wet-mass").floatValue(r.getGlobalContext());
 
-            double massViolation = Math.max(0.0, (satelliteWetMass - massThreshold)) / satelliteWetMass;
+            double massViolation = Math.max(0.0, (satelliteWetMass - massThreshold)) / massThreshold;
             massViolations.add(massViolation);
 
             // Compute instrument orbit assignment violation
@@ -734,6 +736,19 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         heuristicValues.add(synergyViolations);
 
         return heuristicValues;
+    }
+
+    public ArrayList<Double> computeHeuristicsArchitecture(ArrayList<ArrayList<Double>> heuristics) {
+        ArrayList<Double> archHeuristicViolations = new ArrayList<>();
+        for (int i = 0; i < heuristics.size(); i++) {
+            ArrayList<Double> currentHeuristics = heuristics.get(i);
+            double heuristicSum = 0;
+            for (double d : currentHeuristics) {
+                heuristicSum += d;
+            }
+            archHeuristicViolations.add(heuristicSum/heuristics.get(i).size());
+        }
+        return archHeuristicViolations;
     }
 
     /**
