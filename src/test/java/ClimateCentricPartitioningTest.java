@@ -25,7 +25,10 @@ public class ClimateCentricPartitioningTest {
         double packEffThreshold = 0.4; // [kg]
         boolean considerFeasibility = false; // use false to test architectures with partitions not using restricted growth strings
 
-        AbstractArchitectureEvaluator eval = new ArchitectureEvaluator(considerFeasibility, dcThreshold, massThreshold, packEffThreshold);
+        HashMap<String, String[]> interferenceMap = getInstrumentInterferenceNameMap(params);
+        HashMap<String, String[]> synergyMap = getInstrumentSynergyNameMap(params);
+
+        AbstractArchitectureEvaluator eval = new ArchitectureEvaluator(considerFeasibility, interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
         ArchitectureEvaluationManager evalManager = new ArchitectureEvaluationManager(params, eval);
         AbstractArchitecture testArch;
 
@@ -87,7 +90,7 @@ public class ClimateCentricPartitioningTest {
 
         evalManager.reset();
         evalManager.init(1);
-        Result resu = evalManager.evaluateArchitectureSync(testArch, "Slow", dcThreshold, massThreshold, packEffThreshold);
+        Result resu = evalManager.evaluateArchitectureSync(testArch, "Slow", interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
 
         System.out.println("Science: " + resu.getScience());
         System.out.println("Cost: " + resu.getCost());
@@ -102,5 +105,55 @@ public class ClimateCentricPartitioningTest {
 
         System.out.println("DONE");
         evalManager.clear();
+    }
+
+    /**
+     * Creates instrument synergy map used to compute the instrument synergy violation heuristic (only formulated for the
+     * Climate Centric problem for now) (added by roshansuresh)
+     * @param params
+     * @return Instrument synergy hashmap
+     */
+
+    private static HashMap<String, String[]> getInstrumentSynergyNameMap(BaseParams params) {
+        HashMap<String, String[]> synergyNameMap = new HashMap<>();
+        if (params.getProblemName().equalsIgnoreCase("ClimateCentric")) {
+            synergyNameMap.put("ACE_ORCA", new String[]{"DESD_LID", "GACM_VIS", "ACE_POL", "HYSP_TIR", "ACE_LID"});
+            synergyNameMap.put("DESD_LID", new String[]{"ACE_ORCA", "ACE_LID", "ACE_POL"});
+            synergyNameMap.put("GACM_VIS", new String[]{"ACE_ORCA", "ACE_LID"});
+            synergyNameMap.put("HYSP_TIR", new String[]{"ACE_ORCA", "POSTEPS_IRS"});
+            synergyNameMap.put("ACE_POL", new String[]{"ACE_ORCA", "DESD_LID"});
+            synergyNameMap.put("ACE_LID", new String[]{"ACE_ORCA", "CNES_KaRIN", "DESD_LID", "GACM_VIS"});
+            synergyNameMap.put("POSTEPS_IRS", new String[]{"HYSP_TIR"});
+            synergyNameMap.put("CNES_KaRIN", new String[]{"ACE_LID"});
+        }
+        else {
+            System.out.println("Synergy Map for current problem not formulated");
+        }
+        return synergyNameMap;
+    }
+
+    /**
+     * Creates instrument interference map used to compute the instrument interference violation heuristic (only formulated for the
+     * Climate Centric problem for now) (added by roshansuresh)
+     * @param params
+     * @return Instrument interference hashmap
+     */
+
+    private static HashMap<String, String[]> getInstrumentInterferenceNameMap(BaseParams params) {
+        HashMap<String, String[]> interferenceNameMap = new HashMap<>();
+        if (params.getProblemName().equalsIgnoreCase("ClimateCentric")) {
+            interferenceNameMap.put("ACE_LID", new String[]{"ACE_CPR", "DESD_SAR", "CLAR_ERB", "GACM_SWIR"});
+            interferenceNameMap.put("ACE_CPR", new String[]{"ACE_LID", "DESD_SAR", "CNES_KaRIN", "CLAR_ERB", "ACE_POL", "ACE_ORCA", "GACM_SWIR"});
+            interferenceNameMap.put("DESD_SAR", new String[]{"ACE_LID", "ACE_CPR"});
+            interferenceNameMap.put("CLAR_ERB", new String[]{"ACE_LID", "ACE_CPR"});
+            interferenceNameMap.put("CNES_KaRIN", new String[]{"ACE_CPR"});
+            interferenceNameMap.put("ACE_POL", new String[]{"ACE_CPR"});
+            interferenceNameMap.put("ACE_ORCA", new String[]{"ACE_CPR"});
+            interferenceNameMap.put("GACM_SWIR", new String[]{"ACE_LID", "ACE_CPR"});
+        }
+        else {
+            System.out.println("Interference Map fpr current problem not formulated");
+        }
+        return interferenceNameMap;
     }
 }

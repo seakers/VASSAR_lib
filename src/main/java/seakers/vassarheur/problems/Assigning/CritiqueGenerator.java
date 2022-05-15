@@ -1,6 +1,7 @@
 package seakers.vassarheur.problems.Assigning;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -16,9 +17,9 @@ import seakers.vassarheur.utils.MatlabFunctions;
  */
 public class CritiqueGenerator extends ArchitectureEvaluator {
     
-    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch, boolean considerFeasibility)
+    public CritiqueGenerator (ResourcePool resourcePool, AbstractArchitecture arch, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap)
     {
-        super(resourcePool, arch, "slow", considerFeasibility);
+        super(resourcePool, arch, "slow", considerFeasibility, interferenceMap, synergyMap);
     }
 
     public List<String> getCritique() {

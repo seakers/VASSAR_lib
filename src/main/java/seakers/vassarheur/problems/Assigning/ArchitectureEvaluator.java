@@ -21,28 +21,28 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
         super();
     }
 
-    public ArchitectureEvaluator(boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
-        super(considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
+    public ArchitectureEvaluator(boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold) {
+        super(considerFeasibility, interferenceMap, synergyMap, dcThreshold, massThreshold, packingEffThreshold);
     }
 
-    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility) {
-        super(resourcePool, arch, type, considerFeasibility, 0.5, 3000.0, 0.4);
+    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap) {
+        super(resourcePool, arch, type, considerFeasibility, interferenceMap, synergyMap,  0.5, 3000.0, 0.4);
     }
 
-    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
-        super(resourcePool, arch, type, considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
+    public ArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold) {
+        super(resourcePool, arch, type, considerFeasibility, interferenceMap, synergyMap, dcThreshold, massThreshold, packingEffThreshold);
     }
 
     public ArchitectureEvaluator getNewInstance(){
-        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type, super.considerFeasibility, super.dcThreshold, super.massThreshold, super.packingEffThreshold);
+        return new ArchitectureEvaluator(super.resourcePool, super.arch, super.type, super.considerFeasibility, super.interferenceMap, super.synergyMap, super.dcThreshold, super.massThreshold, super.packingEffThreshold);
     }
 
-    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type){
-        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, 0.5, 3000.0, 0.4);
+    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap){
+        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, interferenceMap, synergyMap, 0.5, 3000.0, 0.4);
     }
 
-    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold){
-        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, dcThreshold, massThreshold, packingEffThreshold);
+    public ArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold){
+        return new ArchitectureEvaluator(resourcePool, arch, type, considerFeasibility, interferenceMap, synergyMap, dcThreshold, massThreshold, packingEffThreshold);
     }
 
     public void assertMissions(BaseParams params, Rete r, AbstractArchitecture inputArch, MatlabFunctions m) {

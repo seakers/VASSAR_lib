@@ -6,6 +6,7 @@ import seakers.vassarheur.architecture.AbstractArchitecture;
 import seakers.vassarheur.BaseParams;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
@@ -61,12 +62,12 @@ public class ArchitectureEvaluationManager {
         reset();
     }
 
-    public void evaluatePopulation(List<AbstractArchitecture> population, BaseParams params, double dcThreshold, double massThreshold, double packEffThreshold) {
+    public void evaluatePopulation(List<AbstractArchitecture> population, BaseParams params, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
 
         int populationSize = population.size();
 
         for (AbstractArchitecture arch: population) {
-            AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
+            AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
             futures.add(executorService.submit(t));
         }
         int cnt = 1;
@@ -85,12 +86,12 @@ public class ArchitectureEvaluationManager {
         }
     }
 
-    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, double dcThreshold, double massThreshold, double packEffThreshold) {
-        return evaluateArchitectureSync(arch, mode, false, dcThreshold, massThreshold, packEffThreshold);
+    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
+        return evaluateArchitectureSync(arch, mode, false, interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
     }
 
-    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, boolean debug, double dcThreshold, double massThreshold, double packEffThreshold) {
-        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
+    public Result evaluateArchitectureSync(AbstractArchitecture arch, String mode, boolean debug, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
         t.setDebug(debug);
 
         Future<Result> future = executorService.submit(t);
@@ -114,12 +115,12 @@ public class ArchitectureEvaluationManager {
         return result;
     }
 
-    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, double dcThreshold, double massThreshold, double packEffThreshold) {
-        return evaluateArchitectureAsync(arch, mode, false, dcThreshold, massThreshold, packEffThreshold);
+    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
+        return evaluateArchitectureAsync(arch, mode, false, interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
     }
 
-    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, boolean debug, double dcThreshold, double massThreshold, double packEffThreshold) {
-        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), dcThreshold, massThreshold, packEffThreshold);
+    public Future<Result> evaluateArchitectureAsync(AbstractArchitecture arch, String mode, boolean debug, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
+        AbstractArchitectureEvaluator t = evaluator.getNewInstance(resourcePool, arch, "Slow", evaluator.getConsiderFeasibility(), interferenceMap, synergyMap, dcThreshold, massThreshold, packEffThreshold);
         t.setDebug(debug);
 
         return executorService.submit(t);

@@ -30,6 +30,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     protected boolean debug;
     protected boolean considerFeasibility;
     protected Set<Orbit> orbitsUsed;
+    protected HashMap<String, String[]> interferenceMap;
+    protected HashMap<String, String[]> synergyMap;
     protected double dcThreshold;
     protected double massThreshold; //[kg]
     protected double packingEffThreshold; //[kg]
@@ -38,6 +40,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
+        this.interferenceMap = null;
+        this.synergyMap = null;
         this.debug = false;
         this.considerFeasibility = true;
         this.dcThreshold = 0.0;
@@ -46,36 +50,42 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         this.orbitsUsed = new HashSet<>();
     }
 
-    public AbstractArchitectureEvaluator(boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
+    public AbstractArchitectureEvaluator(boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold) {
         this.resourcePool = null;
         this.arch = null;
         this.type = null;
         this.debug = false;
         this.considerFeasibility = considerFeasibility;
+        this.interferenceMap = interferenceMap;
+        this.synergyMap = synergyMap;
         this.dcThreshold = dcThreshold;
         this.massThreshold = massThreshold;
         this.packingEffThreshold = packingEffThreshold;
         this.orbitsUsed = new HashSet<>();
     }
 
-    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility) {
+    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
         this.debug = false;
         this.considerFeasibility = considerFeasibility;
+        this.interferenceMap = interferenceMap;
+        this.synergyMap = synergyMap;
         this.dcThreshold = 0.5;
         this.massThreshold = 3000.0; // [kg]
         this.packingEffThreshold = 0.4; // [kg]
         this.orbitsUsed = new HashSet<>();
     }
 
-    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold) {
+    public AbstractArchitectureEvaluator(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold) {
         this.resourcePool = resourcePool;
         this.arch = arch;
         this.type = type;
         this.debug = false;
         this.considerFeasibility = considerFeasibility;
+        this.interferenceMap = interferenceMap;
+        this.synergyMap = synergyMap;
         this.dcThreshold = dcThreshold;
         this.massThreshold = massThreshold;
         this.packingEffThreshold = packingEffThreshold;
@@ -83,7 +93,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     }
 
     public abstract AbstractArchitectureEvaluator getNewInstance();
-    public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, double dcThreshold, double massThreshold, double packingEffThreshold);
+    public abstract AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type, boolean considerFeasibility, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packingEffThreshold);
 
     public void checkInit(){
         if(this.resourcePool == null || this.arch == null || this.type == null){
@@ -598,8 +608,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
         ArrayList<Fact> instruments = qb.makeQuery("CAPABILITIES::Manifested-instrument");
 
-        HashMap<String, String[]> interferenceMap = getInstrumentInterferenceNameMap(params);
-        HashMap<String, String[]> synergyMap = getInstrumentSynergyNameMap(params);
+        //HashMap<String, String[]> interferenceMap = getInstrumentInterferenceNameMap(params);
+        //HashMap<String, String[]> synergyMap = getInstrumentSynergyNameMap(params);
 
         for (int i = 0; i < satellites.size(); i++) {
             //numSpacecraft++;
@@ -814,56 +824,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         }
 
         return satelliteOrbits;
-    }
-
-    /**
-     * Creates instrument synergy map used to compute the instrument synergy violation heuristic (only formulated for the
-     * Climate Centric problem for now) (added by roshansuresh)
-     * @param params
-     * @return Instrument synergy hashmap
-     */
-
-    protected HashMap<String, String[]> getInstrumentSynergyNameMap(BaseParams params) {
-        HashMap<String, String[]> synergyNameMap = new HashMap<>();
-        if (params.getProblemName().equalsIgnoreCase("ClimateCentric")) {
-            synergyNameMap.put("ACE_ORCA", new String[]{"DESD_LID", "GACM_VIS", "ACE_POL", "HYSP_TIR", "ACE_LID"});
-            synergyNameMap.put("DESD_LID", new String[]{"ACE_ORCA", "ACE_LID", "ACE_POL"});
-            synergyNameMap.put("GACM_VIS", new String[]{"ACE_ORCA", "ACE_LID"});
-            synergyNameMap.put("HYSP_TIR", new String[]{"ACE_ORCA", "POSTEPS_IRS"});
-            synergyNameMap.put("ACE_POL", new String[]{"ACE_ORCA", "DESD_LID"});
-            synergyNameMap.put("ACE_LID", new String[]{"ACE_ORCA", "CNES_KaRIN", "DESD_LID", "GACM_VIS"});
-            synergyNameMap.put("POSTEPS_IRS", new String[]{"HYSP_TIR"});
-            synergyNameMap.put("CNES_KaRIN", new String[]{"ACE_LID"});
-        }
-        else {
-            System.out.println("Synergy Map for current problem not formulated");
-        }
-        return synergyNameMap;
-    }
-
-    /**
-     * Creates instrument interference map used to compute the instrument interference violation heuristic (only formulated for the
-     * Climate Centric problem for now) (added by roshansuresh)
-     * @param params
-     * @return Instrument interference hashmap
-     */
-
-    protected  HashMap<String, String[]> getInstrumentInterferenceNameMap(BaseParams params) {
-        HashMap<String, String[]> interferenceNameMap = new HashMap<>();
-        if (params.getProblemName().equalsIgnoreCase("ClimateCentric")) {
-            interferenceNameMap.put("ACE_LID", new String[]{"ACE_CPR", "DESD_SAR", "CLAR_ERB", "GACM_SWIR"});
-            interferenceNameMap.put("ACE_CPR", new String[]{"ACE_LID", "DESD_SAR", "CNES_KaRIN", "CLAR_ERB", "ACE_POL", "ACE_ORCA", "GACM_SWIR"});
-            interferenceNameMap.put("DESD_SAR", new String[]{"ACE_LID", "ACE_CPR"});
-            interferenceNameMap.put("CLAR_ERB", new String[]{"ACE_LID", "ACE_CPR"});
-            interferenceNameMap.put("CNES_KaRIN", new String[]{"ACE_CPR"});
-            interferenceNameMap.put("ACE_POL", new String[]{"ACE_CPR"});
-            interferenceNameMap.put("ACE_ORCA", new String[]{"ACE_CPR"});
-            interferenceNameMap.put("GACM_SWIR", new String[]{"ACE_LID", "ACE_CPR"});
-        }
-        else {
-            System.out.println("Interference Map fpr current problem not formulated");
-        }
-        return interferenceNameMap;
     }
 
     /**
