@@ -220,6 +220,21 @@ public class MatlabFunctions implements Userfunction {
         }
     }
 
+    public Value getLaunchVehiclePerformanceCoeffs2(ArrayList<String> ips, Context c) {
+        String id;
+        String orb;
+        try {
+            id = ips.get(0);
+            orb = ips.get(1);
+            ValueVector coeffs = lvDatabase.get(id).getPayloadCoeffsOrbit(orb);
+            return new Value( coeffs, RU.LIST );
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
     public Value countSats(Funcall vv, Context c) {
         String orb1;
         String orb2;
