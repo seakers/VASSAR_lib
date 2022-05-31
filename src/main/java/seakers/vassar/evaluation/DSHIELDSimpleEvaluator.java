@@ -316,10 +316,11 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             List<Map<TopocentricFrame, TimeIntervalArray>> lBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> pBandReflectometerEvents = new ArrayList<>();
             List<Map<TopocentricFrame, TimeIntervalArray>> allEvents = new ArrayList<>();
+            List<Map<TopocentricFrame, TimeIntervalArray>> smEvents = new ArrayList<>();
             int coverageGridGranularity = 20;
             CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
             ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
-            CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
+            CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath, getCovPoints());
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
@@ -393,8 +394,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 }
                 if(insList.contains("CustomLSAR") && this.smError != null) {
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                    allEvents.add(accesses);
-                    lBandFieldOfViewEvents.add(accesses);
+                    smEvents.add(accesses);
                 }
             }
             double[] newLatBounds = new double[]{0,0};
@@ -594,12 +594,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(planner.getReward());
             }
             if(this.smError != null) {
-                Map<TopocentricFrame, TimeIntervalArray> mergedAllEvents = new HashMap<>(allEvents.get(0));
-                for (int i = 0; i < allEvents.size(); ++i) {
-                    Map<TopocentricFrame, TimeIntervalArray> event = allEvents.get(i);
-                    mergedAllEvents = EventIntervalMerger.merge(mergedAllEvents, event, false);
+                Map<TopocentricFrame, TimeIntervalArray> mergedSMEvents = new HashMap<>(smEvents.get(0));
+                for (int i = 0; i < smEvents.size(); ++i) {
+                    Map<TopocentricFrame, TimeIntervalArray> event = smEvents.get(i);
+                    mergedSMEvents = EventIntervalMerger.merge(mergedSMEvents, event, false);
                 }
-                coverage.add(getScienceValueFOR(mergedAllEvents,coverageAnalysisIGBP.getCovPoints()));
+                coverage.add(getScienceValueFOR(mergedSMEvents,coverageAnalysisIGBP.getCovPoints()));
             } else {
                 coverage.add(0.0);
             }
@@ -741,7 +741,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             TimeIntervalArray tia = events.get(tf);
             if(!tia.isEmpty()) {
                 Integer igbpClass = igbpClasses.get(tf.getPoint());
-                score += this.smError[igbpClass-1];
+                score += (2.0 - this.smError[igbpClass-1]);
             }
         }
         return score;
@@ -827,6 +827,61 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             }
         }
         return simPoints;
+    }
+
+    public Map<GeodeticPoint,Integer> getCovPoints() {
+        List<List<String>> records = new ArrayList<>();
+        Map<GeodeticPoint,Integer> covPoints = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/IGBP.csv"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        Map<GeodeticPoint,Integer> igbpPoints = new HashMap<>();
+        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
+        double[] latitudes = linspace(-84.66,84.66,records.size());
+        Map<String,Integer> biomeMap = new HashMap<>();
+        biomeMap.put("1",1);
+        biomeMap.put("2",1);
+        biomeMap.put("4",1);
+        biomeMap.put("5",1);
+        biomeMap.put("6",2);
+        biomeMap.put("7",2);
+        biomeMap.put("8",3);
+        biomeMap.put("9",3);
+        biomeMap.put("10",3);
+        biomeMap.put("12",4);
+        biomeMap.put("14",4);
+        biomeMap.put("16",5);
+        for (int j = 0; j < records.get(0).size(); j++) {
+            for (int k = 0; k < records.size(); k++) {
+                // Check for IGBP biome types
+                String biome = records.get(k).get(j);
+                if (biomeMap.containsKey(biome)) {
+                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
+                    igbpPoints.put(point,biomeMap.get(biome));
+                }
+            }
+        }
+        while (covPoints.size() < 500) {
+            Object[] keys = igbpPoints.keySet().toArray();
+            GeodeticPoint key = (GeodeticPoint) keys[new Random().nextInt(keys.length)];
+            covPoints.put(key,igbpPoints.get(key));
+        }
+        return covPoints;
+    }
+
+    public double[] linspace(double min, double max, int points) {
+        double[] d = new double[points];
+        for (int i = 0; i < points; i++){
+            d[i] = min + i * (max - min) / (points - 1);
+        }
+        return d;
     }
 
     protected void updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {

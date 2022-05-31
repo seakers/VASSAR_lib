@@ -61,15 +61,13 @@ public class CoverageAnalysisIGBP {
     private AbsoluteDate startDate;
     private AbsoluteDate endDate;
 
-    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity) throws OrekitException{
-        this(numThreads, coverageGridGranularity, true, true);
+    private Map<GeodeticPoint,Integer> covPoints;
+
+    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, Map<GeodeticPoint,Integer> covPoints) throws OrekitException {
+        this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"), covPoints);
     }
 
-    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
-        this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
-    }
-
-    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
+    public CoverageAnalysisIGBP(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd, Map<GeodeticPoint,Integer> covPoints) throws OrekitException{
 
         this.cwd = cwd;
 
@@ -99,6 +97,7 @@ public class CoverageAnalysisIGBP {
         this.saveAccessData = saveAccessData;
         this.binaryEncoding = binaryEncoding;
         this.coverageAnalysisIO = new CoverageAnalysisIO(this.binaryEncoding, utc);
+        this.covPoints = covPoints;
 
         reset();
     }
@@ -592,53 +591,6 @@ public class CoverageAnalysisIGBP {
     }
 
     public Map<GeodeticPoint,Integer> getCovPoints() {
-        List<List<String>> records = new ArrayList<>();
-        Map<GeodeticPoint,Integer> covPoints = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/IGBP.csv"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                records.add(Arrays.asList(values));
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-        Map<GeodeticPoint,Integer> igbpPoints = new HashMap<>();
-        double[] longitudes = linspace(-180.0,180.0,records.get(0).size());
-        double[] latitudes = linspace(-84.66,84.66,records.size());
-        Map<String,Integer> biomeMap = new HashMap<>();
-        biomeMap.put("1",1);
-        biomeMap.put("2",1);
-        biomeMap.put("4",1);
-        biomeMap.put("5",1);
-        biomeMap.put("6",2);
-        biomeMap.put("7",2);
-        biomeMap.put("8",3);
-        biomeMap.put("9",3);
-        biomeMap.put("10",3);
-        biomeMap.put("12",4);
-        biomeMap.put("14",4);
-        biomeMap.put("16",5);
-        for (int j = 0; j < records.get(0).size(); j++) {
-            for (int k = 0; k < records.size(); k++) {
-                // Check for IGBP biome types
-                String biome = records.get(k).get(j);
-                if (biomeMap.containsKey(biome)) {
-                    GeodeticPoint point = new GeodeticPoint(Math.toRadians(latitudes[k]), Math.toRadians(longitudes[j]), 0.0);
-                    igbpPoints.put(point,biomeMap.get(biome));
-                }
-            }
-        }
-        covPoints = igbpPoints;
         return covPoints;
-    }
-
-    public double[] linspace(double min, double max, int points) {
-        double[] d = new double[points];
-        for (int i = 0; i < points; i++){
-            d[i] = min + i * (max - min) / (points - 1);
-        }
-        return d;
     }
 }

@@ -182,14 +182,14 @@ public class RadarScienceProblem extends AbstractProblem {
                 evaluationManager.clear();
                 architecture.setCoverage(result.getCoverage());
                 f[0] = result.getCost();
-                f[1] = architecture.getScienceReward();
+                f[1] = -architecture.getScienceReward();
                 System.out.println(f[1]);
                 c[0] = architecture.getAllCoverage() - 1.0;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            f[0] = 0.0;
+            f[0] = 10000000000000.0;
             f[1] = 0.0;
             c[0] = 1.0;
         }
