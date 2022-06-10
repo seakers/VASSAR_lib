@@ -28,6 +28,7 @@ dependencies {
     implementation files('/home/gapaza/repos/seakers/VASSAR_lib/jars/json-simple-1.1.1.jar')
     implementation 'io.pebbletemplates:pebble:3.1.0'
     implementation 'org.slf4j:slf4j-simple:1.7.28'
+    testImplementation 'junit:junit:4.12'
 }
 
 publishing {
@@ -37,4 +38,11 @@ publishing {
             from components.java
         }
     }
+}
+
+task runWithJavaExec(type: JavaExec) {
+    group = "seakers"
+    description = "Run the main class with JavaExecTask"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "vassar.ClimateCentricEvaluationTest"
 }
