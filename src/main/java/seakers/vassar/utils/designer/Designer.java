@@ -15,17 +15,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Designer {
-    String archName;
-    String problemName;
-    String[][] payloads;
-    String[] orbits;
-    AssigningParams params;
-    Architecture arch;
-    String resourcesPath;
-    String[][] factList;
+    private String archName;
+    private String problemName;
+    private String[][] payloads;
+    private String[] orbits;
+    private AssigningParams params;
+    private Architecture arch;
+    private String resourcesPath;
+    private String[][] factList;
+    private String[][] epsFacts;
+    private JSONObject out;
     private ArrayList<SpacecraftDescription> designs;
 
-    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList){
+//    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList){
+//        this.archName = archName;
+//        this.problemName = problemName;
+//        this.payloads = payloads;
+//        this.orbits = orbits;
+//        this.params = new DesignerParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal");
+//        this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
+//        this.resourcesPath = resourcesPath;
+//        this.factList = factList;
+//        this.epsFacts = null;
+//
+//    }
+
+    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList, String[][] epsFacts){
         this.archName = archName;
         this.problemName = problemName;
         this.payloads = payloads;
@@ -34,7 +49,8 @@ public class Designer {
         this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
         this.resourcesPath = resourcesPath;
         this.factList = factList;
-
+        this.epsFacts = epsFacts;
+//        System.out.println("hi");
     }
 
     private HashMap<String, String[]> mapPayloads(String[][] payloads, String[] orbits){
@@ -48,7 +64,7 @@ public class Designer {
     }
 
     public void archDesign(boolean print){
-        ArchitectureSizer evaluator = new ArchitectureSizer(this.factList);
+        ArchitectureSizer evaluator = new ArchitectureSizer(this.factList, this.epsFacts);
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
         evaluationManager.init(1);
 
@@ -56,6 +72,8 @@ public class Designer {
         this.designs = result.getDesigns();
 
         evaluationManager.clear();
+
+        this.out = this.createJSON();
 
         if(print) {
             this.printJSON();
@@ -70,7 +88,6 @@ public class Designer {
 
     private void printJSON(){
         // create a JSON File with design outputs
-        JSONObject out = this.createJSON();
         try{
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm");
             LocalDateTime now = LocalDateTime.now();
@@ -143,8 +160,26 @@ public class Designer {
             recurringCosts.put("Thermal", design.getValue("therm-cost#"));
             recurringCosts.put("EPS", design.getValue("eps-cost#"));
 
-        cost.put("Non-recurring Costs", nonRecurringCosts);
-        cost.put("Recurring Costs", recurringCosts);
+        cost.put("NonRecurringCosts", nonRecurringCosts);
+        cost.put("RecurringCosts", recurringCosts);
+
+        double nonrecCostDouble = 0.0;
+        nonrecCostDouble += Double.valueOf(design.getValue("str-cost-nr#"));
+        nonrecCostDouble += Double.valueOf(design.getValue("prop-cost-nr#"));
+        nonrecCostDouble += Double.valueOf(design.getValue("adcs-cost-nr#"));
+        nonrecCostDouble += Double.valueOf(design.getValue("comm-cost-nr#"));
+        nonrecCostDouble += Double.valueOf(design.getValue("therm-cost-nr#"));
+        nonrecCostDouble += Double.valueOf(design.getValue("eps-cost-nr#"));
+
+        double recCostDouble = 0.0;
+        recCostDouble += Double.valueOf(design.getValue("str-cost#"));
+        recCostDouble += Double.valueOf(design.getValue("prop-cost#"));
+        recCostDouble += Double.valueOf(design.getValue("adcs-cost#"));
+        recCostDouble += Double.valueOf(design.getValue("comm-cost#"));
+        recCostDouble += Double.valueOf(design.getValue("therm-cost#"));
+        recCostDouble += Double.valueOf(design.getValue("eps-cost#"));
+
+        cost.put("BusCost", String.valueOf( nonrecCostDouble + recCostDouble ));
         return cost;
     }
 
@@ -234,8 +269,8 @@ public class Designer {
 
     private JSONObject getCommsDesign(SpacecraftDescription design){
         JSONObject des = new JSONObject();
-            des.put("Antennae", design.getValue("antennae"));
-            des.put("Antennae-Dimensions", design.getValue("antennae-dimensions"));
+            des.put("Antenna", design.getValue("antennae"));
+            des.put("Antenna-Dimensions", design.getValue("antennae-dimensions"));
             des.put("Bus-Datarate", design.getValue("bus-datarate"));
             des.put("Datarate-Per-Orbit", design.getValue("sat-data-rate-per-orbit#"));
             des.put("Datarate-Duty-Cycle", design.getValue("datarate-duty-cycle#"));
@@ -243,6 +278,8 @@ public class Designer {
             des.put("GS-Payload", design.getValue("gs-payload"));
             des.put("ISL-Antenna", design.getValue("isl-antenna"));
             des.put("ISL-Payload", design.getValue("isl-payload"));
+            des.put("Cross-Links", design.getValue("cross-links"));
+            des.put("Rb",design.getValue("downlink-datarate#"));
         return des;
     }
 
@@ -251,6 +288,13 @@ public class Designer {
             des.put("DOD", design.getValue("depth-of-discharge"));
             des.put("Solar-Array-Area", design.getValue("solar-array-area"));
             des.put("Solar-Array-Mass", design.getValue("solar-array-mass"));
+            des.put("Solar-Array-Type", design.getValue("SA-type"));
+            des.put("Battery-Type", design.getValue("battery-type"));
+            des.put("Battery-Mass", design.getValue("battery-mass"));
+            des.put("Number-of-Batteries", design.getValue("num-battery"));
+            des.put("CPU-Mass", design.getValue("cpu-mass"));
+            des.put("Regulated-Converter-Mass", design.getValue("reg-conv-mass"));
+            des.put("Wiring-Mass", design.getValue("wiring-mass"));
         return des;
     }
     private JSONObject getPropDesign(SpacecraftDescription design){
@@ -264,7 +308,8 @@ public class Designer {
             deltaVBudget.put("Drag", design.getValue("delta-V-drag"));
             deltaVBudget.put("Injection", design.getValue("delta-V-injection"));
         des.put("Delta-V-Budget", deltaVBudget);
-
+            des.put("Propulsion-Injection", design.getValue("Propulsion-Injection"));
+            des.put("Propulsion-ADCS", design.getValue("Propulsion-ADCS"));
             des.put("propellant-ADCS", design.getValue("propellant-ADCS"));
             des.put("propellant-injection", design.getValue("propellant-injection"));
         return des;
@@ -284,4 +329,6 @@ public class Designer {
             des.put("Slew-Angle", design.getValue("slew-angle"));
         return des;
     }
+
+    public JSONObject getDesigns(){ return this.out; }
 }

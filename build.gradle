@@ -1,12 +1,23 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id "application"
+}
+apply plugin : "java"
+ext {
+    javaMainClass = "DSHIELD_InsCon_MOEA"
+}
+
+application {
+    mainClassName = javaMainClass
 }
 
 group 'seakers'
 version '1.0'
 
-sourceCompatibility = 12
+sourceCompatibility = 11
+
+compileJava.options.encoding = 'UTF-8'
 
 compileJava {
     options.compilerArgs += ["-Xlint"]
@@ -18,17 +29,38 @@ repositories {
 }
 
 dependencies {
-    compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'com.googlecode.combinatoricslib:combinatoricslib:2.2'
-    compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
-    compile 'org.orekit:orekit:10.0'
-    compile 'seakers:orekit:1.0'
-    compile files('\\..\\..\\..\\.m2\\repository\\gov\\sandia\\jess\\Jess71p2\\lib\\jess.jar')
-    compile files('\\..\\..\\..\\.m2\\repository\\org\\json\\simple\\1.1\\json-simple-1.1.1.jar')
-    compile 'io.pebbletemplates:pebble:3.1.0'
-    compile 'org.slf4j:slf4j-simple:1.7.28'
-    testCompile 'junit:junit:4.12'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.15'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'org.moeaframework:moeaframework:2.13'
+    implementation 'com.googlecode.combinatoricslib:combinatoricslib:2.3'
+    implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    implementation 'org.orekit:orekit:10.0'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation files('C:\\Users\\lmbed\\.m2\\repository\\gov\\jess\\7.1p2\\jess-7.1p2.jar')
+    implementation 'io.pebbletemplates:pebble:3.1.5'
+    implementation 'org.slf4j:slf4j-simple:1.7.35'
+    // https://mvnrepository.com/artifact/org.apache.poi/poi
+    implementation 'org.apache.poi:poi:5.2.0'
+    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+jar {
+    manifest {
+        attributes(
+                "Main-Class": javaMainClass
+        )
+    }
+}
+
+task runWithExecJarExecutable(type: Exec) {
+    dependsOn jar
+    group = "Execution"
+    description = "Run the output executable jar with ExecTask"
+    commandLine "java", "-jar", jar.archiveFile.get()
 }
 
 publishing {
@@ -39,3 +71,47 @@ publishing {
         }
     }
 }
+
+//plugins {
+//    id 'java-library'
+//    id 'maven-publish'
+//}
+//
+//group 'seakers'
+//version '1.0'
+//
+//sourceCompatibility = 12
+//
+//compileJava {
+//    options.compilerArgs += ["-Xlint"]
+//}
+//
+//repositories {
+//    mavenCentral()
+//    mavenLocal()
+//}
+//
+//dependencies {
+//    compile 'org.apache.commons:commons-lang3:3.9'
+//    compile 'org.apache.commons:commons-math3:3.6.1'
+//    compile 'com.googlecode.combinatoricslib:combinatoricslib:2.2'
+//    compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
+//    compile 'org.orekit:orekit:10.0'
+//    compile 'seakers:orekit:1.0'
+//    implementation 'org.moeaframework:moeaframework:2.13'
+//    compile files('\\..\\..\\..\\.m2\\repository\\gov\\sandia\\jess\\Jess71p2\\lib\\jess.jar')
+//    compile files('\\..\\..\\..\\.m2\\repository\\org\\json\\simple\\1.1\\json-simple-1.1.1.jar')
+//    //compile files('\\..\\..\\..\\.m2\\repository\\org\\MOEAFramework-2.13\\lib\\MOEAFramework-2.13.jar')
+//    compile 'io.pebbletemplates:pebble:3.1.0'
+//    compile 'org.slf4j:slf4j-simple:1.7.28'
+//    testCompile 'junit:junit:4.12'
+//}
+//
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            artifactId = 'vassar'
+//            from components.java
+//        }
+//    }
+//}

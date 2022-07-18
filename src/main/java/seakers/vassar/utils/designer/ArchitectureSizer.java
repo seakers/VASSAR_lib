@@ -20,6 +20,7 @@ import java.util.*;
 public class ArchitectureSizer extends AbstractArchitectureEvaluator {
     protected ArrayList<SpacecraftDescription> designs;
     protected String[][] factList;
+    protected String[][] epsFacts;
 
     public ArchitectureSizer() {
         this.resourcePool = null;
@@ -29,6 +30,7 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = null;
+        this.epsFacts = null;
     }
 
     public ArchitectureSizer(String[][] factList) {
@@ -39,6 +41,18 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = factList;
+        this.epsFacts = null;
+    }
+
+    public ArchitectureSizer(String[][] factList, String[][] epsFacts) {
+        this.resourcePool = null;
+        this.arch = null;
+        this.type = null;
+        this.debug = false;
+        this.orbitsUsed = new HashSet<>();
+        this.designs = new ArrayList<>();
+        this.factList = factList;
+        this.epsFacts = epsFacts;
     }
 
     public ArchitectureSizer(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList) {
@@ -49,6 +63,17 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
         this.orbitsUsed = new HashSet<>();
         this.designs = new ArrayList<>();
         this.factList = factList;
+    }
+
+    public ArchitectureSizer(ResourcePool resourcePool, AbstractArchitecture arch, String type, String[][] factList, String[][]epsFacts) {
+        this.resourcePool = resourcePool;
+        this.arch = arch;
+        this.type = type;
+        this.debug = false;
+        this.orbitsUsed = new HashSet<>();
+        this.designs = new ArrayList<>();
+        this.factList = factList;
+        this.epsFacts = epsFacts;
     }
 
     @Override
@@ -89,12 +114,12 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance() {
-        return new ArchitectureSizer(super.resourcePool, super.arch, super.type, this.factList);
+        return new ArchitectureSizer(super.resourcePool, super.arch, super.type, this.factList, this.epsFacts);
     }
 
     @Override
     public AbstractArchitectureEvaluator getNewInstance(ResourcePool resourcePool, AbstractArchitecture arch, String type) {
-        return new ArchitectureSizer(resourcePool, arch, type,this.factList);
+        return new ArchitectureSizer(resourcePool, arch, type,this.factList, this.epsFacts);
     }
 
 
@@ -265,10 +290,14 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
 
             r.setFocus("MANIFEST0");
             r.run();
+            r.setFocus("DESIGN-PREP");
+            r.run();
+
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
 
-            r.setFocus("DESIGN-PREP");                  r.run();
+
+
             r.setFocus("CAPABILITIES");                 r.run();
             r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
             r.setFocus("CAPABILITIES-GENERATE");        r.run();
@@ -278,11 +307,11 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
             r.setFocus("SYNERGIES");
             r.run();
 
-            updateRevisitTimes(params, r, arch, qb, m, 1);
-            r.setFocus("ASSIMILATION2");
-            r.run();
-            r.setFocus("ASSIMILATION");
-            r.run();
+            //updateRevisitTimes(params, r, arch, qb, m, 1);
+            //r.setFocus("ASSIMILATION2");
+            //r.run();
+            //r.setFocus("ASSIMILATION");
+            //r.run();
 
             designSpacecraft(r, arch, qb, m);
             r.eval("(focus SAT-CONFIGURATION)");
@@ -296,6 +325,8 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
             r.eval("(run)");
             r.eval("(focus LV-SELECTION3)");
             r.eval("(run)");
+            r.eval("(focus LV-SELECTION4)");
+            r.eval("(run)");
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.eval("(focus FUZZY-COST-ESTIMATION)");
@@ -305,13 +336,14 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
             }
             r.eval("(run)");
 
-
+            r.eval("(focus PROPULSION-SELECTION)");
+            r.eval("(run)");
 
             double cost = 0.0;
             FuzzyValue fzcost = new FuzzyValue("Cost", new Interval("delta",0,0),"FY04$M");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             for (Fact mission: missions)  {
-//                cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
+                cost = cost + mission.getSlotValue("lifecycle-cost#").floatValue(r.getGlobalContext());
                 if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
@@ -319,6 +351,10 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
+
+            for (int i = 0; i < missions.size(); i++) {
+                this.designs.add( new SpacecraftDescription(missions.get(i), r) );
+            }
 
             if (debug) {
                 res.setCostFacts(missions);
@@ -336,6 +372,7 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
     protected void designSpacecraft(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
         try {
             overrideFacts(r);
+            overrideEpsFacts(r);
 
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");
@@ -375,9 +412,9 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
 //                System.out.println("dry-mass: " + drymasses[0]);
             }
 
-            for (int i = 0; i < missions.size(); i++) {
-                this.designs.add( new SpacecraftDescription(missions.get(i), r) );
-            }
+//            for (int i = 0; i < missions.size(); i++) {
+//                this.designs.add( new SpacecraftDescription(missions.get(i), r) );
+//            }
         }
         catch (Exception e) {
             System.out.println("EXC in evaluateCost: " + e.getClass() + " " + e.getMessage());
@@ -441,7 +478,26 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
                     modFact = factTemp;
                     for (int i = 0; i < factList.length; i++) {
                         Value val = new Value(Double.parseDouble(factList[i][1]), 4);
-                        r.modify(modFact, factList[i][0], val);
+                        r.modify(modFact, factList[i][0], val, r.getGlobalContext());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    protected void overrideEpsFacts(Rete r) throws JessException {
+        // Overrides facts related to the architecture design
+        if (this.epsFacts != null) {
+            Iterator modList = r.listFacts();
+            Fact modFact;
+            for (Iterator it = modList; it.hasNext(); ) {
+                Fact factTemp = (Fact) it.next();
+                if (factTemp.getName().equals("MANIFEST::Mission")) {
+                    modFact = factTemp;
+                    for (int i = 0; i < epsFacts.length; i++) {
+                        Value val = new Value(epsFacts[i][1]);
+                        r.modify(modFact, epsFacts[i][0], val, r.getGlobalContext());
                     }
                     break;
                 }

@@ -9,10 +9,17 @@ package seakers.vassar.utils;
  * @author dani
  */
 import jess.*;
+import jmetal.problems.Srinivas;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
 import seakers.vassar.Interval;
 import seakers.vassar.Resource;
 import seakers.vassar.spacecraft.LaunchVehicle;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +27,9 @@ import java.util.HashMap;
 
 import static java.lang.Math.*;
 import static org.moeaframework.util.Vector.dot;
+
+import seakers.vassar.utils.designer.Designer;
+import seakers.vassar.utils.designer.Designer.*;
 
 public class MatlabFunctions implements Userfunction {
     private HashMap<String,Interval> valueInvHashmap;
@@ -295,6 +305,177 @@ public class MatlabFunctions implements Userfunction {
             return null;
         }
     }
+
+    public Value newEPS(Funcall vv, Context c) throws JessException {
+        String id;
+        String orb;
+
+        double ppa;
+        double ppp;
+        double pcoms;
+        double pav;
+        double padcs;
+        double solarFrac;
+        double worstAngle;
+        double T;
+        double lifetime;
+        double drymass;
+        double dod;
+        double area = 0;
+        double nbatt = 0;
+
+        //xls imports
+        String SA_component;
+        String battery_component;
+
+        String cellType = null;
+        double bolEff;
+        double eolEff;
+        double cellThickness; //micrometers
+        double cellMass; //mg/cm^2
+        double cellArea; // cm^2
+        double cellVoltage; //V
+        double cellJ; //mA/cm^2
+
+        String batteryType = null;
+        double nameplateCap; //Ah
+        double battEnergy; //Wh
+        double battVoltageLower; //V
+        double battVoltageUpper; //V
+        double battMass = 0; //kg
+        double x_dim; //m
+        double y_dim; //m
+        double z_dim; //m
+        //
+
+        double Meps = 0;
+        double Pbol = 0;
+        double arrayMass = 0;
+        double Peol = 0;
+        double Mcpu = 0;
+        double Mregconv = 0;
+        double Mwiring = 0;
+
+
+
+        try {
+            ppa = vv.get(2).floatValue(c);
+            ppp = vv.get(3).floatValue(c);
+            pcoms = vv.get(4).floatValue(c);
+            pav = vv.get(5).floatValue(c);
+            padcs = vv.get(6).floatValue(c);
+            solarFrac = vv.get(7).floatValue(c);
+            worstAngle = vv.get(8).floatValue(c);
+            T = vv.get(9).floatValue(c);
+            lifetime = vv.get(10).floatValue(c);
+            drymass = vv.get(11).floatValue(c);
+            dod = vv.get(12).floatValue(c);
+//            area = Double.parseDouble(vv.get(13).stringValue(c));
+            area = vv.get(13).floatValue(c);
+            SA_component = vv.get(14).stringValue(c);
+            battery_component = vv.get(15).stringValue(c);
+            nbatt = Double.parseDouble(vv.get(16).stringValue(c));
+            String xlsPath = this.res.getParams().resourcesPath + File.separator + "problems" + File.separator + "Designer" + "/xls/LM Comet Database.xls";
+            Workbook xls = Workbook.getWorkbook(new File(xlsPath));
+
+            ArrayList<String> arrayData = loadEPSFacts(xls, "Solar Array", SA_component);
+            ArrayList<String> batteryData = loadEPSFacts(xls, "Battery", battery_component);
+            cellType = arrayData.get(1);
+            bolEff = Double.parseDouble(arrayData.get(2));
+            eolEff = Double.parseDouble(arrayData.get(3));
+            cellThickness = Double.parseDouble(arrayData.get(4));//micrometers
+            cellMass = Double.parseDouble(arrayData.get(5));//mg/cm^2
+            cellArea = Double.parseDouble(arrayData.get(6));//cm^2
+            cellVoltage = Double.parseDouble(arrayData.get(7));//V
+            cellJ = Double.parseDouble(arrayData.get(8));//mA/cm^2
+            batteryType = batteryData.get(1);
+            nameplateCap = Double.parseDouble(batteryData.get(2));//Ah
+            battEnergy = Double.parseDouble(batteryData.get(3));//Wh
+            battVoltageLower = Double.parseDouble(batteryData.get(4));//v
+            battVoltageUpper = Double.parseDouble(batteryData.get(5));//v
+            battMass = Double.parseDouble(batteryData.get(6));//kg
+            x_dim = Double.parseDouble(batteryData.get(7));//m
+            y_dim = Double.parseDouble(batteryData.get(8));//m
+            z_dim = Double.parseDouble(batteryData.get(9));//m
+            System.out.println("Solar Array: " + SA_component);
+
+
+
+            // Total power
+            double ppow = ppp * 0.09/0.46;
+            double ptherm = ppp * 0.10/0.46;
+            double pstr = ppp * 0.01/0.46;
+            double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
+            double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
+            //Pa = Pa/2;
+            //Pp = Pp/2;
+
+            System.out.println(ppa + " " + pcoms + " " + pav );
+
+            // Calculate time in daylight and eclipse
+            double Td = T * solarFrac;
+            double Te = T - Td;
+
+            // Calculate Solar Panel Power
+            double Xe = 0.65;
+            double Xd = 0.85;
+            double Pe = 0.8 * Pa + 0.2 * Pp;
+            double Pd = Pe;
+            double Psa_min = (Pe*Te/Xe + Pd*Td/Xd)/Td;
+
+
+
+
+            // Size arrays
+            double P_density = cellJ * cellVoltage * pow(100, 2) / 1000 * cos(worstAngle * PI / 180);
+            double Ld = pow( (1-0.005), lifetime);
+            Peol = P_density * Ld;
+            arrayMass = area * cellMass * pow(100, 2) / 1000;
+
+            double Pbol_temp = P_density * area;
+
+
+
+            double L = sqrt(area);
+            double W = L;
+
+
+            if(drymass < 30.0){
+                Mcpu = 0.02 * Psa_min / 10;
+                Mregconv = 0.025 * Psa_min / 10;
+                Mwiring = (0.01 + 0.04) / 2 * drymass;
+            }
+            else{
+                Mcpu = 0.02 * Psa_min;
+                Mregconv = 0.025 * Psa_min;
+                Mwiring = (0.01 + 0.04) / 2 * drymass;
+            }
+
+            Meps = arrayMass + (battMass * nbatt) + Mcpu + Mregconv + Mwiring;
+            double cost = 62.7 * Meps + 112 * pow(Meps, 0.763);
+
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        } catch (BiffException biffException) {
+            biffException.printStackTrace();
+        } catch (JessException jessException) {
+            jessException.printStackTrace();
+        }
+
+        ValueVector vv2 = new ValueVector(11);
+        vv2.add(Meps);
+        vv2.add(Pbol);
+        vv2.add(area);
+        vv2.add(arrayMass);
+        vv2.add(batteryType);
+        vv2.add(cellType);
+        vv2.add(battMass);
+        vv2.add(nbatt);
+        vv2.add(Mcpu);
+        vv2.add(Mregconv);
+        vv2.add(Mwiring);
+        return new Value(vv2, RU.LIST);
+    }
     public Value designEPS(Funcall vv, Context c) {
         String id;
         String orb;
@@ -334,8 +515,8 @@ public class MatlabFunctions implements Userfunction {
             double pstr = ppp * 0.01/0.46;
             double Pa = ppa + pcoms + pav + padcs + ppow + ptherm + pstr;
             double Pp = ppp + pcoms + pav + padcs + ppow + ptherm + pstr;
-            Pa = Pa/2;
-            Pp = Pp/2;
+            //Pa = Pa/2;
+            //Pp = Pp/2;
 
             System.out.println(ppa + " " + pcoms + " " + pav );
 
@@ -360,6 +541,8 @@ public class MatlabFunctions implements Userfunction {
             double Mcpu_min = 0.0;
             double Mregconv_min = 0.0;
             double Mwiring_min =  0.0;
+            String batt = null;
+            String cell = "Caneck Caneck";//WHOOP
 
             double cost = 1e10;
             double costTemp = 0.0;
@@ -464,7 +647,8 @@ public class MatlabFunctions implements Userfunction {
                         if(cost >= costTemp){
                             cost = costTemp;
                             j_min = j;
-
+                            batt = battType[j];
+                            cell = cellType[i];
                             Meps = Meps_temp;
                             Pbol = Pbol_temp;
                             Asa = Asa_temp;
@@ -487,11 +671,18 @@ public class MatlabFunctions implements Userfunction {
                 System.out.println("eps power: " + " " + Psa_min + " " + Asa + " " + Pbol);
             }
 
-            ValueVector vv2 = new ValueVector(4);
+            ValueVector vv2 = new ValueVector(11);
             vv2.add(Meps);
             vv2.add(Pbol);
             vv2.add(Asa);
             vv2.add(Msa);
+            vv2.add(cell);
+            vv2.add(batt);
+            vv2.add(mbatt_min);
+            vv2.add(Nbat_min);
+            vv2.add(Mcpu_min);
+            vv2.add(Mregconv_min);
+            vv2.add(Mwiring_min);
             return new Value(vv2, RU.LIST);
         }
         catch (Exception e) {
@@ -666,5 +857,29 @@ public class MatlabFunctions implements Userfunction {
             System.out.println(e.getMessage());
             return null;
         }
+    }
+
+
+    private ArrayList<String> loadEPSFacts(Workbook xls, String sheet, String component) {
+        System.out.println("Loading EPS Facts");
+        ArrayList<String> facts = new ArrayList<>();
+        try {
+            Sheet meas = xls.getSheet(sheet);
+            int numFacts = meas.getRows();
+            int numSlots = meas.getColumns();
+            for (int i = 1; i < numFacts; i++){
+                Cell [] row = meas.getRow(i);
+                if(row[0].getContents().equals(component)){
+                    for (int j = 0; j < numSlots; j++){
+                        facts.add(row[j].getContents());
+                    }
+                    break;
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("EXC in MatlabFunctions loadEPSFacts " + e.getMessage());
+        }
+        return facts;
     }
 }

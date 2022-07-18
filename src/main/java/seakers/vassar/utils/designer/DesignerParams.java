@@ -14,7 +14,8 @@ public class DesignerParams extends AssigningParams {
                 "L-band_ANT", "Pleiades", "PRISMA",
                 "TROPICS", "Aquarius", "CALIPSO",
                 "SENTINEL_1", "SENTINEL_2", "SENTINEL_5P",
-                "RAINCUBE", "SAR_ANT", "SAR_INS"};
+                "RAINCUBE", "SAR_ANT", "SAR_INS",
+                "LM_MWR", "LM_Lidar", "LM_SV2"};
 //        String[] instruments = new String[]{"CYGNSS", "BIOMASS", "SMAP_ANT", "SMAP_RAD", "SMAP_MWR", "BIOMASS",
 //                "P-band_SAR", "P-band_ANT", "L-band_SAR", "L-band_ANT"};
 
