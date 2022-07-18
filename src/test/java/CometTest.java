@@ -28,7 +28,7 @@ public class CometTest {
         epsFacts = new String[][]{{"SA-component", solar_cell_component}, {"battery-component", battery_component}, {"SA-orientation", panel_orientation}};
         factList = new String[][]{{"num-battery", num_battery}, {"solar-array-area", array_area}};
 
-        Designer designer = new Designer("SAR_sizing_ref","Designer", payloads, orbits, resourcesPath, factList, epsFacts);
+        Designer designer = new Designer("SAR_sizing_ref","Designer", payloads, orbits, resourcesPath, factList);
         designer.archDesign(true);
 
         int x = 1;

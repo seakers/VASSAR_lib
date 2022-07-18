@@ -371,8 +371,10 @@ public class ArchitectureSizer extends AbstractArchitectureEvaluator {
     @Override
     protected void designSpacecraft(Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
         try {
-            overrideFacts(r);
-            overrideEpsFacts(r);
+//            overrideFacts(r);
+//            overrideEpsFacts(r);
+//            r.eval("(focus LOAD-CATALOG");
+//            r.eval("(run)");
 
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");

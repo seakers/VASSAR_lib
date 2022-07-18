@@ -23,34 +23,19 @@ public class Designer {
     private Architecture arch;
     private String resourcesPath;
     private String[][] factList;
-    private String[][] epsFacts;
     private JSONObject out;
     private ArrayList<SpacecraftDescription> designs;
 
-//    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList){
-//        this.archName = archName;
-//        this.problemName = problemName;
-//        this.payloads = payloads;
-//        this.orbits = orbits;
-//        this.params = new DesignerParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal");
-//        this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
-//        this.resourcesPath = resourcesPath;
-//        this.factList = factList;
-//        this.epsFacts = null;
-//
-//    }
-
-    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList, String[][] epsFacts){
+    public Designer(String archName, String problemName, String[][] payloads, String[] orbits, String resourcesPath, String[][] factList){
         this.archName = archName;
         this.problemName = problemName;
         this.payloads = payloads;
         this.orbits = orbits;
-        this.params = new DesignerParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal");
+        this.params = new DesignerParams(orbits, problemName, resourcesPath, "CRISP-ATTRIBUTES","test", "normal", factList);
         this.arch = new Architecture( mapPayloads(payloads, orbits), 1, params);
         this.resourcesPath = resourcesPath;
         this.factList = factList;
-        this.epsFacts = epsFacts;
-//        System.out.println("hi");
+
     }
 
     private HashMap<String, String[]> mapPayloads(String[][] payloads, String[] orbits){
@@ -64,8 +49,8 @@ public class Designer {
     }
 
     public void archDesign(boolean print){
-        ArchitectureSizer evaluator = new ArchitectureSizer(this.factList, this.epsFacts);
-        ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
+        ArchitectureSizer evaluator = new ArchitectureSizer(this.factList);
+        ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator, this.factList);
         evaluationManager.init(1);
 
         Result result = evaluationManager.evaluateArchitectureSync(arch, "Slow");

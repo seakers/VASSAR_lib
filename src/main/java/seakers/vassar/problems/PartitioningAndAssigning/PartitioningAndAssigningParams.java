@@ -16,8 +16,15 @@ public abstract class PartitioningAndAssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
+    public String[][] factlist;
+
     public PartitioningAndAssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
+    }
+
+    public PartitioningAndAssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String[][] factlist){
+        super(resourcesPath, problemName, mode, name, runMode, factlist);
+        this.factlist = factlist;
     }
 
     @Override

@@ -15,6 +15,8 @@ import java.util.HashMap;
 public abstract class BaseParams {
 
     public String resourcesPath;
+
+    public String [][] catalogFacts;
     public String problemName;
     public String orekitResourcesPath;
     public String problemPath;
@@ -116,6 +118,16 @@ public abstract class BaseParams {
         this.runMode = runMode;
         this.initialPop = "";
         this.configurePath(resourcesPath, problemName);
+    }
+    protected BaseParams(String resourcesPath, String problemName, String mode, String name, String runMode, String[][] factlist) {
+        this.resourcesPath = resourcesPath;
+        this.problemName = problemName;
+        this.reqMode = mode;
+        this.name = name;
+        this.runMode = runMode;
+        this.initialPop = "";
+        this.configurePath(resourcesPath, problemName);
+        this.catalogFacts = factlist;
     }
 
     private void configurePath(String resourcesPath, String problemName){

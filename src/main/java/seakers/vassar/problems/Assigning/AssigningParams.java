@@ -16,8 +16,14 @@ public abstract class AssigningParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
+    public String[][] factlist;
+
     public AssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
+    }
+    public AssigningParams(String resourcesPath, String problemName, String mode, String name, String runMode, String[][] factlist){
+        super(resourcesPath, problemName, mode, name, runMode, factlist);
+        this.factlist = factlist;
     }
 
     @Override

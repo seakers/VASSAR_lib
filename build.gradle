@@ -38,7 +38,7 @@ dependencies {
     implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
     implementation 'org.orekit:orekit:10.0'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-    implementation files('C:\\Users\\lmbed\\.m2\\repository\\gov\\jess\\7.1p2\\jess-7.1p2.jar')
+    implementation files('C:\\Users\\lukebedrosian\\.m2\\repository\\gov\\sandia\\jess\\Jess71p2\\lib\\jess.jar')
     implementation 'io.pebbletemplates:pebble:3.1.5'
     implementation 'org.slf4j:slf4j-simple:1.7.35'
     // https://mvnrepository.com/artifact/org.apache.poi/poi

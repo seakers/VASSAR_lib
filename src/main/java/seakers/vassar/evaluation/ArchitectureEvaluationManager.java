@@ -22,11 +22,20 @@ public class ArchitectureEvaluationManager {
     protected ExecutorService executorService;
     private Stack<Result> results;
     private ArrayList<Future<Result>> futures;
+    private String [][] catalogFacts;
 
     public ArchitectureEvaluationManager(BaseParams params, AbstractArchitectureEvaluator evaluator) {
         this.params = params;
         this.numCPU = -1;
         this.evaluator = evaluator;
+        this.catalogFacts = null;
+        reset();
+    }
+    public ArchitectureEvaluationManager(BaseParams params, AbstractArchitectureEvaluator evaluator, String[][] catalogFacts) {
+        this.params = params;
+        this.numCPU = -1;
+        this.evaluator = evaluator;
+        this.catalogFacts = catalogFacts;
         reset();
     }
 

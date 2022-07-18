@@ -5,8 +5,8 @@ import seakers.vassar.problems.Assigning.AssigningParams;
 
 public class DesignerParams extends AssigningParams {
 
-    public DesignerParams(String[] orbitsList, String problemName, String resourcesPath, String mode, String name, String runMode){
-        super(resourcesPath, problemName, mode, name, runMode);
+    public DesignerParams(String[] orbitsList, String problemName, String resourcesPath, String mode, String name, String runMode, String[][] factList){
+        super(resourcesPath, problemName, mode, name, runMode, factList);
 
         String[] instruments = new String[]{"CYGNSS", "SNOOPI", "BIOMASS", "SMAP_ANT",
                 "SMAP_RAD", "SMAP_MWR", "BIOMASS",
@@ -30,6 +30,6 @@ public class DesignerParams extends AssigningParams {
 
     @Override
     public BaseParams copy(){
-        return new DesignerParams(super.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode);
+        return new DesignerParams(super.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.factlist);
     }
 }

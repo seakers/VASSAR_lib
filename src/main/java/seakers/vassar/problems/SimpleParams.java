@@ -16,6 +16,8 @@ public class SimpleParams extends BaseParams {
     protected int[] numSatellites = {1};
     public int MAX_TOTAL_INSTR;
 
+    String[][] factlist;
+
     public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
         String[] instruments = new String[]{"P-band_SAR", "L-band_SAR"};
@@ -37,9 +39,35 @@ public class SimpleParams extends BaseParams {
         super.init();
     }
 
+    public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode, String[][] factlist){
+        super(resourcesPath, problemName, mode, name, runMode, factlist);
+        String[] instruments = new String[]{"P-band_SAR", "L-band_SAR"};
+        this.factlist = factlist;
+        this.instrumentList = instruments;
+        this.orbitList = orbitList;
+        this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
+//        this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
+        this.numInstr = instrumentList.length;
+        this.numOrbits = orbitList.length;
+        instrumentIndexes = new HashMap<>();
+        orbitIndexes = new HashMap<>();
+
+        for (int i = 0; i < numInstr; i++) {
+            instrumentIndexes.put(instrumentList[i], i);
+        }
+        for (int i = 0; i < numOrbits; i++) {
+            orbitIndexes.put(orbitList[i], i);
+        }
+        super.init();
+    }
+
     @Override
+//    public BaseParams copy(){
+//        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode);
+//    }
+
     public BaseParams copy(){
-        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode);
+        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.factlist);
     }
 
     public void setInstrumentList(String[] instrumentList){

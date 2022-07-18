@@ -20,16 +20,15 @@ public class ClimateCentricEvaluationTest {
         //DESIGN VARIABLES (Variable inputs for the evaluation mode, do change across designs)
         //altitude
         String solar_cell_component = "XTE-SF"; //Acceptable inputs: XTE-SF
-        String array_area = "10.0";
+        String array_area = "2.0";
         String panel_orientation = "Body-mounted"; //Acceptable inputs: Body-mounted, Deployable
         String panel_DOF_articulation; //Degrees of freedom
         String battery_component = "Saft 8s4p"; //Acceptable inputs: Saft 8s4p, Saft 11s16p
         String num_battery = "4";
 
-        epsFacts = new String[][]{{"SA-component", solar_cell_component}, {"battery-component", battery_component}, {"SA-orientation", panel_orientation}};
-        factList = new String[][]{{"num-battery", num_battery}, {"solar-array-area", array_area}};
+        factList = new String[][]{{"SA-component", solar_cell_component}, {"battery-component", battery_component}, {"SA-orientation", panel_orientation}, {"num-battery", num_battery}, {"solar-array-area", array_area}};
 
-        Designer designer = new Designer("SAR_sizing_ref","Designer", payloads, orbits, resourcesPath, factList, epsFacts);
+        Designer designer = new Designer("SAR_sizing_ref","Designer", payloads, orbits, resourcesPath, factList);
         designer.archDesign(true);
 
         int x = 1;

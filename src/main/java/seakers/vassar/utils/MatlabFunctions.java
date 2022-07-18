@@ -356,8 +356,6 @@ public class MatlabFunctions implements Userfunction {
         double Mregconv = 0;
         double Mwiring = 0;
 
-
-
         try {
             ppa = vv.get(2).floatValue(c);
             ppp = vv.get(3).floatValue(c);
@@ -430,9 +428,9 @@ public class MatlabFunctions implements Userfunction {
             double P_density = cellJ * cellVoltage * pow(100, 2) / 1000 * cos(worstAngle * PI / 180);
             double Ld = pow( (1-0.005), lifetime);
             Peol = P_density * Ld;
-            arrayMass = area * cellMass * pow(100, 2) / 1000;
+            arrayMass = area * cellMass * pow(100, 2) / 1e6; //converted from mg/cm^2 to kg/m^2
 
-            double Pbol_temp = P_density * area;
+            Pbol = P_density * area;
 
 
 
@@ -881,5 +879,20 @@ public class MatlabFunctions implements Userfunction {
             System.out.println("EXC in MatlabFunctions loadEPSFacts " + e.getMessage());
         }
         return facts;
+    }
+
+    public Value catalogEps(Funcall vv, Context c) {
+        String[][] factList = this.res.getParams().catalogFacts;
+        ValueVector vv2 = new ValueVector(5);
+        try{
+            for(int i = 0; i < factList.length; i++){
+                vv2.add(factList[i][1]);
+            }
+            return new Value(vv2, RU.LIST);
+        }
+        catch (Exception e) {
+            System.out.println("EXC in MatlabFunctions catalogEPS " + e.getMessage());
+            return null;
+        }
     }
 }
