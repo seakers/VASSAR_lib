@@ -184,8 +184,8 @@ public class JessInitializer {
             // Load aggregation rules
             Workbook aggregation_xls = Workbook.getWorkbook(new File(params.aggregationXls));
 
-            loadAggregationRules(r, aggregation_xls, "Aggregation rules",
-                    new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp });
+            //loadAggregationRules(r, aggregation_xls, "Aggregation rules",
+            //        new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp });
 
             /////////////////////////////////////////////////////////////////////////////
 

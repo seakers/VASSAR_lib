@@ -33,7 +33,7 @@ public class DesignEvaluator {
                 radarOnlySatellites.add(radarOnlySatellite);
             }
         }
-        String orbitName = "LEO-1000.0-polar-NA";
+        String orbitName = "LEO-500.0-polar-NA";
         ArrayList<OrbitInstrumentObject> constellation = new ArrayList<>();
         orbitList.add(orbitName);
         //OrbitInstrumentObject testSatellite = new OrbitInstrumentObject(new String[]{"L-band_Reflectometer"},orbitName);

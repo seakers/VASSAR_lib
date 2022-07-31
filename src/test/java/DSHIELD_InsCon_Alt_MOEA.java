@@ -4,10 +4,7 @@ import org.moeaframework.core.PopulationIO;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import seakers.orekit.util.OrekitConfig;
-import seakers.vassar.moea.MOEAInsAltProgressListener;
-import seakers.vassar.moea.MOEAInsConProgressListener;
-import seakers.vassar.moea.RadarInsAltProblem;
-import seakers.vassar.moea.RadarInsProblem;
+import seakers.vassar.moea.*;
 
 import java.io.File;
 import java.util.Properties;
@@ -17,25 +14,15 @@ public class DSHIELD_InsCon_Alt_MOEA {
         try{
             OrekitConfig.init(16);
             Properties properties = new Properties();
-            properties.setProperty("populationSize","48");
-            properties.setProperty("maxEvaluations","4800");
-            MOEAInsAltProgressListener progressListener = new MOEAInsAltProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
-
-            //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
-            int count = 1;
-            for (Solution sol : result) {
-                System.out.println("Variables for solution " + count + ":");
-                System.out.println("Number of radar satellites: " + EncodingUtils.getInt(sol.getVariable(0)));
-                System.out.println("Altitude of radar satellites: " + sol.getVariable(1));
-                System.out.println("Inclination of radar satellites: " + sol.getVariable(2));
-                System.out.println("Radar dAz: " + sol.getVariable(3));
-                System.out.println("Radar dEl: " + sol.getVariable(4));
-                System.out.println("Radar chirp bw: " + sol.getVariable(5));
-                System.out.println("Radar pulse width: " + sol.getVariable(6));
-                count++;
+            for(int i = 3; i <= 4; i++) {
+                properties.setProperty("populationSize","48");
+                properties.setProperty("maxEvaluations","1200");
+                File f = new File("./src/test/output/varvarcomb/run"+i+"/");
+                f.mkdir();
+                properties.setProperty("filepath","./src/test/output/varvarcomb/run"+i+"/");
+                MOEAInsAltProgressListener progressListener = new MOEAInsAltProgressListener();
+                NondominatedPopulation result = new Executor().withProblemClass(RadarInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOn(16).withProgressListener(progressListener).run();
             }
-            PopulationIO.writeObjectives(new File("./src/test/output/radar_varinsalt/objectives.txt"), result);
             OrekitConfig.end();
         } catch (Exception e) {
             e.printStackTrace();

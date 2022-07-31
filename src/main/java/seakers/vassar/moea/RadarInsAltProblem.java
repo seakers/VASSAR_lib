@@ -111,52 +111,58 @@ public class RadarInsAltProblem extends AbstractProblem {
             e.printStackTrace();
         }
         RadarDesign rd = new RadarDesign(dAz,dEl,atRes,ctRes,f[3],altRadarSats);
-
-        String path = "../VASSAR_resources";
-        ArrayList<String> orbitList = new ArrayList<>();
-        ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
-        int r = numPlanes;
-        int s = numSatsPerPlane;
-        for(int m = 0; m < r; m++) {
-            for(int n = 0; n < s; n++) {
-                int pu = 360 / (r*s);
-                int delAnom = pu * r; //in plane spacing between satellites
-                int delRAAN = pu * s; //node spacing
-                int RAAN = delRAAN * m;
-                int g = 1;
-                int phasing = pu * g;
-                int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-"+altRadarSats+"-"+incRadarSats+"-"+RAAN+"-"+anom;
-                if(!orbitList.contains(orbitName)) {
-                    orbitList.add(orbitName);
+        if(c[1] == 0.0) {
+            String path = "../VASSAR_resources";
+            ArrayList<String> orbitList = new ArrayList<>();
+            ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
+            int r = numPlanes;
+            int s = numSatsPerPlane;
+            for(int m = 0; m < r; m++) {
+                for(int n = 0; n < s; n++) {
+                    int pu = 360 / (r*s);
+                    int delAnom = pu * r; //in plane spacing between satellites
+                    int delRAAN = pu * s; //node spacing
+                    int RAAN = delRAAN * m;
+                    int g = 1;
+                    int phasing = pu * g;
+                    int anom = (n * delAnom + phasing * m);
+                    String orbitName = "LEO-"+altRadarSats+"-"+incRadarSats+"-"+RAAN+"-"+anom;
+                    if(!orbitList.contains(orbitName)) {
+                        orbitList.add(orbitName);
+                    }
+                    OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","P-band_SAR"},orbitName);
+                    satellites.add(radarOnlySatellite);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","P-band_SAR"},orbitName);
-                satellites.add(radarOnlySatellite);
             }
+            SimpleArchitecture architecture = new SimpleArchitecture(satellites);
+            architecture.setRepeatCycle(0);
+            architecture.setName(incRadarSats+", "+altRadarSats+", " );
+            String[] orbList = new String[orbitList.size()];
+            System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
+            System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
+            System.out.println("Data rate (kbps): "+rd.getDataRate());
+            for (int i =0; i < orbitList.size(); i++)
+                orbList[i] = orbitList.get(i);
+            try{
+                SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
+                DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
+                ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
+                evaluationManager.init(1);
+                Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
+                evaluationManager.clear();
+                architecture.setCoverage(result.getCoverage());
+                f[0] = result.getCost();
+                f[1] = architecture.getAllMaxRevisit();
+                c[0] = architecture.getAllCoverage()-1.0;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            f[0] = 10000000000000.0;
+            f[1] = 0.0;
+            c[0] = 1.0;
         }
-        SimpleArchitecture architecture = new SimpleArchitecture(satellites);
-        architecture.setRepeatCycle(0);
-        architecture.setName(incRadarSats+", "+altRadarSats+", " );
-        String[] orbList = new String[orbitList.size()];
-        System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
-        System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
-        System.out.println("Data rate (kbps): "+rd.getDataRate());
-        for (int i =0; i < orbitList.size(); i++)
-            orbList[i] = orbitList.get(i);
-        try{
-            SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES","test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
-            DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
-            ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
-            evaluationManager.init(1);
-            Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
-            evaluationManager.clear();
-            architecture.setCoverage(result.getCoverage());
-            f[0] = result.getCost();
-            f[1] = architecture.getAllMaxRevisit();
-            c[0] = architecture.getAllCoverage()-1.0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
         solution.setObjectives(f);
         solution.setConstraints(c);
     }

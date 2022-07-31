@@ -17,25 +17,15 @@ public class DSHIELD_Science_MOEA {
         try{
             OrekitConfig.init(16);
             Properties properties = new Properties();
-            properties.setProperty("populationSize","48");
-            properties.setProperty("maxEvaluations","4800");
-            MOEAScienceProgressListener progressListener = new MOEAScienceProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarScienceProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOn(8).withProgressListener(progressListener).run();
-
-            //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
-            int count = 1;
-            for (Solution sol : result) {
-                System.out.println("Variables for solution " + count + ":");
-                System.out.println("Number of radar satellites: " + EncodingUtils.getInt(sol.getVariable(0)));
-                System.out.println("Altitude of radar satellites: " + sol.getVariable(1));
-                System.out.println("Inclination of radar satellites: " + sol.getVariable(2));
-                System.out.println("Radar dAz: " + sol.getVariable(3));
-                System.out.println("Radar dEl: " + sol.getVariable(4));
-                System.out.println("Radar chirp bw: " + sol.getVariable(5));
-                System.out.println("Radar pulse width: " + sol.getVariable(6));
-                count++;
+            for(int i = 1; i <= 10; i++) {
+                properties.setProperty("populationSize","48");
+                properties.setProperty("maxEvaluations","1200");
+                File f = new File("./src/test/output/science/run"+i+"/");
+                f.mkdir();
+                properties.setProperty("filepath","./src/test/output/science/run"+i+"/");
+                MOEAScienceProgressListener progressListener = new MOEAScienceProgressListener();
+                NondominatedPopulation result = new Executor().withProblemClass(RadarScienceProblem.class).withAlgorithm("eMOEA").withProperties(properties).distributeOn(8).withProgressListener(progressListener).run();
             }
-            PopulationIO.writeObjectives(new File("./src/test/output/science/objectives.txt"), result);
             OrekitConfig.end();
         } catch (Exception e) {
             e.printStackTrace();

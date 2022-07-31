@@ -27,14 +27,14 @@ public class RadarDesign {
         if(pixelResAt == 0.0) {
             dataRate = 0.0;
         } else {
-            double swath = 25;
+            double swath = 25; // km
             double pixelResCrossKm = pixelResCt * 0.001;
             int bitsPerPixel = 8;
-            double pixelResCrossSAR = pixelResCrossKm * Math.sqrt(-1*numLooks);
+            //double pixelResCrossSAR = pixelResCrossKm * Math.sqrt(-1*numLooks);
             double re = 6378e3; // m
             double orbSpeed = Math.sqrt(3.986e14/(re+altitude*1e3));
             double gndSpeed = orbSpeed * (re/(re+altitude*1e3));
-            double numX = swath/pixelResCrossSAR;
+            double numX = swath/pixelResCrossKm;
             double rb_bps = numX * bitsPerPixel / (pixelResAt/gndSpeed);
             dataRate = rb_bps/1e6;
         }

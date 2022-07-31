@@ -52,12 +52,12 @@ public class RadarArchProblem extends AbstractProblem {
             System.out.println(e);
         }
         List<String> radar_design = records.get(radarIndex);
-        double atRes = Double.parseDouble(radar_design.get(5));
-        double numLooks = Double.parseDouble(radar_design.get(6));
+        double atRes = Double.parseDouble(radar_design.get(6));
+        double numLooks = Double.parseDouble(radar_design.get(7));
         double ctRes = -1e6/(atRes*numLooks);
         RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),atRes,ctRes,numLooks,altRadarSats);
-        f[2] = Double.parseDouble(radar_design.get(4)); // snez
-        f[3] = -Double.parseDouble(radar_design.get(6)); // num looks
+        f[2] = Double.parseDouble(radar_design.get(5)); // snez
+        f[3] = -1e6/(atRes * ctRes);
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
@@ -75,7 +75,7 @@ public class RadarArchProblem extends AbstractProblem {
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","CustomLANT"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","P-band_SAR"},orbitName);
                 satellites.add(radarOnlySatellite);
             }
         }

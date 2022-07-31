@@ -20,13 +20,14 @@ import java.util.List;
 
 public class RadarArchAltProblem extends AbstractProblem {
     public RadarArchAltProblem() {
-        super(3,4,1);
+        super(4,4,1);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
         solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
         solution.setVariable(1, new RealVariable(45.0,90.0)); // inclination of radar satellites
         solution.setVariable(2, EncodingUtils.newInt(0,47)); // radar design
+        solution.setVariable(3, EncodingUtils.newInt(1,4)); // number of planes
         solution.setConstraint(0, 0.0);
         return solution;
     }
@@ -35,6 +36,7 @@ public class RadarArchAltProblem extends AbstractProblem {
         int numRadarSats = EncodingUtils.getInt(solution.getVariable(0));
         double incRadarSats = Math.floor(EncodingUtils.getReal(solution.getVariable(1)) * 100) / 100;
         int radarIndex = EncodingUtils.getInt(solution.getVariable(2));
+        int numPlanes = EncodingUtils.getInt(solution.getVariable(3));
         double[] f = new double[numberOfObjectives];
         double[] c = new double[numberOfConstraints];
 
@@ -55,12 +57,13 @@ public class RadarArchAltProblem extends AbstractProblem {
         double ctRes = -1e6/(atRes*numLooks);
         RadarDesign rd = new RadarDesign(Double.parseDouble(radar_design.get(0)),Double.parseDouble(radar_design.get(1)),atRes,ctRes,numLooks,Double.parseDouble(radar_design.get(4)));
         f[2] = Double.parseDouble(radar_design.get(5)); // snez
-        f[3] = Double.parseDouble(radar_design.get(7)); // num looks
+        f[3] = -1e6/(atRes * ctRes);
+        //f[3] = Double.parseDouble(radar_design.get(7)); // num looks
         double altRadarSats = Double.parseDouble(radar_design.get(4));
-        String path = "../VASSAR_resources";
+        String path = "/home/ben/Documents/VASSAR_test/VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
         ArrayList<OrbitInstrumentObject> satellites = new ArrayList<>();
-        int r = 1;
+        int r = numPlanes;
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < numRadarSats; n++) {
                 int pu = 360 / (r* numRadarSats);
@@ -74,7 +77,7 @@ public class RadarArchAltProblem extends AbstractProblem {
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","CustomLANT"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomLSAR","P-band_SAR"},orbitName);
                 satellites.add(radarOnlySatellite);
             }
         }
@@ -84,6 +87,7 @@ public class RadarArchAltProblem extends AbstractProblem {
         String[] orbList = new String[orbitList.size()];
         System.out.println("Antenna mass (kg): "+rd.getAntennaMass());
         System.out.println("Electronics mass (kg): "+rd.getElectronicsMass());
+        System.out.println("Data rate (kbps): "+rd.getDataRate());
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try{
