@@ -767,7 +767,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
      * @param qb
      * @return {duty cycle, wet mass, packing efficiency} for each satellite
      */
-    protected ArrayList<ArrayList<Double>> getOperatorParameters(Rete r, QueryBuilder qb) throws JessException {
+    public ArrayList<ArrayList<Double>> getOperatorParameters(Rete r, QueryBuilder qb) throws JessException {
         ArrayList<ArrayList<Double>> operatorParameters = new ArrayList<>();
         ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
 
@@ -792,7 +792,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
      * @return Arraylist of payloads for each satellite
      * @throws JessException
      */
-    protected ArrayList<ArrayList<String>> getSatellitePayloads(Rete r, QueryBuilder qb) throws JessException {
+    public ArrayList<ArrayList<String>> getSatellitePayloads(Rete r, QueryBuilder qb) throws JessException {
         ArrayList<ArrayList<String>> satellitePayloads = new ArrayList<>();
         ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
 
@@ -815,7 +815,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
      * @return Arraylist of satellite orbits
      * @throws JessException
      */
-    protected ArrayList<String> getSatelliteOrbits(Rete r, QueryBuilder qb) throws JessException {
+    public ArrayList<String> getSatelliteOrbits(Rete r, QueryBuilder qb) throws JessException {
         ArrayList<String> satelliteOrbits = new ArrayList<>();
         ArrayList<Fact> satellites = qb.makeQuery("MANIFEST::Satellite");
 
