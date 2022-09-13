@@ -160,7 +160,7 @@ public class JessInitializer {
             // Ad-hoc rules
             r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
             r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
-                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS SAR_1)) (factHistory "+ params.nof +")))");
+                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS SAR_1 PerfectInstrument SBG)) (factHistory "+ params.nof +")))");
             params.nof++;
             if (!params.adhocRulesClp.isEmpty()) {
                 //System.out.println("WARNING: Loading ad-hoc rules");
@@ -790,6 +790,7 @@ public class JessInitializer {
                             params.panelsToMeasurements.put(panel, measurements);
                         }
                         r.eval(reqRule);
+                        System.out.println(reqRule);
 
                         //start next requirement rule
                         rhs = "";

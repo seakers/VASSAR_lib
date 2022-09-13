@@ -13,8 +13,16 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
+import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.OneAxisEllipsoid;
 import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.EventIntervalMerger;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.Satellite;
+import seakers.orekit.object.fieldofview.NadirRectangularFOV;
+import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.vassar.*;
 import seakers.vassar.SMDP.DSHIELDSimplePlanner;
 import seakers.vassar.architecture.AbstractArchitecture;
@@ -26,6 +34,7 @@ import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
 import seakers.vassar.utils.MatlabFunctions;
+import seakers.orekit.analysis.OverlapAnalysis;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -102,9 +111,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         QueryBuilder qb = res.getQueryBuilder();
         MatlabFunctions m = res.getM();
         Result result = new Result();
-
-        //result.setScience(evaluateScience(params,r,arch,qb,m));
-        result.setScience(0.0);
+        result.setScience(evaluateScience(params,r,arch,qb,m));
+        result.setExplanations(aggregate_performance_score_facts(params, r, m, qb).getExplanations());
+        result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
+        //result.setScience(0.0);
         try {
             r.eval("(reset)");
             assertMissions(params,r,arch,m);
@@ -114,8 +124,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             this.resourcePool.freeResource(res);
         }
 
-        result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
-        result.setCost(evaluateCosts(params,r,arch,qb,m));
+        //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
+
+        //result.setCost(evaluateCosts(params,r,arch,qb,m));
+
 
         this.resourcePool.freeResource(res);
 
@@ -161,6 +173,41 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
     }
 
+    protected void setOverlap(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) throws JessException {
+        OverlapAnalysis oa = new OverlapAnalysis();
+        ArrayList<Double> orbitHeights = new ArrayList<>();
+        ArrayList<Double> orbitInclinations = new ArrayList<>();
+        ArrayList<Double> orbitRAANs = new ArrayList<>();
+        ArrayList<Double> orbitAnomalies = new ArrayList<>();
+        for (Orbit orb : this.orbitsUsed) {
+            double inclination = orb.getInclinationNum(); // [deg]
+            double altitude = orb.getAltitudeNum(); // [m]
+            double raan = orb.getRaanNum();
+            double trueAnom = orb.getTrueAnomNum();
+            orbitHeights.add(altitude);
+            orbitInclinations.add(inclination);
+            orbitRAANs.add(raan);
+            orbitAnomalies.add(trueAnom);
+        }
+        Double overlapResult = oa.evaluateOverlap(orbitHeights, orbitInclinations, orbitRAANs, orbitAnomalies,30.0);
+        int javaAssertedFactID = 25;
+        for (String param : params.measurementsToInstruments.keySet()) {
+            String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "
+                    + "(overlap-time# " + overlapResult + ") "
+                    + "(factHistory J" + javaAssertedFactID + ")))";
+            javaAssertedFactID++;
+            r.eval(call2);
+            System.out.println(call2);
+        }
+    }
+
+    public double arraySum(double[] array) {
+        double sum = 0;
+        for (double value : array) {
+            sum += value;
+        }
+        return sum;
+    }
     protected double evaluateScience(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
         double science = 0;
 
@@ -173,7 +220,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
             //r.eval("(watch facts)");
-            //r.eval("(rules CAPABILITIES)");
+            r.eval("(facts CAPABILITIES)");
 
             r.setFocus("MANIFEST0"); r.run();
             r.setFocus("MANIFEST"); r.run();
@@ -186,6 +233,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.setFocus("SYNERGIES"); r.run();
 
             updateRevisitTimes(params, r, arch, qb, m, 1);
+            setOverlap(params, r, arch, qb, m);
 
             r.setFocus("ASSIMILATION2");
             r.run();
@@ -201,12 +249,23 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
             r.setFocus("SYNERGIES-ACROSS-ORBITS");
             r.run();
-
+//            r.eval("(rules REQUIREMENTS)");
+//            r.eval("(facts REQUIREMENTS)");
+//            r.eval("(facts CAPABILITIES)");
+//            r.eval("(facts AGGREGATION)");
+//            r.eval("(rules AGGREGATION)");
+//            r.eval("(facts MANIFEST)");
+//            r.eval("(facts CAPABILITIES-GENERATE)");
+//            r.eval("(rules CAPABILITIES-GENERATE)");
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.setFocus("FUZZY-REQUIREMENTS");
             } else {
                 r.setFocus("REQUIREMENTS");
             }
+//            r.eval("(rules REQUIREMENTS)");
+//            r.eval("(facts REQUIREMENTS)");
+//            r.eval("(watch facts)");
+//            r.eval("(watch rules)");
             r.run();
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
@@ -888,6 +947,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         // Check if all of the orbits in the original formulation are used
         double revTime = 0;
         int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
+        System.out.println("Updating revisit times");
         String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA", "SSO-600-SSO-AM", "SSO-600-SSO-DD", "SSO-800-SSO-DD", "SSO-800-SSO-PM"};
 
         for (int i = 0; i < params.getOrbitList().length; i++) {
@@ -990,11 +1050,19 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     therevtimesGlobal = params.revtimes.get(key);
                 }
                 String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
-                        + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
-                        + "(avg-revisit-time-US# " + therevtimesUS + ")"
+                        + "(avg-revisit-time-global# " + therevtimesGlobal/24.0 + ") "
+                        + "(avg-revisit-time-US# " + therevtimesUS/24.0 + ")"
                         + "(factHistory J" + javaAssertedFactID + ")))";
                 javaAssertedFactID++;
                 r.eval(call);
+//                String call2 = "(assert (ASSIMILATION2::UPDATE-REV-TIME2 (parameter " + param + ") "
+//                        + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
+//                        + "(avg-revisit-time-US# " + therevtimesUS + ")"
+//                        + "(factHistory J" + javaAssertedFactID + ")))";
+//                javaAssertedFactID++;
+//                r.eval(call2);
+                System.out.println(call);
+//                System.out.println(call2);
             }
         }
     }
