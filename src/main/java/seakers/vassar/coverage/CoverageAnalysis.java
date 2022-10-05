@@ -104,7 +104,7 @@ public class CoverageAnalysis {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(30 * 24 * 60 * 60); // 7 days in seconds
+        this.endDate = startDate.shiftedBy(7 * 24 * 60 * 60); // 7 days in seconds
 
         this.numThreads = numThreads;
         this.coverageGridGranularity = coverageGridGranularity;
@@ -234,7 +234,7 @@ public class CoverageAnalysis {
      */
     private Map<TopocentricFrame, TimeIntervalArray> computeAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom) throws OrekitException{
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init(4);
+        //OrekitConfig.init(4);
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
 

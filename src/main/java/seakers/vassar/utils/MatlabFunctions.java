@@ -591,7 +591,10 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
-
+//            if (bestAntenna.getCost() > 0.9e9) {
+//                commsMass = 100000;
+//                commsPower = 100000;
+//            }
 
             switch(band_min) {
                 case 0: // UHF

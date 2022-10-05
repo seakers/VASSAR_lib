@@ -49,8 +49,8 @@ public class AntennaDesign {
         int[] indices = bandIndex(band);
         int band_type = indices[0];
         int band_i = indices[1];
-        double dataPerDay = payload_datarate * 1e6 * 24 * 3600;
-        double Rb_DL = dataPerDay/(2*15*60); // Contact Time/Access Time <- ~10-15 min per contact, ~2 contacts per day
+        double dataPerDay = payload_datarate * 1e6 * 24 * 3600 * 0.1;
+        double Rb_DL = dataPerDay/(20*15*60); // Contact Time/Access Time <- ~10-15 min per contact, ~2 contacts per day
 
         double f_DL = 0.0;
         double G_GS = 0.0;
@@ -70,7 +70,7 @@ public class AntennaDesign {
         double k = 1.38e-23;
         double f_DL_GHz = f_DL / 1e9;
         double EbN0min = calcEbN0min(Rb_DL, BW_NEN[band_i][0] - BW_NEN[band_i][1]);
-        EbN0min = 20;
+        EbN0min = 12.6;
         double EbN0 = lin2dB(Ptx*Gtx) + G_GS + 2*lin2dB(lambda/(4*PI*R)) - lin2dB(k*Tgs*Rb_DL);
 
         boolean linkBudgetClosed = false;

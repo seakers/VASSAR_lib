@@ -5,6 +5,7 @@ package seakers.vassar;
  * @author dani
  */
 import jess.Defrule;
+import seakers.vassar.utils.SpectrometerDesign;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -244,4 +245,6 @@ public abstract class BaseParams {
     public abstract double getAntennaMass();
     public abstract double getElectronicsMass();
     public abstract double getDataRate();
+
+    public abstract SpectrometerDesign getSpectrometerDesign();
 }

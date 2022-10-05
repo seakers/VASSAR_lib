@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hipparchus.util.FastMath;
+import org.orekit.data.DataProvider;
 import seakers.orekit.analysis.Analysis;
 import seakers.orekit.analysis.ephemeris.GroundTrackAnalysis;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
@@ -55,14 +56,30 @@ import static java.util.stream.Collectors.toCollection;
 import static org.apache.commons.io.FileUtils.getFile;
 
 public class OverlapAnalysis {
-    
+    private String cwd;
+
+    public OverlapAnalysis(String cwd) {
+        this.cwd = cwd;
+    }
     public double evaluateOverlap(ArrayList<Double> orbitHeights, ArrayList<Double> orbitInclinations, ArrayList<Double> orbitRAANs, ArrayList<Double> orbitAnomalies, double fov) {
 
         // Orekit initialization needs
-        OrekitConfig.init(1);
-        File orekitData = new File("./src/main/resources");
-        DataProvidersManager manager = DataProvidersManager.getInstance();
-        manager.addProvider(new DirectoryCrawler(orekitData));
+//        OrekitConfig.init(1);
+//        File orekitData = new File("./src/main/resources");
+//        DataProvidersManager manager = DataProvidersManager.getInstance();
+//        manager.addProvider(new DirectoryCrawler(orekitData));
+        Locale.setDefault(new Locale("en", "US"));
+
+        // Load default dataset saved in the project root directory
+        StringBuffer pathBuffer = new StringBuffer();
+
+        final File currrentDir = new File(this.cwd);
+        if (currrentDir.exists() && (currrentDir.isDirectory() || currrentDir.getName().endsWith(".zip"))) {
+            pathBuffer.append(currrentDir.getAbsolutePath());
+            pathBuffer.append(File.separator);
+            pathBuffer.append("resources");
+        }
+        System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
         Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
         ConsoleHandler handler = new ConsoleHandler();
@@ -158,7 +175,7 @@ public class OverlapAnalysis {
         } else if(results3days.size() > 0) {
             result = 60.0 * 24 * 3 - 0.01;
         }
-        OrekitConfig.end();
+//        OrekitConfig.end();
         return result;
     }
 

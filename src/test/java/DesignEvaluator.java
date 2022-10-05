@@ -11,6 +11,7 @@ import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
 import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,8 +22,8 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 1;
-        int s = 3;
+        int r = 5; // planes
+        int s = 2; // satellites per plane
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {
@@ -33,24 +34,29 @@ public class DesignEvaluator {
                 int f = 1;
                 int phasing = pu * f;
                 int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-896.0-89"+"-"+RAAN+"-"+anom;
+                String orbitName = "LEO-990.6-81.6"+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"SBG"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomInstrument"},orbitName);
                 radarOnlySatellites.add(radarOnlySatellite);
             }
         }
-        String orbitName = "LEO-896.0-polar-NA";
-        ArrayList<OrbitInstrumentObject> constellation = new ArrayList<>();
-        orbitList.add(orbitName);
         //OrbitInstrumentObject testSatellite = new OrbitInstrumentObject(new String[]{"L-band_Reflectometer"},orbitName);
         //constellation.add(testSatellite);
         SimpleArchitecture architecture = new SimpleArchitecture(radarOnlySatellites);
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal");
+        double alt = 990.6;
+        int numSpec = 314;
+        double lowerSpec = 260;
+        double upperSpec = 1329;
+        double focalLength = 7.7;
+        double FOV = 0.087;
+        double aperture = 0.56;
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numSpec,lowerSpec,upperSpec,focalLength,FOV,aperture);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);

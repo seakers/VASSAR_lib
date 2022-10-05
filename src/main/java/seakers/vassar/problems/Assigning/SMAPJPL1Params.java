@@ -1,6 +1,7 @@
 package seakers.vassar.problems.Assigning;
 
 import seakers.vassar.BaseParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 public class SMAPJPL1Params extends AssigningParams {
 
@@ -30,4 +31,5 @@ public class SMAPJPL1Params extends AssigningParams {
     }
 
     public double getDataRate() { return 0.0; }
+    public SpectrometerDesign getSpectrometerDesign() { return null; }
 }

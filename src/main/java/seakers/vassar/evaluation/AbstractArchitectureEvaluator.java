@@ -462,7 +462,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 oldmasses[i] = missions.get(i).getSlotValue("satellite-dry-mass").floatValue(r.getGlobalContext());
             }
             Double[] diffs = new Double[missions.size()];
-            double tolerance = 10*missions.size();
+            double tolerance = 25*missions.size();
             boolean converged = false;
             while (!converged) {
                 r.eval("(focus CLEAN1)");

@@ -1,6 +1,7 @@
 package seakers.vassar.problems.PartitioningAndAssigning;
 
 import seakers.vassar.BaseParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
 
@@ -29,4 +30,5 @@ public class Decadal2017AerosolsParams extends PartitioningAndAssigningParams {
     }
 
     public double getDataRate() { return 0.0; }
+    public SpectrometerDesign getSpectrometerDesign() { return null; }
 }

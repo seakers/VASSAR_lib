@@ -1,6 +1,7 @@
 package seakers.vassar.problems;
 
 import seakers.vassar.BaseParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 import java.util.HashMap;
 
@@ -18,6 +19,7 @@ public class SimpleParams extends BaseParams {
     protected double antennaMass;
     protected double electronicsMass;
     protected double dataRate;
+    protected SpectrometerDesign sd;
 
     public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode){
         super(resourcesPath, problemName, mode, name, runMode);
@@ -71,9 +73,35 @@ public class SimpleParams extends BaseParams {
         super.init();
     }
 
+    public SimpleParams(String[] orbitList, String problemName, String resourcesPath, String mode, String name, String runMode, SpectrometerDesign sd){
+        super(resourcesPath, problemName, mode, name, runMode);
+
+        // Uncomment for D-SHIELD
+        this.instrumentList = new String[]{"PerfectInstrument", "SBG", "Landsat", "CustomInstrument"};
+        //this.instrumentList = new String[]{"P-band_SAR", "P-band_ANT", "PerfectInstrument"};
+        // Uncomment for SMAP problem
+        //this.instrumentList = new String[]{"VIIRS","CMIS","BIOMASS","SMAP_RAD","SMAP_MWR"};
+        this.orbitList = orbitList;
+        this.adhocRulesClp = this.problemPath + "/clp/sar_rules.clp";
+        //this.adhocRulesClp = this.problemPath + "/clp/smap_rules_test.clp";
+        this.numInstr = instrumentList.length;
+        this.numOrbits = orbitList.length;
+        instrumentIndexes = new HashMap<>();
+        orbitIndexes = new HashMap<>();
+
+        for (int i = 0; i < numInstr; i++) {
+            instrumentIndexes.put(instrumentList[i], i);
+        }
+        for (int i = 0; i < numOrbits; i++) {
+            orbitIndexes.put(orbitList[i], i);
+        }
+        this.sd = sd;
+        super.init();
+    }
+
     @Override
     public BaseParams copy(){
-        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.antennaMass, this.electronicsMass, this.dataRate);
+        return new SimpleParams(this.orbitList, this.problemName, super.resourcesPath, super.reqMode, super.name, super.runMode, this.sd);
     }
 
     public void setInstrumentList(String[] instrumentList){
@@ -122,4 +150,6 @@ public class SimpleParams extends BaseParams {
     public double getDataRate(){
         return this.dataRate;
     }
+
+    public SpectrometerDesign getSpectrometerDesign() { return this.sd; }
 }

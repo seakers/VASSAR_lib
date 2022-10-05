@@ -124,11 +124,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     @Override
     public FieldOfViewEventAnalysis call() throws OrekitException {
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
-            Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
-            Logger.getGlobal().finer(
-                    String.format("Simulation dates %s to %s (%.2f days)",
-                            getStartDate(), getEndDate(),
-                            getEndDate().durationFrom(getStartDate()) / 86400.));
+            //Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
+            //Logger.getGlobal().finer(
+            //        String.format("Simulation dates %s to %s (%.2f days)",
+            //                getStartDate(), getEndDate(),
+            //                getEndDate().durationFrom(getStartDate()) / 86400.));
 
             //propogate each satellite individually
             ArrayList<SubRoutine> subRoutines = new ArrayList<>();
@@ -367,7 +367,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
-            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
+            //Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             if (prop instanceof NumericalPropagator) {
                 singlePropagate();
             } else {

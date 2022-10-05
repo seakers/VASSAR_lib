@@ -25,6 +25,7 @@ import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.template.classes.SlotInfo;
 import seakers.vassar.template.functions.JessExtension;
 import seakers.vassar.utils.MatlabFunctions;
+import seakers.vassar.utils.SpectrometerDesign;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -611,6 +612,18 @@ public class JessInitializer {
                     if (row[0].getContents().equals("Name CustomLANT") && slot_name.equals("mass#")) {
                         slot_value = String.valueOf(params.getAntennaMass());
                     }
+                    if (row[0].getContents().equals("Name CustomInstrument")){
+                        SpectrometerDesign sd = params.getSpectrometerDesign();
+                        if(slot_name.equals("mass#")) {
+                            slot_value = String.valueOf(sd.getMass());
+                        }
+                        if(slot_name.equals("average-data-rate#")) {
+                            slot_value = String.valueOf(sd.getDataRate());
+                        }
+                        if(slot_name.equals("avg-power#")) {
+                            slot_value = String.valueOf(sd.getPower());
+                        }
+                    }
                     call = call.concat( " (" + slot_name + " " + slot_value + ") ");
                 }
                 call = call.concat("(factHistory F" + params.nof + ")");
@@ -790,7 +803,7 @@ public class JessInitializer {
                             params.panelsToMeasurements.put(panel, measurements);
                         }
                         r.eval(reqRule);
-                        System.out.println(reqRule);
+                        //System.out.println(reqRule);
 
                         //start next requirement rule
                         rhs = "";
@@ -1089,6 +1102,19 @@ public class JessInitializer {
                         if (tokens2[1].equalsIgnoreCase("nil")) {
                             continue;
                         }
+                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spatial")) {
+                            att_value_pair2 = "VSWIR-Spatial "+params.getSpectrometerDesign().getSpatialResolution();
+                        }
+                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Resolution")) {
+                            att_value_pair2 = "VSWIR-Spectral-Resolution "+params.getSpectrometerDesign().getSpectralResolution();
+                        }
+                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Range")) {
+                            att_value_pair2 = "VSWIR-Spectral-Range "+params.getSpectrometerDesign().getSpectralRange();
+                        }
+                        if(tokens2[0].equalsIgnoreCase("VSWIR-Swath")) {
+                            att_value_pair2 = "VSWIR-Swath "+params.getSpectrometerDesign().getSwath();
+                        }
+                        //System.out.println(att_value_pair2);
                         call2 += " (" + att_value_pair2 + ") ";
                     }
                     call2 += "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"

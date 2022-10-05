@@ -2,6 +2,7 @@ package seakers.vassar.problems.Evaluating;
 
 import seakers.vassar.BaseParams;
 import seakers.vassar.problems.Assigning.AssigningParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 import java.util.HashMap;
 
@@ -88,4 +89,5 @@ public class CommonParams extends BaseParams {
     public double getDataRate(){
         return this.dataRate;
     }
+    public SpectrometerDesign getSpectrometerDesign() { return null; }
 }

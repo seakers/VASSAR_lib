@@ -126,7 +126,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
         //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
 
-        //result.setCost(evaluateCosts(params,r,arch,qb,m));
+        result.setCost(evaluateCosts(params,r,arch,qb,m));
 
 
         this.resourcePool.freeResource(res);
@@ -174,7 +174,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
     }
 
     protected void setOverlap(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) throws JessException {
-        OverlapAnalysis oa = new OverlapAnalysis();
+        OverlapAnalysis oa = new OverlapAnalysis(params.orekitResourcesPath);
         ArrayList<Double> orbitHeights = new ArrayList<>();
         ArrayList<Double> orbitInclinations = new ArrayList<>();
         ArrayList<Double> orbitRAANs = new ArrayList<>();
@@ -990,7 +990,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 if (recalculateRevisitTime) {
                     // Do the re-calculation of the revisit times
 
-                    int coverageGranularity = 5;
+                    int coverageGranularity = 20;
 
                     //Revisit times
                     CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
@@ -1011,13 +1011,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                         double inclination = orb.getInclinationNum(); // [deg]
                         double altitude = orb.getAltitudeNum(); // [m]
                         double raan = orb.getRaanNum();
-                        //double trueAnom = orb.getTrueAnomNum();
+                        double trueAnom = orb.getTrueAnomNum();
                         String raanLabel = orb.getRaan();
 
                         int numSatsPerPlane = Integer.parseInt(orb.getNum_sats_per_plane());
                         int numPlanes = Integer.parseInt(orb.getNplanes());
 
-                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, 0.0);
+                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom);
                         fieldOfViewEvents.add(accesses);
                     }
 
@@ -1028,7 +1028,14 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                         Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
                         mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
                     }
-                    therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds) / 3600;
+
+                    therevtimesGlobal = coverageAnalysis.getMaxRevisitTime(mergedEvents, latBounds, lonBounds) / 3600;
+                    System.out.println("Max revisit time: "+therevtimesGlobal);
+                    System.out.println("Percent coverage: "+coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
+                    if(coverageAnalysis.getPercentCoverage(mergedEvents, latBounds, lonBounds) != 1.0) {
+                        therevtimesGlobal = 24.0*30.0;
+                    }
+
                     therevtimesUS = therevtimesGlobal;
 
                 } else {
@@ -1061,7 +1068,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 //                        + "(factHistory J" + javaAssertedFactID + ")))";
 //                javaAssertedFactID++;
 //                r.eval(call2);
-                System.out.println(call);
+//                System.out.println(call);
 //                System.out.println(call2);
             }
         }

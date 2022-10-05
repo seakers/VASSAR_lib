@@ -2,6 +2,7 @@ package seakers.vassar.utils.designer;
 
 import seakers.vassar.BaseParams;
 import seakers.vassar.problems.Assigning.AssigningParams;
+import seakers.vassar.utils.SpectrometerDesign;
 
 public class DesignerParams extends AssigningParams {
 
@@ -41,4 +42,6 @@ public class DesignerParams extends AssigningParams {
     }
 
     public double getDataRate() { return 0.0; }
+
+    public SpectrometerDesign getSpectrometerDesign() { return null; }
 }
