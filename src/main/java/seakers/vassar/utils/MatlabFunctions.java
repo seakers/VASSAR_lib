@@ -554,7 +554,7 @@ public class MatlabFunctions implements Userfunction {
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
             String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
             double[] receiverPower = new double[250];
-            double[] antennaGain = new double[50];
+            double[] antennaGain = new double[100];
             double costMin = 1e10;
             int band_min = -1;
             int i_min = -1;
@@ -572,7 +572,7 @@ public class MatlabFunctions implements Userfunction {
                         else antennaGain[j] = j+1;
 
                         AntennaDesign antenna = new AntennaDesign();
-                        antenna.designAntenna(alt, drymass, bps, receiverPower[i], antennaGain[j], bands_NEN[band]);
+                        antenna.designAntenna(alt, drymass, bps, receiverPower[i], pow(10, antennaGain[j]/10.0), bands_NEN[band]);
                         powerAntennas.add(antenna);
 
                         if (antenna.getCost() < costMin) {
@@ -591,10 +591,10 @@ public class MatlabFunctions implements Userfunction {
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
-//            if (bestAntenna.getCost() > 0.9e9) {
-//                commsMass = 100000;
-//                commsPower = 100000;
-//            }
+            if (bestAntenna.getCost() > 0.9e9) {
+                commsMass = 100000;
+                commsPower = 100000;
+            }
 
             switch(band_min) {
                 case 0: // UHF

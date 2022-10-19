@@ -15,9 +15,9 @@ import java.util.Properties;
 public class XGrants_MOEA {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(12);
+            OrekitConfig.init(16);
             Properties properties = new Properties();
-            properties.setProperty("populationSize","200");
+            properties.setProperty("populationSize","48");
             properties.setProperty("maxEvaluations","10000");
             XGrantsProgressListener progressListener = new XGrantsProgressListener();
             NondominatedPopulation result = new Executor().withProblemClass(XGrantsProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();

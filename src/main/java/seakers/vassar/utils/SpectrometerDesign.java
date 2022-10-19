@@ -9,17 +9,24 @@ public class SpectrometerDesign {
 
     private double spatialResolution;
     private double spectralRange;
+
+    private boolean tir;
     private double swath;
 
-    public SpectrometerDesign(double alt, int numSpec, double lowerSpec, double upperSpec, double focalLength, double FOV, double aperture) {
-        spectralRange = upperSpec - lowerSpec; // nm
-        spectralResolution = spectralRange/numSpec; // nm
+    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean swir, boolean tir, double focalLength, double FOV, double aperture) {
+        double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
+        if(swir) {
+            spectralRange = 2501.0-379.0;
+            double swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
+            spectralResolution = Math.max(vnirSpectralResolution,swirSpectralResolution);
+        } else {
+            numSWIRSpec = 0;
+            spectralResolution = vnirSpectralResolution;
+        }
+         // nm
         double pixelSize = 6E-6; // m
         double orbitalVelocity = Math.sqrt(398600 / (6378 + alt)); // km/s
         double groundVelocity = orbitalVelocity * 6378 / (6378 + alt); // km/s
-        double groundPixelSize = pixelSize * alt / focalLength; // km
-        double imagingRate = groundVelocity / groundPixelSize;
-        System.out.println("imagingRate: "+imagingRate);
         int bitsPerPixel = 12;
         double IFOV = pixelSize / focalLength;
         spatialResolution = IFOV * alt * 1000;
@@ -27,15 +34,22 @@ public class SpectrometerDesign {
         if (diffractionLimitedResolution > spatialResolution) {
             spatialResolution = diffractionLimitedResolution;
         }
+        double imagingRate = groundVelocity*1000 / spatialResolution;
         double numSpatialPixels = Math.ceil(Math.toRadians(FOV)/IFOV);
         swath = spatialResolution * numSpatialPixels / 1000;
-        power = numSpec * numSpatialPixels * 2e-7;
-        dataRate = numSpec * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
+        power = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * 2e-7;
+        dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
         System.out.println("Datarate: "+dataRate);
         double lensMass = focalLength * 10;
-        double sensorMass = 1.509 + 1e-6 * numSpatialPixels * numSpec;
+        double vnirSensorMass = 0.265 + 0.0026e-3 * numSpatialPixels * numVNIRSpec;
+        double swirSensorMass = 0.618 + 0.0226e-3 * numSpatialPixels * numSWIRSpec;
         //mass = 161.5 - 0.021 * groundPixelSize * 1000;
-        mass = lensMass + sensorMass;
+        double tirSensorMass = 0.0;
+        if(tir) {
+            tirSensorMass = 10.5;
+        }
+        this.tir = tir;
+        mass = lensMass + vnirSensorMass + swirSensorMass + tirSensorMass;
     }
 
     public double getMass() {
@@ -54,4 +68,11 @@ public class SpectrometerDesign {
     public double getSpatialResolution() { return spatialResolution; }
     public double getSpectralRange() { return spectralRange; }
     public double getSwath() { return swath; }
+    public double getTir() {
+        if(tir) {
+            return 10.0;
+        } else {
+            return 0.1;
+        }
+    }
 }

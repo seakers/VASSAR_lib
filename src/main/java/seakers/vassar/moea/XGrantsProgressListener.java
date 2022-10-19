@@ -30,7 +30,7 @@ public class XGrantsProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/xgrants/1005_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/xgrants/1006_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -40,10 +40,10 @@ public class XGrantsProgressListener implements ProgressListener {
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
             for (Solution sol : currentPop) {
-                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6)+","+sol.getVariable(7)+","+sol.getVariable(8)+","+sol.getVariable(9));
+                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+sol.getVariable(8)+","+sol.getVariable(9)+","+sol.getVariable(10));
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/1005_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/1006_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

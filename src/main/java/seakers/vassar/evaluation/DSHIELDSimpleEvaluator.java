@@ -151,7 +151,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2022) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 11) (launch-date 2022) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -740,7 +740,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 oldmasses[i] = missions.get(i).getSlotValue("satellite-dry-mass").floatValue(r.getGlobalContext());
             }
             Double[] diffs = new Double[missions.size()];
-            double tolerance = 10*missions.size();
+            double tolerance = 25*missions.size();
             boolean converged = false;
             while (!converged) {
                 r.eval("(focus CLEAN1)");

@@ -29,6 +29,7 @@ import seakers.vassar.utils.SpectrometerDesign;
 
 import java.io.File;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class JessInitializer {
@@ -623,6 +624,7 @@ public class JessInitializer {
                         if(slot_name.equals("avg-power#")) {
                             slot_value = String.valueOf(sd.getPower());
                         }
+                        System.out.println(slot_name+" "+slot_value);
                     }
                     call = call.concat( " (" + slot_name + " " + slot_value + ") ");
                 }
@@ -1114,7 +1116,10 @@ public class JessInitializer {
                         if(tokens2[0].equalsIgnoreCase("VSWIR-Swath")) {
                             att_value_pair2 = "VSWIR-Swath "+params.getSpectrometerDesign().getSwath();
                         }
-                        //System.out.println(att_value_pair2);
+                        if(tokens2[0].equalsIgnoreCase("TIR-Spectral-Resolution")) {
+                            att_value_pair2 = "TIR-Spectral-Resolution "+params.getSpectrometerDesign().getTir();
+                        }
+                        System.out.println(att_value_pair2);
                         call2 += " (" + att_value_pair2 + ") ";
                     }
                     call2 += "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"
