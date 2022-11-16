@@ -37,10 +37,10 @@ public class SpectrometerDesign {
         double imagingRate = groundVelocity*1000 / spatialResolution;
         double numSpatialPixels = Math.ceil(Math.toRadians(FOV)/IFOV);
         swath = spatialResolution * numSpatialPixels / 1000;
-        power = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * 2e-7;
+        power = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * 2e-7; // based loosely on CCD power draw, refine using Teledyne website
         dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
         System.out.println("Datarate: "+dataRate);
-        double lensMass = focalLength * 10;
+        double lensMass = focalLength * aperture * 10;
         double vnirSensorMass = 0.265 + 0.0026e-3 * numSpatialPixels * numVNIRSpec;
         double swirSensorMass = 0.618 + 0.0226e-3 * numSpatialPixels * numSWIRSpec;
         //mass = 161.5 - 0.021 * groundPixelSize * 1000;
