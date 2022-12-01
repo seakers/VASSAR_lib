@@ -15,12 +15,12 @@ import java.util.Properties;
 public class XGrants_MOEA {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(16);
+            OrekitConfig.init(4);
             Properties properties = new Properties();
-            properties.setProperty("populationSize","100");
+            properties.setProperty("populationSize","10");
             properties.setProperty("maxEvaluations","10000");
             XGrantsProgressListener progressListener = new XGrantsProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(XGrantsProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(XGrantsProblem.class).withAlgorithm("eMOEA").withProperties(properties).withProgressListener(progressListener).run();
 
             //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;

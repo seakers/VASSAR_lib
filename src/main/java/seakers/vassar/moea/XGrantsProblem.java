@@ -64,10 +64,8 @@ public class XGrantsProblem extends AbstractProblem {
         double inc = Math.floor(EncodingUtils.getReal(solution.getVariable(3)) * 100) / 100;
         int numVNIRSpec = EncodingUtils.getInt(solution.getVariable(4));
         int numSWIRSpec = EncodingUtils.getInt(solution.getVariable(5));
-        int swirInt = EncodingUtils.getInt(solution.getVariable(6));
-        int tirInt = EncodingUtils.getInt(solution.getVariable(7));
-        boolean swir = swirInt == 1;
-        boolean tir = tirInt == 1;
+        boolean swir = EncodingUtils.getInt(solution.getVariable(6)) == 1;
+        boolean tir = EncodingUtils.getInt(solution.getVariable(7)) == 1;
         double focalLength = EncodingUtils.getReal(solution.getVariable(8));
         double FOV = EncodingUtils.getReal(solution.getVariable(9));
         double aperture = EncodingUtils.getReal(solution.getVariable(10));

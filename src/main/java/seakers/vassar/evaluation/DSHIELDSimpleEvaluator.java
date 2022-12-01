@@ -993,7 +993,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     int coverageGranularity = 20;
 
                     //Revisit times
-                    CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
+                    CoverageAnalysis coverageAnalysis = new CoverageAnalysis(4, coverageGranularity, true, true, params.orekitResourcesPath);
                     double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
                     double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
 
