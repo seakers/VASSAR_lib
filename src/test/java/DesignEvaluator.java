@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class DesignEvaluator {
     public static void main(String[] args) {
         String path = "../VASSAR_resources";
-        OrekitConfig.init(16);
+        OrekitConfig.init(1);
         ArrayList<String> orbitList = new ArrayList<>();
         int r = 1;
         int s = 3;

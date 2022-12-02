@@ -132,7 +132,7 @@ public class JessInitializer {
             else {
                 loadCostEstimationRules(r, new String[]{params.costEstimationRulesClp});
             }
-            loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
+            //loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
 
             // Load launch vehicle selection rules
             loadLaunchVehicleSelectionRules(r, params.launchVehicleSelectionRulesClp);

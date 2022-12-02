@@ -15,17 +15,17 @@ import java.util.Properties;
 public class DSHIELD_RadarFixedInsAlt_MOEA {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(16);
+            OrekitConfig.init(4);
             Properties properties = new Properties();
             properties.setProperty("populationSize","48");
-            properties.setProperty("maxEvaluations","4800");
+            properties.setProperty("maxEvaluations","10000");
 //            Instrumenter instrumenter = new Instrumenter()
 //                    .withProblem("NSGA-II")
 //                    .withFrequency(48)
 //                    .attachElapsedTimeCollector()
 //                    .attachHypervolumeCollector();
             MOEAFixedInsAltProgressListener progressListener = new MOEAFixedInsAltProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOn(4).withProgressListener(progressListener).run();
 //            Accumulator accumulator = instrumenter.getLastAccumulator();
 //
 //            for (int i=0; i<accumulator.size("NFE"); i++) {
