@@ -113,11 +113,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             e.printStackTrace();
             this.resourcePool.freeResource(res);
         }
-        System.out.println("prior to evaluating coverage");
         result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
-        System.out.println("after evaluating coverage, before evaluating costs");
         result.setCost(evaluateCosts(params,r,arch,qb,m));
-        System.out.println("after evaluating costs");
 
         this.resourcePool.freeResource(res);
 
@@ -236,13 +233,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         double cost = 0.0;
         try {
             long t0 = System.currentTimeMillis();
-            System.out.println("beginning evaluateCosts");
             r.setFocus("MANIFEST0");
             r.run();
-            System.out.println("after manifest0");
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
-            System.out.println("after manifest");
 //            r.setFocus("CAPABILITIES");                 r.run();
 //            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
 //            r.setFocus("CAPABILITIES-GENERATE");        r.run();
@@ -255,16 +249,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             updateRevisitTimes(params, r, arch, qb, m, 1);
             r.setFocus("ASSIMILATION2");
             r.run();
-            System.out.println("after assimilation2");
             r.setFocus("ASSIMILATION");
             r.run();
-            System.out.println("after assimilation");
 
             designSpacecraft(r, arch, qb, m);
-            System.out.println("after designspacecraft");
             r.eval("(focus SAT-CONFIGURATION)");
             r.eval("(run)");
-            System.out.println("after satconfiguration");
             r.eval("(focus LV-SELECTION0)");
             r.eval("(run)");
             r.eval("(focus LV-SELECTION1)");
@@ -393,9 +383,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     //pBandFieldOfViewEvents.add(accesses);
                 }
                 if(insList.contains("L-band_SAR") || insList.contains("CustomLSAR")) {
-                    System.out.println("before getting accesses");
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                    System.out.println("after getting accesses");
                     allEvents.add(accesses);
                     lBandFieldOfViewEvents.add(accesses);
                 }

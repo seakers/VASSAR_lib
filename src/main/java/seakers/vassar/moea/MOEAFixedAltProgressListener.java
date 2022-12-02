@@ -30,7 +30,7 @@ public class MOEAFixedAltProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/radar_fixedalt/0426_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/radar_fixedalt/1201_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -39,11 +39,22 @@ public class MOEAFixedAltProgressListener implements ProgressListener {
         Algorithm xd = event.getCurrentAlgorithm();
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
-            for (Solution sol : currentPop) {
-                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
+            try {
+                FileOutputStream f = new FileOutputStream("./src/test/output/radar_fixedalt/current_population.txt");
+                ObjectOutputStream o = new ObjectOutputStream(f);
+                for (Solution sol : currentPop) {
+                    o.writeObject(sol);
+                    System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+sol.getVariable(4)+","+sol.getVariable(5)+","+sol.getVariable(6));
+                }
+                o.close();
+                f.close();
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found");
+            } catch (IOException e) {
+                System.out.println("Error initializing stream");
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/radar_fixedalt/0426_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/radar_fixedalt/1201_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -276,7 +276,7 @@ public class CoverageAnalysis {
         covDefs.add(coverageDefinition);
 
         //set the type of propagation
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
 
         //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();

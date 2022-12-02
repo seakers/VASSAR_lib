@@ -140,7 +140,7 @@ public class Scenario extends AbstractScenario {
          * Propagator factory that will create the necessary propagator for each
          * satellite
          */
-        private PropagatorFactory propagatorFactory = new PropagatorFactory(PropagatorType.J2);
+        private PropagatorFactory propagatorFactory = new PropagatorFactory(PropagatorType.KEPLERIAN);
 
         /**
          * Properties used in the analyses

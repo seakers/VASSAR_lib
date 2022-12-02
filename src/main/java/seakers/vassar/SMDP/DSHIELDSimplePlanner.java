@@ -63,7 +63,7 @@ public class DSHIELDSimplePlanner {
         ArrayList<Instrument> payload = new ArrayList<>();
         Satellite sat1 = new Satellite(orbit.toString(), orbit,  payload);
         Properties propertiesPropagator = new Properties();
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
 
 
         Collection<Analysis<?>> analyses = new ArrayList<>();
