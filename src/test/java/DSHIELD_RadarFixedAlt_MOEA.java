@@ -21,7 +21,7 @@ public class DSHIELD_RadarFixedAlt_MOEA {
             properties.setProperty("populationSize","48");
             properties.setProperty("maxEvaluations","10000");
             MOEAFixedAltProgressListener progressListener = new MOEAFixedAltProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedAltProblem.class).withAlgorithm("NSGA-II").withProperties(new TypedProperties(properties)).distributeOnAllCores().withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
 
             //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;

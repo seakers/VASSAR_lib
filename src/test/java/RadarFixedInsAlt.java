@@ -29,9 +29,9 @@ import java.util.concurrent.Executors;
 public class RadarFixedInsAlt {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(4);
+            OrekitConfig.init(12);
             RadarFixedInsAltProblem problem = new RadarFixedInsAltProblem();
-            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(4));
+            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(12));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
             boolean exists = tmpDir.exists();
@@ -107,7 +107,7 @@ public class RadarFixedInsAlt {
                 } catch (IOException e) {
                     System.out.println("Error initializing stream");
                 }
-                if(algorithm.getNumberOfEvaluations() % 10 == 0) {
+                if(algorithm.getNumberOfEvaluations() % 100 == 0) {
                     try{
                         PrintWriter out = new PrintWriter("./src/test/output/radar_fixedinsalt/1205_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                         for (Solution sol : currentPop) {

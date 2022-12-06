@@ -29,7 +29,7 @@ public class DSHIELD_RadarFixedInsAlt_MOEA {
 //                    .attachElapsedTimeCollector()
 //                    .attachHypervolumeCollector();
             MOEAFixedInsAltProgressListener progressListener = new MOEAFixedInsAltProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(new TypedProperties(properties)).distributeOn(4).withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOn(4).withProgressListener(progressListener).run();
 //            Accumulator accumulator = instrumenter.getLastAccumulator();
 //
 //            for (int i=0; i<accumulator.size("NFE"); i++) {
