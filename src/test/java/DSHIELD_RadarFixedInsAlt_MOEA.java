@@ -1,15 +1,14 @@
 import org.moeaframework.Executor;
-import org.moeaframework.algorithm.NSGAII;
-import org.moeaframework.core.*;
-import org.moeaframework.core.comparator.ChainedComparator;
-import org.moeaframework.core.comparator.CrowdingComparator;
-import org.moeaframework.core.comparator.ParetoDominanceComparator;
-import org.moeaframework.core.operator.GAVariation;
-import org.moeaframework.core.operator.real.PM;
-import org.moeaframework.core.operator.real.SBX;
+import org.moeaframework.Instrumenter;
+import org.moeaframework.analysis.collector.Accumulator;
+import org.moeaframework.core.NondominatedPopulation;
+import org.moeaframework.core.PopulationIO;
+import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.operator.InjectedInitialization;
 import org.moeaframework.core.operator.TournamentSelection;
+import org.moeaframework.*;
+import org.moeaframework.util.TypedProperties;
 import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.moea.MOEAFixedInsAltProgressListener;
 import seakers.vassar.moea.RadarFixedInsAltProblem;
@@ -29,29 +28,8 @@ public class DSHIELD_RadarFixedInsAlt_MOEA {
 //                    .withFrequency(48)
 //                    .attachElapsedTimeCollector()
 //                    .attachHypervolumeCollector();
-            RadarFixedInsAltProblem rfiap = new RadarFixedInsAltProblem();
-            InjectedInitialization initialization = new InjectedInitialization(
-                    rfiap,
-                    100);
-
-            TournamentSelection selection = new TournamentSelection(2,
-                    new ChainedComparator(
-                            new ParetoDominanceComparator(),
-                            new CrowdingComparator()));
-
-            Variation variation = new GAVariation(
-                    new SBX(1.0, 25.0),
-                    new PM(1.0 / rfiap.getNumberOfVariables(), 30.0));
-
-            Algorithm algorithm = new NSGAII(
-                    rfiap,
-                    new NondominatedSortingPopulation(),
-                    null, // no archive
-                    selection,
-                    variation,
-                    initialization);
             MOEAFixedInsAltProgressListener progressListener = new MOEAFixedInsAltProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm(algorithm.).withProperties(properties).distributeOn(4).withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(RadarFixedInsAltProblem.class).withAlgorithm("NSGA-II").withProperties(new TypedProperties(properties)).distributeOn(4).withProgressListener(progressListener).run();
 //            Accumulator accumulator = instrumenter.getLastAccumulator();
 //
 //            for (int i=0; i<accumulator.size("NFE"); i++) {
