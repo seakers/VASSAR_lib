@@ -453,7 +453,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             r.eval("(focus PRELIM-MASS-BUDGET)");
             r.eval("(run)");
-            System.out.println("after prelimmassbudget");
+            //System.out.println("after prelimmassbudget");
             ArrayList<Fact> missions = qb.makeQuery("MANIFEST::Mission");
             Double[] oldmasses = new Double[missions.size()];
             for (int i = 0; i < missions.size(); i++) {
@@ -480,10 +480,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                     sumdiff += diffs[i];
                     summasses += drymasses[i];
                 }
-                System.out.println("sumdiff: "+sumdiff);
-                System.out.println("summasses: "+summasses);
-                System.out.println("drymasses: "+ Arrays.toString(drymasses));
-                System.out.println("tolerance: "+tolerance);
+//                System.out.println("sumdiff: "+sumdiff);
+//                System.out.println("summasses: "+summasses);
+//                System.out.println("drymasses: "+ Arrays.toString(drymasses));
+//                System.out.println("tolerance: "+tolerance);
                 converged = sumdiff < tolerance || summasses == 0;
                 oldmasses = drymasses;
             }

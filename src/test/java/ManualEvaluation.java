@@ -97,34 +97,34 @@ public class ManualEvaluation {
             e.printStackTrace();
         }
         RadarDesign rd = new RadarDesign(dAz,dEl,atRes,ctRes,nlooks,altRadarSats);
-        double[] smError = null;
-        CloseableHttpClient smClient = HttpClients.createDefault();
-        HttpPost smHttpPost = new HttpPost("http://localhost:8080");
-        List<NameValuePair> instrumentSpecs = new ArrayList<NameValuePair>();
-        instrumentSpecs.add(new BasicNameValuePair("snez", df.format(snez)));
-        instrumentSpecs.add(new BasicNameValuePair("nlooks", df.format(-nlooks)));
-        try {
-            smHttpPost.setEntity(new UrlEncodedFormEntity(instrumentSpecs));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        JSONObject smResult;
-        CloseableHttpResponse smResponse;
-        try {
-            smResponse = smClient.execute(smHttpPost);
-            HttpEntity entity = smResponse.getEntity();
-            String jsonString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
-            JSONParser parser = new JSONParser();
-            smResult = (JSONObject) parser.parse(jsonString);
-            ArrayList<Double> smErrorList = new ArrayList<>();
-            for (Object o : smResult.values()) {
-                smErrorList.add((double) o);
-            }
-            smError = smErrorList.stream().mapToDouble(Double::doubleValue).toArray();
-            smClient.close();
-        } catch (IOException | ParseException | org.json.simple.parser.ParseException e) {
-            e.printStackTrace();
-        }
+//        double[] smError = null;
+//        CloseableHttpClient smClient = HttpClients.createDefault();
+//        HttpPost smHttpPost = new HttpPost("http://localhost:8080");
+//        List<NameValuePair> instrumentSpecs = new ArrayList<NameValuePair>();
+//        instrumentSpecs.add(new BasicNameValuePair("snez", df.format(snez)));
+//        instrumentSpecs.add(new BasicNameValuePair("nlooks", df.format(-nlooks)));
+//        try {
+//            smHttpPost.setEntity(new UrlEncodedFormEntity(instrumentSpecs));
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+//        JSONObject smResult;
+//        CloseableHttpResponse smResponse;
+//        try {
+//            smResponse = smClient.execute(smHttpPost);
+//            HttpEntity entity = smResponse.getEntity();
+//            String jsonString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+//            JSONParser parser = new JSONParser();
+//            smResult = (JSONObject) parser.parse(jsonString);
+//            ArrayList<Double> smErrorList = new ArrayList<>();
+//            for (Object o : smResult.values()) {
+//                smErrorList.add((double) o);
+//            }
+//            smError = smErrorList.stream().mapToDouble(Double::doubleValue).toArray();
+//            smClient.close();
+//        } catch (IOException | ParseException | org.json.simple.parser.ParseException e) {
+//            e.printStackTrace();
+//        }
 
 
         String path = "../VASSAR_resources";
@@ -160,14 +160,14 @@ public class ManualEvaluation {
             orbList[i] = orbitList.get(i);
         try {
             SimpleParams params = new SimpleParams(orbList, "Designer", path, "CRISP-ATTRIBUTES", "test", "normal", rd.getAntennaMass(), rd.getElectronicsMass(), rd.getDataRate());
-            DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator(smError);
+            DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);
             Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
             evaluationManager.clear();
             architecture.setCoverage(result.getCoverage());
             System.out.println(result.getCost());
-            System.out.println(architecture.getScienceReward());
+            System.out.println(architecture.getMaxRevisit());
         } catch (Exception e) {
             e.printStackTrace();
         }

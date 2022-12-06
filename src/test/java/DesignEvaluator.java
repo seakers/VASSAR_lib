@@ -13,8 +13,8 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(1);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 1;
-        int s = 3;
+        int r = 4;
+        int s = 1;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {
@@ -25,11 +25,11 @@ public class DesignEvaluator {
                 int f = 1;
                 int phasing = pu * f;
                 int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-500.0-89"+"-"+RAAN+"-"+anom;
+                String orbitName = "LEO-500.0-73.4"+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
-                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"L-band_SAR"},orbitName);
+                OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"L-band_SAR","P-band_SAR"},orbitName);
                 radarOnlySatellites.add(radarOnlySatellite);
             }
         }

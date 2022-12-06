@@ -18,7 +18,7 @@ public class DSHIELD_RadarFixedAlt_MOEA {
             OrekitConfig.init(16);
             Properties properties = new Properties();
             properties.setProperty("populationSize","48");
-            properties.setProperty("maxEvaluations","4800");
+            properties.setProperty("maxEvaluations","10000");
             MOEAFixedAltProgressListener progressListener = new MOEAFixedAltProgressListener();
             NondominatedPopulation result = new Executor().withProblemClass(RadarFixedAltProblem.class).withAlgorithm("NSGA-II").withProperties(properties).distributeOnAllCores().withProgressListener(progressListener).run();
 

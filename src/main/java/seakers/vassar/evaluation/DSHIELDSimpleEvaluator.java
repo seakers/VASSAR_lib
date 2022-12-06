@@ -315,7 +315,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             int coverageGridGranularity = 20;
             CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
             ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
-            CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath, getCovPoints());
+            //CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath, getCovPoints());
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
@@ -388,8 +388,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     lBandFieldOfViewEvents.add(accesses);
                 }
                 if(insList.contains("CustomLSAR") && this.smError != null) {
-                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                    smEvents.add(accesses);
+                    //Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+                    //smEvents.add(accesses);
                 }
             }
             double[] newLatBounds = new double[]{0,0};
@@ -594,7 +594,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     Map<TopocentricFrame, TimeIntervalArray> event = smEvents.get(i);
                     mergedSMEvents = EventIntervalMerger.merge(mergedSMEvents, event, false);
                 }
-                coverage.add(getScienceValueFOR(mergedSMEvents,coverageAnalysisIGBP.getCovPoints()));
+                //coverage.add(getScienceValueFOR(mergedSMEvents,coverageAnalysisIGBP.getCovPoints()));
             } else {
                 coverage.add(0.0);
             }
@@ -942,7 +942,6 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                             continue;
                         }
 
-                        double fieldOfView = fov; // [deg]
                         double inclination = orb.getInclinationNum(); // [deg]
                         double altitude = orb.getAltitudeNum(); // [m]
                         double raan = orb.getRaanNum();
@@ -952,7 +951,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                         int numSatsPerPlane = Integer.parseInt(orb.getNum_sats_per_plane());
                         int numPlanes = Integer.parseInt(orb.getNplanes());
 
-                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, 0.0);
+                        Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fov, inclination, altitude, numSatsPerPlane, numPlanes, raan, 0.0);
                         fieldOfViewEvents.add(accesses);
                     }
 

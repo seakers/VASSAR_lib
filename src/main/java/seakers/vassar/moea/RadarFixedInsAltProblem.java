@@ -22,6 +22,10 @@ public class RadarFixedInsAltProblem extends AbstractProblem {
     public RadarFixedInsAltProblem() {
         super(3,2,1);
     }
+
+    public Solution[] initialize() {
+
+    }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
         solution.setVariable(0, EncodingUtils.newInt(1,5)); // sats per plane
