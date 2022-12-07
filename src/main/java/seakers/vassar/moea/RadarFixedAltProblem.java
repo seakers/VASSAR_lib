@@ -79,7 +79,10 @@ public class RadarFixedAltProblem extends AbstractProblem {
         try {
             httpPost.setEntity(new UrlEncodedFormEntity(instrumentParams));
         } catch (UnsupportedEncodingException e) {
+            System.out.println(e);
             e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(e);
         }
         JSONObject radarResult = new JSONObject();
         CloseableHttpResponse response = null;
@@ -104,7 +107,7 @@ public class RadarFixedAltProblem extends AbstractProblem {
                 c[1] = 0.0;
             }
             client.close();
-        } catch (IOException | ParseException | org.json.simple.parser.ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         RadarDesign rd = new RadarDesign(dAz,dEl,atRes,ctRes,f[3],500.0);
