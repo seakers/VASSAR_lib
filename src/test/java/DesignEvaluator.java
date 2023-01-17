@@ -22,8 +22,8 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 2; // planes
-        int s = 1; // satellites per plane
+        int r = 4; // planes
+        int s = 4; // satellites per plane
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {

@@ -197,7 +197,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     + "(factHistory J" + javaAssertedFactID + ")))";
             javaAssertedFactID++;
             r.eval(call2);
-            System.out.println(call2);
+            //System.out.println(call2);
         }
     }
 

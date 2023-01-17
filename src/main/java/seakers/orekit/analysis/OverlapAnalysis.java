@@ -150,30 +150,76 @@ public class OverlapAnalysis {
         altimeters.add(SWOT);
 
         // Computing results
-        double duration = 0.01; // in days
+        double duration = 14.00; // in days
         GroundEventAnalyzer altimeterAnalyzer = coverageByConstellation(altimeters, duration, startDate);
         Map<TopocentricFrame, TimeIntervalArray> altimeterEvents = altimeterAnalyzer.getEvents();
         GroundEventAnalyzer imagerAnalyzer = coverageByConstellation(imagers, duration, startDate);
         Map<TopocentricFrame, TimeIntervalArray> imagerEvents = imagerAnalyzer.getEvents();
         // Analyzing overlap
+        double altimeterObservationsCount = 0;
+        for (TopocentricFrame tf : altimeterEvents.keySet()) {
+            altimeterObservationsCount += altimeterEvents.get(tf).getDurations().length;
+        }
+        System.out.println("Number of altimeter observations per hour: "+altimeterObservationsCount/(duration*24));
+        double altimeterObsPerHour = altimeterObservationsCount/(duration*24);
 
         Map<TopocentricFrame, ArrayList<Double>> results15min = analyzeOverlap(altimeterEvents, imagerEvents, 60.0*15);
-        Map<TopocentricFrame, ArrayList<Double>> results1hr = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0);
         Map<TopocentricFrame, ArrayList<Double>> results1day = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24);
         Map<TopocentricFrame, ArrayList<Double>> results3days = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24*3);
-        System.out.println("Number of overlap events in 15 min: "+results15min.size());
-        System.out.println("Number of overlap events in 1 hr: "+results1hr.size());
-        System.out.println("Number of overlap events in 1 day: "+results1day.size());
-        System.out.println("Number of overlap events in 3 days: "+results3days.size());
+        Map<TopocentricFrame, ArrayList<Double>> results7days = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24*7);
+        System.out.println("Number of overlapped points within 15 min: "+results15min.size());
+        System.out.println("Number of overlapped points within 1 day: "+results1day.size());
+        System.out.println("Number of overlapped points within 3 days: "+results3days.size());
+        System.out.println("Number of overlapped points within 7 days: "+results7days.size());
+        double overlapDuration15min = 0.0;
+        double overlapEvents15min = 0.0;
+        for(TopocentricFrame tf : results15min.keySet()) {
+            overlapDuration15min += results15min.get(tf).get(0);
+            overlapEvents15min += results15min.get(tf).get(1);
+        }
+        double overlapDuration1day = 0.0;
+        double overlapEvents1day = 0.0;
+        for(TopocentricFrame tf : results1day.keySet()) {
+            overlapDuration1day += results1day.get(tf).get(0);
+            overlapEvents1day += results1day.get(tf).get(1);
+        }
+        double overlapDuration3days = 0.0;
+        double overlapEvents3days = 0.0;
+        for(TopocentricFrame tf : results3days.keySet()) {
+            overlapDuration3days += results3days.get(tf).get(0);
+            overlapEvents3days += results3days.get(tf).get(1);
+        }
+        double overlapDuration7days = 0.0;
+        double overlapEvents7days = 0.0;
+        for(TopocentricFrame tf : results7days.keySet()) {
+            overlapDuration7days += results7days.get(tf).get(0);
+            overlapEvents7days += results7days.get(tf).get(1);
+        }
+        System.out.println("Overlap duration within 15 min: "+overlapDuration15min);
+        System.out.println("Overlap duration within 1 day: "+overlapDuration1day);
+        System.out.println("Overlap duration within 3 days: "+overlapDuration3days);
+        System.out.println("Overlap duration within 7 days: "+overlapDuration7days);
+        System.out.println("Number of overlap events within 15 min: "+overlapEvents15min);
+        System.out.println("Number of overlap events within 1 day: "+overlapEvents1day);
+        System.out.println("Number of overlap events within 3 days: "+overlapEvents3days);
+        System.out.println("Number of overlap events within 7 days: "+overlapEvents7days);
+        System.out.println("Overlap duration within 15 min, per hour: "+overlapDuration15min/(duration*24));
+        System.out.println("Overlap duration within 1 day, per hour: "+overlapDuration1day/(duration*24));
+        System.out.println("Overlap duration within 3 days, per hour: "+overlapDuration3days/(duration*24));
+        System.out.println("Overlap duration within 7 days, per hour: "+overlapDuration7days/(duration*24));
+        System.out.println("Number of overlap events within 15 min, per hour: "+overlapEvents15min/(duration*24));
+        System.out.println("Number of overlap events within 1 day, per hour: "+overlapEvents1day/(duration*24));
+        System.out.println("Number of overlap events within 3 days, per hour: "+overlapEvents3days/(duration*24));
+        System.out.println("Number of overlap events within 7 days, per hour: "+overlapEvents7days/(duration*24));
         double result = 240000.0;
-        if(results15min.size() > 0){
+        if(overlapEvents15min/(duration*24) > altimeterObsPerHour){
             result = 14.99;
-        } else if(results1hr.size() > 0) {
-            result = 59.99;
-        } else if(results1day.size() > 0) {
+        } else if(overlapEvents1day/(duration*24) > altimeterObsPerHour) {
             result = 60.0*24 - 0.01;
-        } else if(results3days.size() > 0) {
+        } else if(overlapEvents3days/(duration*24) > altimeterObsPerHour) {
             result = 60.0 * 24 * 3 - 0.01;
+        } else if(overlapEvents7days/(duration*24) > altimeterObsPerHour) {
+            result = 60.0 * 24 * 7 - 0.01;
         }
 //        OrekitConfig.end();
         return result;
@@ -268,7 +314,7 @@ public class OverlapAnalysis {
         Frame inertialFrame = FramesFactory.getEME2000();
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN);
 
         List<List<String>> riverRecords = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/grwl_river_output.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
