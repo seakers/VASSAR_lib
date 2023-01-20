@@ -220,7 +220,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
             //r.eval("(watch facts)");
-            r.eval("(facts CAPABILITIES)");
+            //r.eval("(facts CAPABILITIES)");
 
             r.setFocus("MANIFEST0"); r.run();
             r.setFocus("MANIFEST"); r.run();
@@ -351,7 +351,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-            r.eval("(facts MANIFEST)");
+            //r.eval("(facts MANIFEST)");
 
         }
         catch (JessException e) {

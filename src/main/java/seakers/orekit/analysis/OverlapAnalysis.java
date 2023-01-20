@@ -150,7 +150,7 @@ public class OverlapAnalysis {
         altimeters.add(SWOT);
 
         // Computing results
-        double duration = 14.00; // in days
+        double duration = 8.00; // in days
         GroundEventAnalyzer altimeterAnalyzer = coverageByConstellation(altimeters, duration, startDate);
         Map<TopocentricFrame, TimeIntervalArray> altimeterEvents = altimeterAnalyzer.getEvents();
         GroundEventAnalyzer imagerAnalyzer = coverageByConstellation(imagers, duration, startDate);

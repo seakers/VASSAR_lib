@@ -548,7 +548,7 @@ public class CoverageAnalysisModified {
         } else {
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
-        return stat.getPercentile(95);
+        return stat.getPercentile(100);
     }
 
     public Map<TopocentricFrame, TimeIntervalArray> getAccesses(double fieldOfView, double inclination, double altitude, int numSatsPerPlane, int numPlanes, double raan, double trueAnom, String instrumentType) throws OrekitException {

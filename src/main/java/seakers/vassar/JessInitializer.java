@@ -624,7 +624,7 @@ public class JessInitializer {
                         if(slot_name.equals("avg-power#")) {
                             slot_value = String.valueOf(sd.getPower());
                         }
-                        System.out.println(slot_name+" "+slot_value);
+                        //System.out.println(slot_name+" "+slot_value);
                     }
                     call = call.concat( " (" + slot_name + " " + slot_value + ") ");
                 }
@@ -1119,7 +1119,7 @@ public class JessInitializer {
                         if(tokens2[0].equalsIgnoreCase("TIR-Spectral-Resolution")) {
                             att_value_pair2 = "TIR-Spectral-Resolution "+params.getSpectrometerDesign().getTir();
                         }
-                        System.out.println(att_value_pair2);
+                        //System.out.println(att_value_pair2);
                         call2 += " (" + att_value_pair2 + ") ";
                     }
                     call2 += "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"

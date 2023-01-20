@@ -30,7 +30,7 @@ public class XGrantsProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/xgrants/1102_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/xgrants/012023_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -39,11 +39,22 @@ public class XGrantsProgressListener implements ProgressListener {
         Algorithm xd = event.getCurrentAlgorithm();
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
-            for (Solution sol : currentPop) {
-                System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+            try {
+                FileOutputStream f = new FileOutputStream("current_population.txt");
+                ObjectOutputStream o = new ObjectOutputStream(f);
+                for (Solution sol : currentPop) {
+                    o.writeObject(sol);
+                    System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+                }
+                o.close();
+                f.close();
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found");
+            } catch (IOException e) {
+                System.out.println("Error initializing stream");
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/1102_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/012023_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }
