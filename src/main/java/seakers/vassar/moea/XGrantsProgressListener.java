@@ -9,6 +9,7 @@ import org.moeaframework.util.progress.ProgressEvent;
 import org.moeaframework.util.progress.ProgressListener;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class XGrantsProgressListener implements ProgressListener {
     private int seedCount = 0;
@@ -30,7 +31,7 @@ public class XGrantsProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/xgrants/012023_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/xgrants/012323_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -44,7 +45,7 @@ public class XGrantsProgressListener implements ProgressListener {
                 ObjectOutputStream o = new ObjectOutputStream(f);
                 for (Solution sol : currentPop) {
                     o.writeObject(sol);
-                    System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+                    System.out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10))+ Arrays.toString(sol.getObjectives()));
                 }
                 o.close();
                 f.close();
@@ -54,7 +55,7 @@ public class XGrantsProgressListener implements ProgressListener {
                 System.out.println("Error initializing stream");
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/012023_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/012323_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

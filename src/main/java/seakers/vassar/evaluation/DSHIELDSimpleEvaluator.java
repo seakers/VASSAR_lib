@@ -351,7 +351,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-            //r.eval("(facts MANIFEST)");
+            r.eval("(facts MANIFEST)");
 
         }
         catch (JessException e) {
@@ -1030,8 +1030,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     }
 
                     therevtimesGlobal = coverageAnalysis.getMaxRevisitTime(mergedEvents, latBounds, lonBounds) / 3600;
-                    System.out.println("Max revisit time: "+therevtimesGlobal);
-                    System.out.println("Percent coverage: "+coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
+                    //System.out.println("Max revisit time: "+therevtimesGlobal);
+                    //System.out.println("Percent coverage: "+coverageAnalysis.getPercentCoverage(mergedEvents,latBounds,lonBounds));
                     if(coverageAnalysis.getPercentCoverage(mergedEvents, latBounds, lonBounds) != 1.0) {
                         therevtimesGlobal = 24.0*30.0;
                     }

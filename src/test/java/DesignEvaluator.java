@@ -22,8 +22,8 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 4; // planes
-        int s = 4; // satellites per plane
+        int r = 1; // planes
+        int s = 2; // satellites per plane
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {
@@ -34,7 +34,7 @@ public class DesignEvaluator {
                 int f = 1;
                 int phasing = pu * f;
                 int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-852-72"+"-"+RAAN+"-"+anom;
+                String orbitName = "LEO-1000-81.8"+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
@@ -48,14 +48,14 @@ public class DesignEvaluator {
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        double alt = 852;
-        int numVNIRSpec = 130;
-        int numSWIRSpec = 843;
+        double alt = 1000;
+        int numVNIRSpec = 703;
+        int numSWIRSpec = 720;
         boolean swir = true;
         boolean tir = true;
-        double focalLength = 0.56;
-        double FOV = 2.0;
-        double aperture = 4.007;
+        double focalLength = 0.34;
+        double FOV = 0.88;
+        double aperture = 1.688;
         SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,swir,tir,focalLength,FOV,aperture);
         SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();

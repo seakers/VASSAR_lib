@@ -156,11 +156,21 @@ public class OverlapAnalysis {
         GroundEventAnalyzer imagerAnalyzer = coverageByConstellation(imagers, duration, startDate);
         Map<TopocentricFrame, TimeIntervalArray> imagerEvents = imagerAnalyzer.getEvents();
         // Analyzing overlap
-        double altimeterObservationsCount = 0;
+        double uniqueAltimeterLocations = 0;
         for (TopocentricFrame tf : altimeterEvents.keySet()) {
-            altimeterObservationsCount += altimeterEvents.get(tf).getDurations().length;
+            if(altimeterEvents.get(tf).getDurations().length > 0) {
+                uniqueAltimeterLocations += 1;
+            }
+
         }
-        System.out.println("Number of altimeter observations per hour: "+altimeterObservationsCount/(duration*24));
+        double result = 0;
+        for (int i = 10; i > 0; i--) {
+            Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
+            if(overlapPeriods.size() == uniqueAltimeterLocations) {
+                result = 1-0.1*i;
+            }
+        }
+        /*System.out.println("Number of altimeter observations per hour: "+altimeterObservationsCount/(duration*24));
         double altimeterObsPerHour = altimeterObservationsCount/(duration*24);
 
         Map<TopocentricFrame, ArrayList<Double>> results15min = analyzeOverlap(altimeterEvents, imagerEvents, 60.0*15);
@@ -222,6 +232,7 @@ public class OverlapAnalysis {
             result = 60.0 * 24 * 7 - 0.01;
         }
 //        OrekitConfig.end();
+        */
         return result;
     }
 
@@ -378,7 +389,7 @@ public class OverlapAnalysis {
 
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
         long end = System.nanoTime();
-        System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
+        //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return gea;
     }
 
