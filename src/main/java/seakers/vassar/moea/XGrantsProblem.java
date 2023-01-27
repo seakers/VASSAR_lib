@@ -43,25 +43,25 @@ public class XGrantsProblem extends AbstractProblem {
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
-        solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
-        solution.setVariable(1, EncodingUtils.newInt(1,5)); // number of planes
-        solution.setVariable(2, new RealVariable(380.0,1000.0)); // altitude of radar satellites
-        solution.setVariable(3, new RealVariable(70.0,90.0)); // inclination of radar satellites
+        solution.setVariable(0, EncodingUtils.newInt(1,10)); // number of radar satellites
+        solution.setVariable(1, EncodingUtils.newInt(1,10)); // number of planes
+        solution.setVariable(2, EncodingUtils.newInt(0,10)); // altitude of radar satellites (between 400 and 1400 km)
+        solution.setVariable(3, EncodingUtils.newInt(0,10)); // inclination of radar satellites (between 60 and 110 deg)
         solution.setVariable(4, EncodingUtils.newInt(3,1000)); // num spectral pixels in VNIR
         solution.setVariable(5, EncodingUtils.newInt(3,1000)); // num spectral pixels in SWIR
         solution.setVariable(6, EncodingUtils.newInt(0,1)); // SWIR presence
         solution.setVariable(7, EncodingUtils.newInt(0,1)); // TIR presence
-        solution.setVariable(8, new RealVariable(0.01,10)); // focal length (m)
-        solution.setVariable(9, new RealVariable(0.01,10)); // FOV (deg)
-        solution.setVariable(10, new RealVariable(0.01, 10)); // aperture (m)
+        solution.setVariable(8, new RealVariable(0.01,5)); // focal length (m)
+        solution.setVariable(9, new RealVariable(0.01,5)); // FOV (deg)
+        solution.setVariable(10, new RealVariable(0.01, 5)); // aperture (m)
         return solution;
     }
 
     public void evaluate(Solution solution) {
         int numSatsPerPlane = EncodingUtils.getInt(solution.getVariable(0));
         int numPlanes = EncodingUtils.getInt(solution.getVariable(1));
-        double alt = Math.floor(EncodingUtils.getReal(solution.getVariable(2)) * 100) / 100;
-        double inc = Math.floor(EncodingUtils.getReal(solution.getVariable(3)) * 100) / 100;
+        int alt = EncodingUtils.getInt(solution.getVariable(3)) * 100 + 400;
+        int inc = EncodingUtils.getInt(solution.getVariable(4)) * 5 + 60;
         int numVNIRSpec = EncodingUtils.getInt(solution.getVariable(4));
         int numSWIRSpec = EncodingUtils.getInt(solution.getVariable(5));
         boolean swir = EncodingUtils.getInt(solution.getVariable(6)) == 1;

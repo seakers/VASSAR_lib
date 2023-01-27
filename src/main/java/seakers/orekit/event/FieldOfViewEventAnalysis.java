@@ -300,6 +300,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         return sb.toString();
     }
 
+    public HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> getAllEvents(CoverageDefinition cdef) {
+        return allAccesses.get(cdef);
+    }
+
     /**
      * Creates a subroutine to run the field of view event analysis in parallel
      */

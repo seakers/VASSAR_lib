@@ -235,34 +235,6 @@ public class OverlapAnalysis {
         */
         return result;
     }
-
-    public static Collection<Record<String>> getGroundTrack(Orbit orbit, double duration, AbsoluteDate startDate) {
-        TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate endDate = startDate.shiftedBy(duration*86400);
-
-        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
-
-        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                Constants.WGS84_EARTH_FLATTENING, earthFrame);
-        ArrayList<Instrument> payload = new ArrayList<>();
-        Satellite sat1 = new Satellite(orbit.toString(), orbit,  payload);
-        Properties propertiesPropagator = new Properties();
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-
-
-        Collection<Analysis<?>> analyses = new ArrayList<>();
-        double analysisTimeStep = 5;
-        GroundTrackAnalysis gta = new GroundTrackAnalysis(startDate, endDate, analysisTimeStep, sat1, earthShape, pf);
-        analyses.add(gta);
-        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).name(orbit.toString()).propagatorFactory(pf).build();
-        try {
-            scen.call();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Ground track scenario failed to complete.");
-        }
-        return gta.getHistory();
-    }
     public static Map<TopocentricFrame, ArrayList<Double>> analyzeOverlap(Map<TopocentricFrame, TimeIntervalArray> base, Map<TopocentricFrame, TimeIntervalArray> addl, double delay) {
         Map<TopocentricFrame, ArrayList<Double>> results = new HashMap<>();
         Map<TopocentricFrame, TimeIntervalArray> overlapTimes = new HashMap<>();
@@ -325,7 +297,7 @@ public class OverlapAnalysis {
         Frame inertialFrame = FramesFactory.getEME2000();
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
 
         List<List<String>> riverRecords = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/grwl_river_output.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
@@ -376,7 +348,7 @@ public class OverlapAnalysis {
         covDefs.add(covDef);
 
         ArrayList<EventAnalysis> eventAnalyses = new ArrayList<>();
-        FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,false, false);
+        FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,false, true);
         eventAnalyses.add(fovea);
 
         Scenario scene = new Scenario.Builder(startDate, endDate, utc).eventAnalysis(eventAnalyses).covDefs(covDefs).name("CoverageByConstellation").propagatorFactory(pf).build();

@@ -26,10 +26,8 @@ import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.vassar.*;
 import seakers.vassar.SMDP.DSHIELDSimplePlanner;
 import seakers.vassar.architecture.AbstractArchitecture;
-import seakers.vassar.coverage.CoverageAnalysis;
-import seakers.vassar.coverage.CoverageAnalysisIGBP;
-import seakers.vassar.coverage.CoverageAnalysisModified;
-import seakers.vassar.coverage.ReflectometerCoverageAnalysis;
+import seakers.vassar.coverage.*;
+import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.spacecraft.SpacecraftDescription;
@@ -941,6 +939,26 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             d[i] = min + i * (max - min) / (points - 1);
         }
         return d;
+    }
+
+    protected void updateRevisitTimesPlanner(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
+        SimpleArchitecture simpleArch = (SimpleArchitecture) arch;
+        for (String param : params.measurementsToInstruments.keySet()) {
+            ArrayList<Satellite> satellites = new ArrayList<>();
+            int i = 0;
+            for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
+                Satellite smallsat = new Satellite("sat"+i, oio.getOrbit(), oio.getInstrumentList());
+                i = i+1;
+            }
+            CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap();
+            double therevtimesGlobal = capo.getMaxRevisitTime();
+            String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
+                    + "(avg-revisit-time-global# " + therevtimesGlobal/24.0 + ") "
+                    + "(avg-revisit-time-US# " + therevtimesGlobal/24.0 + ")"
+                    + "(factHistory J" + javaAssertedFactID + ")))";
+            javaAssertedFactID++;
+            r.eval(call);
+        }
     }
 
     protected void updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {

@@ -226,7 +226,7 @@ public class Satellite implements OrekitObject, Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.payload);
+//        hash = 23 * hash + Objects.hashCode(this.payload);
         try {
             //create hash for orbit
             TimeStampedPVCoordinates pv = this.orbit.getPVCoordinates(FramesFactory.getEME2000());
@@ -235,18 +235,18 @@ public class Satellite implements OrekitObject, Serializable {
             hash = 23 * hash + Objects.hashCode(pv.getAcceleration());
 
             //get hash for attitude provider based on rotation matrix at specific time in specific frame
-            if (attProv != null) {
-                double[][] rotMmatrix = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                hash = 23 * hash + Objects.hashCode(rotMmatrix);
-            }
+//            if (attProv != null) {
+//                double[][] rotMmatrix = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+//                hash = 23 * hash + Objects.hashCode(rotMmatrix);
+//            }
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
         }
-        hash = 23 * hash + Objects.hashCode(this.transmitter);
-        hash = 23 * hash + Objects.hashCode(this.receiver);
-        hash = 23 * hash + (int) (Double.doubleToLongBits(this.wetMass) ^ (Double.doubleToLongBits(this.wetMass) >>> 32));
-        hash = 23 * hash + (int) (Double.doubleToLongBits(this.dryMass) ^ (Double.doubleToLongBits(this.dryMass) >>> 32));
-        hash = 23 * hash + (int) (Double.doubleToLongBits(this.grossMass) ^ (Double.doubleToLongBits(this.grossMass) >>> 32));
+//        hash = 23 * hash + Objects.hashCode(this.transmitter);
+//        hash = 23 * hash + Objects.hashCode(this.receiver);
+//        hash = 23 * hash + (int) (Double.doubleToLongBits(this.wetMass) ^ (Double.doubleToLongBits(this.wetMass) >>> 32));
+//        hash = 23 * hash + (int) (Double.doubleToLongBits(this.dryMass) ^ (Double.doubleToLongBits(this.dryMass) >>> 32));
+//        hash = 23 * hash + (int) (Double.doubleToLongBits(this.grossMass) ^ (Double.doubleToLongBits(this.grossMass) >>> 32));
         return hash;
     }
 
