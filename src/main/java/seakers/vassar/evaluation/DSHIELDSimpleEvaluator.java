@@ -943,14 +943,25 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     protected void updateRevisitTimesPlanner(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
         SimpleArchitecture simpleArch = (SimpleArchitecture) arch;
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
         for (String param : params.measurementsToInstruments.keySet()) {
             ArrayList<Satellite> satellites = new ArrayList<>();
             int i = 0;
             for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
-                Satellite smallsat = new Satellite("sat"+i, oio.getOrbit(), oio.getInstrumentList());
+                KeplerianOrbit orbit = convertOrbitStringToOrbit(oio.getOrbit());
+                Collection<Instrument> imagerPayload = new ArrayList<>();
+                double fov = 30.0;
+                double imagerFOVRadians = Math.toRadians(fov);
+                NadirSimpleConicalFOV etmPlusFOV = new NadirSimpleConicalFOV(imagerFOVRadians,earthShape);
+                Instrument etmPlus = new Instrument("ETM+", etmPlusFOV, 100.0, 100.0);
+                imagerPayload.add(etmPlus);
+                Satellite smallsat = new Satellite("sat"+i, orbit, imagerPayload);
+                satellites.add(smallsat);
                 i = i+1;
             }
-            CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap();
+            CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites);
             double therevtimesGlobal = capo.getMaxRevisitTime();
             String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
                     + "(avg-revisit-time-global# " + therevtimesGlobal/24.0 + ") "
@@ -959,6 +970,16 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             javaAssertedFactID++;
             r.eval(call);
         }
+    }
+
+    private KeplerianOrbit convertOrbitStringToOrbit(String orbit) {
+        String[] tokens = orbit.split("-");
+        double mu = Constants.WGS84_EARTH_MU;
+        Frame inertialFrame = FramesFactory.getEME2000();
+        TimeScale utc = TimeScalesFactory.getUTC();
+        AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
+        KeplerianOrbit kepOrbit = new KeplerianOrbit(FastMath.toRadians(Double.parseDouble(tokens[1])),0.0,FastMath.toRadians(Double.parseDouble(tokens[2])),0.0,FastMath.toRadians(Double.parseDouble(tokens[3])),FastMath.toRadians(Double.parseDouble(tokens[4])),PositionAngle.MEAN, inertialFrame, startDate, mu);
+        return kepOrbit;
     }
 
     protected void updateRevisitTimes(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {

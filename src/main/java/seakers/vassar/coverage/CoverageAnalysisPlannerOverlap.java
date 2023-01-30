@@ -65,22 +65,24 @@ public class CoverageAnalysisPlannerOverlap {
     private boolean saveAccessData;
     private AbsoluteDate startDate;
     private AbsoluteDate endDate;
+    private ArrayList<Satellite> satellites;
 
     private Map<TopocentricFrame, TimeIntervalArray> imagerEvents;
 
     private HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> eventsBySatellite;
 
-    public CoverageAnalysisPlannerOverlap(int numThreads) throws OrekitException{
-        this(numThreads, true, true);
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites) throws OrekitException{
+        this(satellites, 4, true, true);
     }
 
-    public CoverageAnalysisPlannerOverlap(int numThreads, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
-        this(numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
+        this(satellites,numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
     }
 
-    public CoverageAnalysisPlannerOverlap(int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
 
         this.cwd = cwd;
+        this.satellites = satellites;
 
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
@@ -131,7 +133,7 @@ public class CoverageAnalysisPlannerOverlap {
         //so we are just instantiating it
         this.propertiesPropagator = new Properties();
     }
-    private void computeImagerAccesses(ArrayList<Satellite> satelliteList) throws OrekitException{
+    private void computeImagerAccesses() throws OrekitException{
         //initializes the look up tables for planteary position (required!)
         //OrekitConfig.init(4);
         //define the start and end date of the simulation
@@ -185,7 +187,7 @@ public class CoverageAnalysisPlannerOverlap {
         CoverageDefinition covDef = new CoverageDefinition("covdef", covPoints, earthShape);
         //CoverageDefinition covDef = new CoverageDefinition("Whole Earth", granularity, earthShape, UNIFORM);
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
-        Constellation constellation = new Constellation("Constellation", satelliteList);
+        Constellation constellation = new Constellation("Constellation", satellites);
         covDef.assignConstellation(constellation);
         covDefs.add(covDef);
 
