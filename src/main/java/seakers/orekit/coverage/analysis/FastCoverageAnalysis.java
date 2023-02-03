@@ -85,7 +85,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
     public FastCoverageAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
             double halfAngle) {
-        super(startDate, endDate, inertialFrame, covDefs, null, true, true);
+        super(startDate, endDate, inertialFrame, covDefs, null, true, true,1.0);
         this.halfAngle = halfAngle;
     }
 

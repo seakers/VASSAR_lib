@@ -15,8 +15,6 @@ import java.util.Collections;
  */
 public class RecordHistory<T> extends ArrayList<Record<T>> {
 
-    private static final long serialVersionUID = -3805527690941619591L;
-
     /**
      * flag to keep track if the history is sorted by date
      */

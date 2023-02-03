@@ -72,7 +72,7 @@ public abstract class AbstractAnalysis<T> implements Analysis<T> {
      */
     @Override
     public Collection<Record<T>> getHistory() {
-        history.sortByDate();
+        //history.sortByDate();
         return history;
     }
 

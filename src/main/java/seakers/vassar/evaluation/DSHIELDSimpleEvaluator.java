@@ -3,6 +3,7 @@ package seakers.vassar.evaluation;
 import jess.*;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.GeodeticPoint;
+import org.orekit.data.DataProvidersManager;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
@@ -35,6 +36,7 @@ import seakers.vassar.utils.MatlabFunctions;
 import seakers.orekit.analysis.OverlapAnalysis;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.*;
 
@@ -230,8 +232,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.setFocus("CAPABILITIES-UPDATE"); r.run();
             r.setFocus("SYNERGIES"); r.run();
 
-            updateRevisitTimes(params, r, arch, qb, m, 1);
-            setOverlap(params, r, arch, qb, m);
+            //updateRevisitTimes(params, r, arch, qb, m, 1);
+            long start = System.nanoTime();
+            updateRevisitTimesPlanner(params, r, arch, qb, m, 1);
+            long end = System.nanoTime();
+            System.out.printf("updateRevisitTimesPlanner took %.4f sec\n", (end - start) / Math.pow(10, 9));
+            //setOverlap(params, r, arch, qb, m);
 
             r.setFocus("ASSIMILATION2");
             r.run();
@@ -306,7 +312,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 //            r.setFocus("SYNERGIES");
 //            r.run();
 
-            updateRevisitTimes(params, r, arch, qb, m, 1);
+            //updateRevisitTimes(params, r, arch, qb, m, 1);
             r.setFocus("ASSIMILATION2");
             r.run();
             r.setFocus("ASSIMILATION");
@@ -377,7 +383,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             int coverageGridGranularity = 20;
             CoverageAnalysisModified coverageAnalysis = new CoverageAnalysisModified(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
             ReflectometerCoverageAnalysis reflAnalysis = new ReflectometerCoverageAnalysis(1, coverageGridGranularity, false, true, params.orekitResourcesPath);
-            CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath, getCovPoints());
+            //CoverageAnalysisIGBP coverageAnalysisIGBP = new CoverageAnalysisIGBP(1, coverageGridGranularity, false, true, params.orekitResourcesPath, getCovPoints());
             double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
             double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
             double maxInclination = 0;
@@ -449,10 +455,10 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     allEvents.add(accesses);
                     lBandFieldOfViewEvents.add(accesses);
                 }
-                if(insList.contains("CustomLSAR") && this.smError != null) {
-                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
-                    smEvents.add(accesses);
-                }
+//                if(insList.contains("CustomLSAR") && this.smError != null) {
+//                    Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysisIGBP.getAccesses(fieldOfView, inclination, altitude, numSatsPerPlane, numPlanes, raan, trueAnom, "radar");
+//                    smEvents.add(accesses);
+//                }
             }
             double[] newLatBounds = new double[]{0,0};
             if (maxInclination < 75) {
@@ -650,16 +656,16 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                 coverage.add(getSMRewards(pBandMergedEvents));
                 coverage.add(planner.getReward());
             }
-            if(this.smError != null) {
-                Map<TopocentricFrame, TimeIntervalArray> mergedSMEvents = new HashMap<>(smEvents.get(0));
-                for (int i = 0; i < smEvents.size(); ++i) {
-                    Map<TopocentricFrame, TimeIntervalArray> event = smEvents.get(i);
-                    mergedSMEvents = EventIntervalMerger.merge(mergedSMEvents, event, false);
-                }
-                coverage.add(getScienceValueFOR(mergedSMEvents,coverageAnalysisIGBP.getCovPoints()));
-            } else {
-                coverage.add(0.0);
-            }
+//            if(this.smError != null) {
+//                Map<TopocentricFrame, TimeIntervalArray> mergedSMEvents = new HashMap<>(smEvents.get(0));
+//                for (int i = 0; i < smEvents.size(); ++i) {
+//                    Map<TopocentricFrame, TimeIntervalArray> event = smEvents.get(i);
+//                    mergedSMEvents = EventIntervalMerger.merge(mergedSMEvents, event, false);
+//                }
+//                coverage.add(getScienceValueFOR(mergedSMEvents,coverageAnalysisIGBP.getCovPoints()));
+//            } else {
+//                coverage.add(0.0);
+//            }
 
 
             System.out.println("Done processing coverage");
@@ -943,26 +949,47 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     protected void updateRevisitTimesPlanner(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m, int javaAssertedFactID) throws JessException {
         SimpleArchitecture simpleArch = (SimpleArchitecture) arch;
+        Locale.setDefault(new Locale("en", "US"));
+
+        // Load default dataset saved in the project root directory
+        StringBuffer pathBuffer = new StringBuffer();
+
+        final File currrentDir = new File(params.orekitResourcesPath);
+        if (currrentDir.exists() && (currrentDir.isDirectory() || currrentDir.getName().endsWith(".zip"))) {
+            pathBuffer.append(currrentDir.getAbsolutePath());
+            pathBuffer.append(File.separator);
+            pathBuffer.append("resources");
+        }
+        System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
+        ArrayList<Satellite> satellites = new ArrayList<>();
+        int i = 0;
+        for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
+            KeplerianOrbit orbit = convertOrbitStringToOrbit(oio.getOrbit());
+            Collection<Instrument> imagerPayload = new ArrayList<>();
+            double ssCrossFOVRadians = Math.toRadians(30.0);
+            double ssAlongFOVRadians = Math.toRadians(15.0); // make sure to change fovea if you change this!!!
+            NadirRectangularFOV ssFOV = new NadirRectangularFOV(ssCrossFOVRadians,ssAlongFOVRadians,0.0,earthShape);
+            Instrument etmPlus = new Instrument("ETM+", ssFOV, 100.0, 100.0);
+            imagerPayload.add(etmPlus);
+            Satellite smallsat = new Satellite("sat"+i, orbit, imagerPayload);
+            satellites.add(smallsat);
+            i = i+1;
+        }
+        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites);
+        double overlapResult = capo.computeOverlap();
+        System.out.println("Computed overlap: "+overlapResult);
+        double therevtimesGlobal = capo.computeMaximumRevisitTime(4e-3);
+        System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
         for (String param : params.measurementsToInstruments.keySet()) {
-            ArrayList<Satellite> satellites = new ArrayList<>();
-            int i = 0;
-            for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
-                KeplerianOrbit orbit = convertOrbitStringToOrbit(oio.getOrbit());
-                Collection<Instrument> imagerPayload = new ArrayList<>();
-                double fov = 30.0;
-                double imagerFOVRadians = Math.toRadians(fov);
-                NadirSimpleConicalFOV etmPlusFOV = new NadirSimpleConicalFOV(imagerFOVRadians,earthShape);
-                Instrument etmPlus = new Instrument("ETM+", etmPlusFOV, 100.0, 100.0);
-                imagerPayload.add(etmPlus);
-                Satellite smallsat = new Satellite("sat"+i, orbit, imagerPayload);
-                satellites.add(smallsat);
-                i = i+1;
-            }
-            CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites);
-            double therevtimesGlobal = capo.getMaxRevisitTime();
+            String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "
+                    + "(overlap-time# " + overlapResult + ") "
+                    + "(factHistory J" + javaAssertedFactID + ")))";
+            javaAssertedFactID++;
+            r.eval(call2);
+
             String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
                     + "(avg-revisit-time-global# " + therevtimesGlobal/24.0 + ") "
                     + "(avg-revisit-time-US# " + therevtimesGlobal/24.0 + ")"
@@ -978,7 +1005,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         Frame inertialFrame = FramesFactory.getEME2000();
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        KeplerianOrbit kepOrbit = new KeplerianOrbit(FastMath.toRadians(Double.parseDouble(tokens[1])),0.0,FastMath.toRadians(Double.parseDouble(tokens[2])),0.0,FastMath.toRadians(Double.parseDouble(tokens[3])),FastMath.toRadians(Double.parseDouble(tokens[4])),PositionAngle.MEAN, inertialFrame, startDate, mu);
+        KeplerianOrbit kepOrbit = new KeplerianOrbit(6378000+Double.parseDouble(tokens[1])*1000,0.01,FastMath.toRadians(Double.parseDouble(tokens[2])),0.0,FastMath.toRadians(Double.parseDouble(tokens[3])),FastMath.toRadians(Double.parseDouble(tokens[4])),PositionAngle.MEAN, inertialFrame, startDate, mu);
         return kepOrbit;
     }
 

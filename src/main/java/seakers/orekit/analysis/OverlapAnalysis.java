@@ -348,7 +348,7 @@ public class OverlapAnalysis {
         covDefs.add(covDef);
 
         ArrayList<EventAnalysis> eventAnalyses = new ArrayList<>();
-        FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,false, true);
+        FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,false, true, 30.0);
         eventAnalyses.add(fovea);
 
         Scenario scene = new Scenario.Builder(startDate, endDate, utc).eventAnalysis(eventAnalyses).covDefs(covDefs).name("CoverageByConstellation").propagatorFactory(pf).build();

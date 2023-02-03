@@ -1,5 +1,6 @@
+package seakers.vassar;
+
 import org.moeaframework.algorithm.EpsilonMOEA;
-import org.moeaframework.algorithm.NSGAII;
 import org.moeaframework.core.*;
 import org.moeaframework.core.comparator.ChainedComparator;
 import org.moeaframework.core.comparator.CrowdingComparator;
@@ -13,7 +14,6 @@ import org.moeaframework.core.operator.real.SBX;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.util.distributed.DistributedProblem;
 import seakers.orekit.util.OrekitConfig;
-import seakers.vassar.moea.RadarFixedAltProblem;
 import seakers.vassar.moea.XGrantsProblem;
 
 import java.io.*;
@@ -24,9 +24,9 @@ import java.util.concurrent.Executors;
 public class XGrants_restart {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(12);
+            OrekitConfig.init(8);
             XGrantsProblem problem = new XGrantsProblem();
-            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(12));
+            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(8));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
             boolean exists = tmpDir.exists();
@@ -56,7 +56,7 @@ public class XGrants_restart {
                         100,array);
                 System.out.println("Injecting existing solution!");
             } else {
-                initialization = new RandomInitialization(distributedProblem,100);
+                initialization = new RandomInitialization(distributedProblem,50);
             }
 
 
@@ -66,8 +66,8 @@ public class XGrants_restart {
                             new CrowdingComparator()));
 
             Variation variation = new GAVariation(
-                    new SBX(1.0, 5.0),
-                    new PM(1.0 / distributedProblem.getNumberOfVariables(), 5.0));
+                    new SBX(1.0, 25.0),
+                    new PM(1.0 / distributedProblem.getNumberOfVariables(), 25.0));
 //            File stateFile = new File("last.state");
 //            Checkpoints checkpoints = new Checkpoints(new NSGAII(
 //                    distributedProblem,
@@ -90,7 +90,7 @@ public class XGrants_restart {
                 algorithm.step();
                 Population currentPop = algorithm.getResult();
                 try {
-                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0127_current_population.txt");
+                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0201_current_population.txt");
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     for (Solution sol : currentPop) {
                         o.writeObject(sol);
@@ -103,16 +103,18 @@ public class XGrants_restart {
                     System.out.println("Error initializing stream");
                 }
                 try{
-                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0127_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0201_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
-                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+sol.getVariable(2)+","+sol.getVariable(3)+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+                        String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 100 + 400);
+                        String inclination = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 5 + 60);
+                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+inclination+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
                     }
                     out.close();
                 } catch (FileNotFoundException e) {
                     System.out.println("File not found");
                 }
                 try {
-                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0127_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0201_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

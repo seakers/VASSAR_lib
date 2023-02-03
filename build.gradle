@@ -4,12 +4,8 @@ plugins {
     id "application"
 }
 apply plugin : "java"
-ext {
-    javaMainClass = "DSHIELD_InsCon_MOEA"
-}
-
 application {
-    mainClassName = javaMainClass
+    mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
 }
 
 group 'seakers'
@@ -46,20 +42,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-jar {
-    manifest {
-        attributes(
-                "Main-Class": javaMainClass
-        )
-    }
-}
-
-task runWithExecJarExecutable(type: Exec) {
-    dependsOn jar
-    group = "Execution"
-    description = "Run the output executable jar with ExecTask"
-    commandLine "java", "-jar", jar.archiveFile.get()
-}
 
 publishing {
     publications {

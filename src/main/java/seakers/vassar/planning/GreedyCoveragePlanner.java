@@ -1,30 +1,19 @@
 package seakers.vassar.planning;
 
 import org.orekit.bodies.GeodeticPoint;
-import seakers.orekit.coverage.access.TimeIntervalArray;
 
 import java.util.*;
 
 public class GreedyCoveragePlanner {
     private ArrayList<SatelliteAction> results;
-    private boolean downlinkEnabled;
-    private boolean crosslinkEnabled;
-
     private boolean resources;
     private ArrayList<Observation> sortedObservations;
-    private TimeIntervalArray downlinks;
-    private Map<String, TimeIntervalArray> crosslinks;
-    private Map<String,String> priorityInfo;
     private Map<GeodeticPoint,Double> rewardGrid;
     private Map<String,String> settings;
 
-    public GreedyCoveragePlanner(ArrayList<Observation> sortedObservations, TimeIntervalArray downlinks, Map<GeodeticPoint,Double> rewardGrid, SatelliteState initialState, Map<String,String> priorityInfo, Map<String, String> settings) {
-        this.sortedObservations = sortedObservations;
-        this.downlinks = downlinks;
+    public GreedyCoveragePlanner(ArrayList<Observation> inputObservations, Map<GeodeticPoint,Double> rewardGrid, SatelliteState initialState, Map<String, String> settings) {
+        this.sortedObservations = sortObservations(inputObservations);
         this.rewardGrid = rewardGrid;
-        this.priorityInfo = new HashMap<>(priorityInfo);
-        this.crosslinkEnabled = Boolean.parseBoolean(settings.get("crosslinkEnabled"));
-        this.downlinkEnabled = Boolean.parseBoolean(settings.get("downlinkEnabled"));
         this.resources = Boolean.parseBoolean(settings.get("resources"));
         this.settings = settings;
         ArrayList<StateAction> stateActions = greedyPlan(initialState);
@@ -35,18 +24,26 @@ public class GreedyCoveragePlanner {
         results = observations;
     }
 
+    public ArrayList<Observation> sortObservations(ArrayList<Observation> observations) {
+        observations.sort(new sortByRiseTime());
+        return observations;
+    }
+
+    class sortByRiseTime implements Comparator<Observation>
+    {
+        // Used for sorting in ascending order of
+        // roll number
+        public int compare(Observation a, Observation b)
+        {
+            return (int) (a.getObservationStart() - b.getObservationStart());
+        }
+    }
     public ArrayList<StateAction> greedyPlan(SatelliteState initialState) {
         ArrayList<StateAction> resultList = new ArrayList<>();
-        Map<GeodeticPoint,Integer> obsCounts = new HashMap<>();
-        for(GeodeticPoint gp : rewardGrid.keySet()) {
-            obsCounts.put(gp,0);
-        }
-        double totalReward = 0;
         boolean moreActions = true;
         SatelliteState s = initialState;
-        double lastTime = 0;
         while(moreActions) {
-            SatelliteAction bestAction = selectAction(s,0.0);
+            SatelliteAction bestAction = selectAction(s);
             if(bestAction==null) {
                 break;
             }
@@ -54,7 +51,6 @@ public class GreedyCoveragePlanner {
             s = transitionFunction(s,bestAction);
             resultList.add(stateAction);
             moreActions = !getActionSpace(s).isEmpty();
-            totalReward += bestAction.getReward();
         }
         return resultList;
     }
@@ -70,41 +66,6 @@ public class GreedyCoveragePlanner {
         }
         return pointsInFOV;
     }
-
-    void updateRewardGrid(GeodeticPoint location, double elapsedTime, Map<GeodeticPoint,Integer> obsCounts) {
-        for(GeodeticPoint gp : obsCounts.keySet()) {
-            if(gp.getLatitude() == location.getLatitude()) {
-                obsCounts.put(gp,obsCounts.get(gp)+1);
-            }
-        }
-        ArrayList<GeodeticPoint> nearbyPoints = getPointsInFOV(location, new ArrayList<>(rewardGrid.keySet()));
-        for(GeodeticPoint gp : rewardGrid.keySet()) {
-            if(nearbyPoints.contains(gp)) {
-                rewardGrid.put(gp, 0.0);
-            } else {
-                int count = 0;
-                for(GeodeticPoint obs : obsCounts.keySet()) {
-                    if(nearbyPoints.contains(obs)) {
-                        count = obsCounts.get(obs);
-                    }
-                }
-                rewardGrid.put(gp,(rewardGrid.get(gp)+elapsedTime)/(5*count+1));
-            }
-            Set<Double> values = new HashSet<>(rewardGrid.values());
-            boolean isUnique = values.size() == 1;
-            boolean isZero = false;
-            if(isUnique) {
-                Double[] valueArray = (Double[]) values.toArray();
-                if (valueArray[0] == 0.0) {
-                    isZero = true;
-                }
-            }
-            if(isUnique && isZero) {
-                rewardGrid.replaceAll( (k,v)-> 1.0);
-            }
-        }
-    }
-
     public SatelliteState transitionFunction(SatelliteState s, SatelliteAction a) {
         double t = a.gettEnd();
         double tPrevious = s.getT();
@@ -136,10 +97,9 @@ public class GreedyCoveragePlanner {
         return new SatelliteState(t,tPrevious,history,batteryCharge,dataStored,currentAngle,storedImageReward);
     }
 
-    public SatelliteAction selectAction(SatelliteState s, double estimatedReward) {
+    public SatelliteAction selectAction(SatelliteState s) {
         ArrayList<SatelliteAction> possibleActions = getActionSpace(s);
         SatelliteAction bestAction = null;
-        double maximum = 0.0;
         //System.out.println(s.getBatteryCharge());
         if(s.getBatteryCharge() < 15 && resources) {
             bestAction = new SatelliteAction(s.getT(),s.getT()+60.0,null,"charge");
@@ -177,25 +137,6 @@ public class GreedyCoveragePlanner {
                 if(canSlew(s.getCurrentAngle(),obs.getObservationAngle(),currentTime,obs.getObservationStart())) {
                     possibleActions.add(obsAction);
                     break;
-                }
-            }
-        }
-        if(downlinkEnabled && resources) {
-            for (int i = 0; i < downlinks.getRiseAndSetTimesList().length; i = i + 2) {
-                if (downlinks.getRiseAndSetTimesList()[i] > currentTime) {
-                    SatelliteAction downlinkAction = new SatelliteAction(downlinks.getRiseAndSetTimesList()[i], downlinks.getRiseAndSetTimesList()[i+1], null, "downlink");
-                    possibleActions.add(downlinkAction);
-                } else if (downlinks.getRiseAndSetTimesList()[i] < currentTime && downlinks.getRiseAndSetTimesList()[i + 1] > currentTime) {
-                    SatelliteAction downlinkAction = new SatelliteAction(currentTime, downlinks.getRiseAndSetTimesList()[i + 1], null, "downlink");
-                    possibleActions.add(downlinkAction);
-                }
-            }
-        }
-        if(!resources) {
-            for (int i = 0; i < downlinks.getRiseAndSetTimesList().length; i = i + 2) {
-                if (downlinks.getRiseAndSetTimesList()[i] > currentTime && downlinks.getRiseAndSetTimesList()[i] < currentTime+60) {
-                    SatelliteAction downlinkAction = new SatelliteAction(downlinks.getRiseAndSetTimesList()[i], downlinks.getRiseAndSetTimesList()[i]+0.01, null, "downlink");
-                    possibleActions.add(downlinkAction);
                 }
             }
         }

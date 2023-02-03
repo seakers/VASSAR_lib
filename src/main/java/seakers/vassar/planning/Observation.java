@@ -1,10 +1,12 @@
 package seakers.vassar.planning;
 
 import org.orekit.bodies.GeodeticPoint;
+import seakers.orekit.object.Satellite;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-public class Observation implements Serializable {
+public class Observation {
     private GeodeticPoint observationPoint;
     private double observationStart;
     private double observationEnd;
@@ -50,6 +52,26 @@ public class Observation implements Serializable {
     }
     public String toString() {
         return this.observationPoint.toString()+", Observation Start: "+this.observationStart+", Observation End: "+this.observationEnd+", Observation Reward: "+this.observationReward;
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Observation other = (Observation) obj;
+        if (other.getObservationStart()!=this.observationStart) {
+            return false;
+        }
+        if (other.getObservationEnd()!=this.observationEnd) {
+            return false;
+        }
+        if (other.getObservationPoint()!=this.observationPoint) {
+            return false;
+        }
+        return true;
     }
 
 }

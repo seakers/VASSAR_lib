@@ -23,8 +23,6 @@ import seakers.orekit.coverage.access.TimeIntervalMerger;
  */
 public class EventIntervalMerger implements Serializable {
 
-    private static final long serialVersionUID = 9046345352941432741L;
-
     /**
      * Merges the events in two sets of event time series. The inputs are two
      * sets of events computed at each point in the same coverage grid

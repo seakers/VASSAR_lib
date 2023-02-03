@@ -49,7 +49,7 @@ public class JessInitializer {
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
             this.params = params;
-
+            r.clear();
             // Create global variable path
             String tmp = params.problemPath.replaceAll("\\\\", "\\\\\\\\");
             r.eval("(defglobal ?*app_path* = \"" + tmp + "\")");

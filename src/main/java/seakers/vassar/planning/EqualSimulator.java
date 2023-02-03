@@ -1,26 +1,13 @@
 package seakers.vassar.planning;
 
 import org.orekit.bodies.GeodeticPoint;
-import org.orekit.data.DataProvidersManager;
-import org.orekit.data.DirectoryCrawler;
 import org.orekit.time.AbsoluteDate;
-import org.orekit.time.TimeScale;
-import org.orekit.time.TimeScalesFactory;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.util.OrekitConfig;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class EqualSimulator {
-    private String filepath;
-    public Map<String, Map<String, TimeIntervalArray>> crosslinkEvents;
-    public Map<String, TimeIntervalArray> downlinkEvents;
     public Map<String, ArrayList<Observation>> observationEvents;
     public Map<String, ArrayList<SatelliteAction>> currentPlans;
     public Map<String, ArrayList<SatelliteAction>> actionsTaken;
@@ -34,21 +21,21 @@ public class EqualSimulator {
     public Map<String, Map<String,String>> crosslinkInfo;
     public ArrayList<Map<GeodeticPoint,GeophysicalEvent>> naiveGlobalRewardGridUpdates;
     public Map<String, SatelliteState> currentStates;
-
-    private AbsoluteDate startDate;
-    private AbsoluteDate endDate;
     public double chlReward;
     boolean debug;
+    public AbsoluteDate startDate;
+    public AbsoluteDate endDate;
     public double endTime;
     private Map<String, Double> results;
     public Map<String,Map<GeodeticPoint,ArrayList<TimeIntervalArray>>> gpAccesses;
 
-    public EqualSimulator(Map<String,String> settings, String filepath, AbsoluteDate startDate, AbsoluteDate endDate, Map<GeodeticPoint,Double> inputRewardGrid, Map<String, ArrayList<Observation>> observations) {
+    public EqualSimulator(Map<String,String> settings, AbsoluteDate startDate, AbsoluteDate endDate, Map<GeodeticPoint,Double> inputRewardGrid, Map<String, ArrayList<Observation>> observations) {
         long start = System.nanoTime();
-        this.filepath = filepath;
         observationEvents = observations;
         initializeRewardGrid(inputRewardGrid);
         debug = true;
+        this.startDate = startDate;
+        this.endDate = endDate;
         endTime = endDate.durationFrom(startDate);
         results = new HashMap<>();
         localRewardGrids = new HashMap<>();
@@ -60,8 +47,8 @@ public class EqualSimulator {
         naiveRewardDownlinked = new HashMap<>();
         gpAccesses = new HashMap<>();
         naiveGlobalRewardGridUpdates = new ArrayList<>();
-        ArrayList<String> satList = new ArrayList<>(downlinkEvents.keySet());
-        for (String sat : downlinkEvents.keySet()) {
+        ArrayList<String> satList = new ArrayList<>(observationEvents.keySet());
+        for (String sat : satList) {
             Map<GeodeticPoint,ArrayList<TimeIntervalArray>> gpAccessesPerSat = new HashMap<>();
             for (GeodeticPoint gp : globalRewardGrid.keySet()) {
                 ArrayList<TimeIntervalArray> tias = new ArrayList<>();
@@ -73,7 +60,7 @@ public class EqualSimulator {
         for (String sat : satList) {
             localRewardGrids.put(sat,globalRewardGrid);
             actionsTaken.put(sat,new ArrayList<>());
-            SatelliteState satelliteState = new SatelliteState(0,0, new ArrayList<>(),70.0,0.0,0.0,0.0, new ArrayList<>(),new ArrayList<>(),new ArrayList<>());
+            SatelliteState satelliteState = new SatelliteState(0,0, new ArrayList<>(),70.0,0.0,0.0,0.0);
             currentStates.put(sat,satelliteState);
             long planStart = System.nanoTime();
             makePlan(sat,settings);
@@ -87,7 +74,6 @@ public class EqualSimulator {
 
         for (String sat : satList) {
             NaivePlanExecutor planExec = new NaivePlanExecutor(currentStates.get(sat),currentTime,endTime,currentPlans.get(sat), sat, settings);
-            updateNaiveGlobalRewardGrid(planExec.getRewardGridUpdates());
             naiveActionsTaken.put(sat,planExec.getActionsTaken());
         }
         System.out.println("Done!");
@@ -97,7 +83,7 @@ public class EqualSimulator {
     }
 
     public void computeStatistics(String flag, Map<String, ArrayList<SatelliteAction>> takenActions) {
-        for (String sat : downlinkEvents.keySet()) {
+        for (String sat : takenActions.keySet()) {
             Map<GeodeticPoint,ArrayList<TimeIntervalArray>> gpAccessesPerSat = gpAccesses.get(sat);
             for (SatelliteAction sa : takenActions.get(sat)) {
                 switch (sa.getActionType()) {
@@ -109,7 +95,11 @@ public class EqualSimulator {
                         for (GeodeticPoint nearbyGP : nearbyGPs) {
                             TimeIntervalArray tia = new TimeIntervalArray(startDate,endDate);
                             tia.addRiseTime(sa.gettStart());
-                            tia.addSetTime(sa.gettEnd());
+                            if(sa.gettEnd() > endDate.durationFrom(startDate)) {
+                                tia.addSetTime(endDate.durationFrom(startDate));
+                            } else {
+                                tia.addSetTime(sa.gettEnd());
+                            }
                             ArrayList<TimeIntervalArray> tias = gpAccessesPerSat.get(nearbyGP);
                             tias.add(tia);
                             gpAccessesPerSat.put(nearbyGP,tias);
@@ -135,12 +125,6 @@ public class EqualSimulator {
             gpAccesses.put(sat,gpAccessesPerSat);
         }
     }
-    public void updateNaiveGlobalRewardGrid(Map<GeodeticPoint,GeophysicalEvent> updates) {
-        for(GeodeticPoint gp : updates.keySet()) {
-            naiveGlobalRewardGrid.put(gp,chlReward);
-        }
-        naiveGlobalRewardGridUpdates.add(updates);
-    }
 
     public void initializeRewardGrid(Map<GeodeticPoint,Double> inputGrid) {
             globalRewardGrid = inputGrid;
@@ -150,27 +134,11 @@ public class EqualSimulator {
     }
 
     public void makePlan(String sat, Map<String,String> settings) {
-        switch (settings.get("planner")) {
-            case "ruleBased":
-                RuleBasedPlanner ruleBasedPlanner = new RuleBasedPlanner(observationEvents.get(sat), downlinkEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), crosslinkInfo.get(sat), settings);
-                currentPlans.put(sat, ruleBasedPlanner.getResults());
-                break;
-            case "ruleBased_coverage":
-                RuleBasedCoveragePlanner ruleBasedCoveragePlanner = new RuleBasedCoveragePlanner(observationEvents.get(sat), downlinkEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), crosslinkInfo.get(sat), settings);
-                currentPlans.put(sat, ruleBasedCoveragePlanner.getResults());
-                break;
-            case "greedy_coverage":
-                GreedyCoveragePlanner greedyCoveragePlanner = new GreedyCoveragePlanner(observationEvents.get(sat), downlinkEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), crosslinkInfo.get(sat), settings);
-                currentPlans.put(sat, greedyCoveragePlanner.getResults());
-                break;
-            case "mcts":
-                MCTSPlanner mctsPlanner = new MCTSPlanner(observationEvents.get(sat), downlinkEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), crosslinkInfo.get(sat), settings);
-                currentPlans.put(sat, mctsPlanner.getResults());
-                break;
-            case "dumbMcts":
-                DumbMCTSPlanner dumbMctsPlanner = new DumbMCTSPlanner(observationEvents.get(sat), downlinkEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), crosslinkInfo.get(sat), settings);
-                currentPlans.put(sat, dumbMctsPlanner.getResults());
-                break;
+        if (settings.get("planner").equals("greedy_coverage")) {
+            GreedyCoveragePlanner greedyCoveragePlanner = new GreedyCoveragePlanner(observationEvents.get(sat), localRewardGrids.get(sat), currentStates.get(sat), settings);
+            currentPlans.put(sat, greedyCoveragePlanner.getResults());
+        } else {
+            System.out.println("Error in makePlan");
         }
     }
 

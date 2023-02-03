@@ -73,7 +73,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * should be saved to the coverage database
      */
     private boolean saveToDB = false;
-
+    private double sensorAlongTrackAngle;
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
@@ -97,7 +97,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
             PropagatorFactory propagatorFactory, boolean saveAllAccesses,
-            boolean saveToDB) {
+            boolean saveToDB, double sensorAlongTrackAngle) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
@@ -109,6 +109,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
 
         this.saveToDB = saveToDB;
+        this.sensorAlongTrackAngle = sensorAlongTrackAngle;
     }
 
     /**
@@ -138,15 +139,19 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         System.getProperty("orekit.coveragedatabase"),
                         String.valueOf(sat.hashCode()));
                 if (file.canRead()) {
+                    //System.out.println("FOVEA found in database!!!");
                     HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = readAccesses(file);
                     processAccesses(sat, cdef, satAccesses);
-                    break;
+                    continue;
                 }
-
+                //System.out.println("FOVEA not found in database.");
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
-                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                double imagewidth = (sat.getOrbit().getA() - 6371000.0) * Math.tan(this.sensorAlongTrackAngle * Math.PI / 180.0);
+                double earthCircumference = 4.003017359204114E7;
+                double numImages = earthCircumference / imagewidth;
+                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / numImages;
                 double threshold = 1e-3;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);

@@ -97,7 +97,7 @@ public class EventAnalysisFactory {
                 ea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,
                         covDefs, propagatorFactory,
                         Boolean.parseBoolean(saveAllAccessesStr),
-                        Boolean.parseBoolean(saveToDBStr));
+                        Boolean.parseBoolean(saveToDBStr),1.0);
                 break;
             case GND_BODY_ANGLE:
                 //Option to set the angle threshold for the angle between a 

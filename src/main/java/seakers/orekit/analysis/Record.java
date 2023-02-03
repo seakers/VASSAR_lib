@@ -14,8 +14,6 @@ import org.orekit.time.AbsoluteDate;
  */
 public class Record<T> implements Comparable<Record<T>>, Serializable {
 
-    private static final long serialVersionUID = 1580288073315494198L;
-
     private final AbsoluteDate date;
 
     private final T value;
@@ -53,6 +51,23 @@ public class Record<T> implements Comparable<Record<T>>, Serializable {
     @Override
     public int compareTo(Record<T> o) {
         return this.getDate().compareTo(o.getDate());
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Record<?> other = (Record<?>) obj;
+        if(!other.getDate().equals(this.getDate())) {
+            return false;
+        }
+        if(!other.getValue().equals(this.getValue())) {
+            return false;
+        }
+        return true;
     }
 
 }
