@@ -18,9 +18,12 @@ import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
+import org.orekit.propagation.Propagator;
+import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.*;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
+import org.orekit.utils.PVCoordinates;
 import seakers.orekit.analysis.Analysis;
 import seakers.orekit.analysis.Record;
 import seakers.orekit.analysis.ephemeris.GroundTrackAnalysis;
@@ -291,7 +294,7 @@ public class CoverageAnalysisPlannerOverlap {
     private Map<String, ArrayList<Observation>> computeObservations() {
         Map<String, ArrayList<Observation>> obsMap = new HashMap<>();
         for (Satellite satellite : satellites) {
-            Map<Double, GeodeticPoint> groundTrack = getGroundTrack(satellite.getOrbit());
+            //Map<Double, GeodeticPoint> groundTrack = getGroundTrack(satellite.getOrbit());
             ArrayList<Observation> observations = new ArrayList<>();
             Map<TopocentricFrame, TimeIntervalArray> gpEvents = eventsBySatellite.get(satellite.getName());
             for (TopocentricFrame tf : gpEvents.keySet()) {
@@ -300,7 +303,7 @@ public class CoverageAnalysisPlannerOverlap {
                 for (int i = 0; i < tia.numIntervals(); i++) {
                     double riseTime = tia.getRiseAndSetTimesList()[2*i];
                     double setTime = tia.getRiseAndSetTimesList()[2*i+1];
-                    double incidenceAngle = getIncidenceAngle(gp,riseTime,setTime,satellite,groundTrack);
+                    double incidenceAngle = getIncidenceAngle(gp,riseTime,setTime,satellite,satellite.getOrbit());
                     Observation obs = new Observation(gp,riseTime,setTime,1.0,incidenceAngle);
                     observations.add(obs);
                 }
@@ -310,23 +313,17 @@ public class CoverageAnalysisPlannerOverlap {
         return obsMap;
     }
 
-    private double getIncidenceAngle(GeodeticPoint point, double riseTime, double setTime, Satellite satellite, Map<Double, GeodeticPoint> groundTrack) {
+    private double getIncidenceAngle(GeodeticPoint point, double riseTime, double setTime, Satellite satellite, Orbit orbit) {
         double time = (riseTime + setTime) / 2;
-
-        double closestDist = 100000000000000000.0;
-        double closestTime = 100 * 24 * 3600; // 100 days
-        GeodeticPoint closestPoint;
-        for (Double sspTime : groundTrack.keySet()) {
-            if (Math.abs(sspTime - time) < closestTime) {
-                closestTime = Math.abs(sspTime - time);
-                closestPoint = groundTrack.get(sspTime);
-                double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
-                if (dist < closestDist) {
-                    closestDist = dist;
-                }
-            }
-        }
-        return Math.atan2(closestDist,(satellite.getOrbit().getA()-6370000)/1000);
+        PropagatorFactory pf=new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        Propagator prop=pf.createPropagator(orbit, 0);
+        SpacecraftState s=prop.propagate(startDate, startDate.shiftedBy(time));
+        GeodeticPoint closestPoint = earthShape.transform(
+                s.getPVCoordinates().getPosition(),
+                s.getFrame(),
+                s.getDate());
+        double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
+        return Math.atan2(dist,(satellite.getOrbit().getA()-6370000)/1000);
     }
 
     private double[] LLAtoECI(GeodeticPoint point) {
