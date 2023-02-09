@@ -106,7 +106,7 @@ public class PlannerCoverageMetrics {
         } else {
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
-        return stat.getPercentile(99);
+        return stat.getMax();
     }
 
     public double getPercentCoverage(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){

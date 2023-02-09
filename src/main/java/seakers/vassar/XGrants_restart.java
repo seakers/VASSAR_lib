@@ -90,7 +90,7 @@ public class XGrants_restart {
                 algorithm.step();
                 Population currentPop = algorithm.getResult();
                 try {
-                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0201_current_population.txt");
+                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0207_current_population.txt");
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     for (Solution sol : currentPop) {
                         o.writeObject(sol);
@@ -103,7 +103,7 @@ public class XGrants_restart {
                     System.out.println("Error initializing stream");
                 }
                 try{
-                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0201_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0207_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 100 + 400);
                         String inclination = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 5 + 60);
@@ -114,7 +114,7 @@ public class XGrants_restart {
                     System.out.println("File not found");
                 }
                 try {
-                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0201_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0207_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

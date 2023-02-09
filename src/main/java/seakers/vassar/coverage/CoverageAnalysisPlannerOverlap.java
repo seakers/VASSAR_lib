@@ -103,7 +103,7 @@ public class CoverageAnalysisPlannerOverlap {
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
         this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
-        this.endDate = startDate.shiftedBy(8.0 * 24 * 60 * 60); // 16 days in seconds
+        this.endDate = startDate.shiftedBy(16.1 * 24 * 60 * 60); // 16 days in seconds
 
         this.numThreads = numThreads;
         this.gridStyle = EQUAL_AREA;
@@ -416,11 +416,33 @@ public class CoverageAnalysisPlannerOverlap {
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
+        double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
+        double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+        System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
         for (Satellite satellite : events.keySet()) {
             eventsBySatellite.put(satellite.getName(),events.get(satellite));
         }
+    }
+
+    public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, this.propertiesPropagator);
+
+        }else{
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
+        }
+
+        //double max = stat.getElement((int) Math.round(0.95*stat.getValues().length));
+        double max = stat.getMax();
+        return max;
     }
 
     public double getPercentCoverage(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){

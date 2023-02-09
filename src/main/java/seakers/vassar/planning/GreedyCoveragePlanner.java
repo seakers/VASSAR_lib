@@ -69,8 +69,8 @@ public class GreedyCoveragePlanner {
     public SatelliteState transitionFunction(SatelliteState s, SatelliteAction a) {
         double t = a.gettEnd();
         double tPrevious = s.getT();
-        ArrayList<SatelliteAction> history = new ArrayList<>(s.getHistory());
-        history.add(a);
+        //ArrayList<SatelliteAction> history = new ArrayList<>(s.getHistory());
+        //history.add(a);
         double storedImageReward = s.getStoredImageReward();
         double batteryCharge = s.getBatteryCharge();
         double dataStored = s.getDataStored();
@@ -94,7 +94,7 @@ public class GreedyCoveragePlanner {
                 }
                 break;
         }
-        return new SatelliteState(t,tPrevious,history,batteryCharge,dataStored,currentAngle,storedImageReward);
+        return new SatelliteState(t,tPrevious,new ArrayList<>(),batteryCharge,dataStored,currentAngle,storedImageReward);
     }
 
     public SatelliteAction selectAction(SatelliteState s) {
@@ -145,9 +145,11 @@ public class GreedyCoveragePlanner {
     }
 
     public boolean canSlew(double angle1, double angle2, double time1, double time2){
-        double slewTorque = 4*Math.abs(angle2-angle1)*0.05/Math.pow(Math.abs(time2-time1),2);
-        double maxTorque = Double.parseDouble(settings.get("maxTorque"));
-        return !(slewTorque > maxTorque);
+//        double slewTorque = 4*Math.abs(angle2-angle1)*0.05/Math.pow(Math.abs(time2-time1),2);
+//        double maxTorque = Double.parseDouble(settings.get("maxTorque"));
+        double maxSlewRate = 0.1*Math.PI/180; // 1 deg/s in rad/s
+        double slewRate = Math.abs(angle1-angle2)/Math.abs(time1-time2);
+        return !(slewRate > maxSlewRate);
     }
 
     public ArrayList<SatelliteAction> getResults() {
