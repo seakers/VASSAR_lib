@@ -15,27 +15,30 @@ public class SpectrometerDesign {
 
     public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean swir, boolean tir, double focalLength, double FOV, double aperture) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
+        double maxWavelength = 2500e-9;
         if(swir) {
             spectralRange = 2501.0-379.0;
             double swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
             spectralResolution = Math.max(vnirSpectralResolution,swirSpectralResolution);
         } else {
+            spectralRange = 1001.0-379.0;
             numSWIRSpec = 0;
             spectralResolution = vnirSpectralResolution;
+            maxWavelength = 1000e-9;
         }
          // nm
         double pixelSize = 6E-6; // m
         double orbitalVelocity = Math.sqrt(398600 / (6378 + alt)); // km/s
         double groundVelocity = orbitalVelocity * 6378 / (6378 + alt); // km/s
-        int bitsPerPixel = 12;
+        int bitsPerPixel = 16;
         double IFOV = pixelSize / focalLength;
         spatialResolution = IFOV * alt * 1000;
-        double diffractionLimitedResolution = 1.22 * alt * 1000 * 2500e-9 / aperture;
+        double diffractionLimitedResolution = 1.22 * alt * 1000 * maxWavelength / aperture;
         if (diffractionLimitedResolution > spatialResolution) {
             spatialResolution = diffractionLimitedResolution;
         }
         double imagingRate = groundVelocity*1000 / spatialResolution;
-        double numSpatialPixels = Math.ceil(Math.toRadians(FOV)/IFOV);
+        double numSpatialPixels = Math.floor(Math.toRadians(FOV)/IFOV);
         swath = spatialResolution * numSpatialPixels / 1000;
         power = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * 2e-7; // based loosely on CCD power draw, refine using Teledyne website
         dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
@@ -46,12 +49,13 @@ public class SpectrometerDesign {
         } else {
             lensMass = Math.exp(4.365*focalLength+2.009*aperture - 2.447);
         }
-        double vnirSensorMass = 0.265 + 0.0026e-3 * numSpatialPixels * numVNIRSpec;
+        double vnirSensorMass = 0.363 + 0.0014e-3 * numSpatialPixels * numVNIRSpec;
         double swirSensorMass = 0.618 + 0.0226e-3 * numSpatialPixels * numSWIRSpec;
         //mass = 161.5 - 0.021 * groundPixelSize * 1000;
         double tirSensorMass = 0.0;
         if(tir) {
             tirSensorMass = 10.5;
+            power = power + 200;
         }
         this.tir = tir;
         mass = lensMass + vnirSensorMass + swirSensorMass + tirSensorMass;
