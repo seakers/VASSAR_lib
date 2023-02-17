@@ -294,7 +294,7 @@ public class CoverageAnalysisPlannerOverlap {
     private Map<String, ArrayList<Observation>> computeObservations() {
         Map<String, ArrayList<Observation>> obsMap = new HashMap<>();
         for (Satellite satellite : satellites) {
-            //Map<Double, GeodeticPoint> groundTrack = getGroundTrack(satellite.getOrbit());
+            Map<Double, GeodeticPoint> groundTrack = getGroundTrack(satellite.getOrbit());
             ArrayList<Observation> observations = new ArrayList<>();
             Map<TopocentricFrame, TimeIntervalArray> gpEvents = eventsBySatellite.get(satellite.getName());
             for (TopocentricFrame tf : gpEvents.keySet()) {
@@ -303,7 +303,7 @@ public class CoverageAnalysisPlannerOverlap {
                 for (int i = 0; i < tia.numIntervals(); i++) {
                     double riseTime = tia.getRiseAndSetTimesList()[2*i];
                     double setTime = tia.getRiseAndSetTimesList()[2*i+1];
-                    double incidenceAngle = getIncidenceAngle(gp,riseTime,setTime,satellite,satellite.getOrbit());
+                    double incidenceAngle = getIncidenceAngle(gp,riseTime,setTime,satellite,groundTrack);
                     Observation obs = new Observation(gp,riseTime,setTime,1.0,incidenceAngle);
                     observations.add(obs);
                 }
@@ -313,17 +313,23 @@ public class CoverageAnalysisPlannerOverlap {
         return obsMap;
     }
 
-    private double getIncidenceAngle(GeodeticPoint point, double riseTime, double setTime, Satellite satellite, Orbit orbit) {
+    private double getIncidenceAngle(GeodeticPoint point, double riseTime, double setTime, Satellite satellite, Map<Double, GeodeticPoint> groundTrack) {
         double time = (riseTime + setTime) / 2;
-        PropagatorFactory pf=new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        Propagator prop=pf.createPropagator(orbit, 0);
-        SpacecraftState s=prop.propagate(startDate, startDate.shiftedBy(time));
-        GeodeticPoint closestPoint = earthShape.transform(
-                s.getPVCoordinates().getPosition(),
-                s.getFrame(),
-                s.getDate());
-        double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
-        return Math.atan2(dist,(satellite.getOrbit().getA()-6370000)/1000);
+
+        double closestDist = 100000000000000000.0;
+        double closestTime = 100 * 24 * 3600; // 100 days
+        GeodeticPoint closestPoint;
+        for (Double sspTime : groundTrack.keySet()) {
+            if (Math.abs(sspTime - time) < closestTime) {
+                closestTime = Math.abs(sspTime - time);
+                closestPoint = groundTrack.get(sspTime);
+                double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
+                if (dist < closestDist) {
+                    closestDist = dist;
+                }
+            }
+        }
+        return Math.atan2(closestDist,(satellite.getOrbit().getA()-6370000)/1000);
     }
 
     private double[] LLAtoECI(GeodeticPoint point) {
@@ -335,38 +341,62 @@ public class CoverageAnalysisPlannerOverlap {
         return result;
     }
 
+//    private Map<Double, GeodeticPoint> getGroundTrack(Orbit orbit) {
+//        TimeScale utc = TimeScalesFactory.getUTC();
+//
+//        ArrayList<Instrument> payload = new ArrayList<>();
+//        Satellite sat1 = new Satellite(orbit.toString(), orbit,  payload);
+//        Properties propertiesPropagator = new Properties();
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+//
+//
+//        Collection<Analysis<?>> analyses = new ArrayList<>();
+//        double analysisTimeStep = 10;
+//        GroundTrackAnalysis gta = new GroundTrackAnalysis(startDate, endDate, analysisTimeStep, sat1, earthShape, pf);
+//        analyses.add(gta);
+//        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+//                analysis(analyses).name(orbit.toString()).propagatorFactory(pf).build();
+//        try {
+//            scen.call();
+//        } catch (Exception ex) {
+//            throw new IllegalStateException("Ground track scenario failed to complete.");
+//        }
+//        Map<Double, GeodeticPoint> sspMap = new HashMap<>();
+//        List<Record<String>> hist = (List<Record<String>>) gta.getHistory();
+//        for (int i = 0; i < hist.size(); i++) {
+//            String rawString = hist.get(i).getValue();
+//            AbsoluteDate date = hist.get(i).getDate();
+//            String[] splitString = rawString.split(",");
+//            double latitude = Double.parseDouble(splitString[0]);
+//            double longitude = Double.parseDouble(splitString[1]);
+//            GeodeticPoint ssp = new GeodeticPoint(Math.toRadians(latitude),Math.toRadians(longitude),0);
+//            double elapsedTime = date.durationFrom(startDate);
+//            sspMap.put(elapsedTime,ssp);
+//        }
+//        return sspMap;
+//    }
     private Map<Double, GeodeticPoint> getGroundTrack(Orbit orbit) {
-        TimeScale utc = TimeScalesFactory.getUTC();
-
-        ArrayList<Instrument> payload = new ArrayList<>();
-        Satellite sat1 = new Satellite(orbit.toString(), orbit,  payload);
+        long start = System.nanoTime();
         Properties propertiesPropagator = new Properties();
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-
-
-        Collection<Analysis<?>> analyses = new ArrayList<>();
-        double analysisTimeStep = 10;
-        GroundTrackAnalysis gta = new GroundTrackAnalysis(startDate, endDate, analysisTimeStep, sat1, earthShape, pf);
-        analyses.add(gta);
-        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).name(orbit.toString()).propagatorFactory(pf).build();
-        try {
-            scen.call();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Ground track scenario failed to complete.");
-        }
         Map<Double, GeodeticPoint> sspMap = new HashMap<>();
-        List<Record<String>> hist = (List<Record<String>>) gta.getHistory();
-        for (int i = 0; i < hist.size(); i++) {
-            String rawString = hist.get(i).getValue();
-            AbsoluteDate date = hist.get(i).getDate();
-            String[] splitString = rawString.split(",");
-            double latitude = Double.parseDouble(splitString[0]);
-            double longitude = Double.parseDouble(splitString[1]);
-            GeodeticPoint ssp = new GeodeticPoint(Math.toRadians(latitude),Math.toRadians(longitude),0);
-            double elapsedTime = date.durationFrom(startDate);
-            sspMap.put(elapsedTime,ssp);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        Propagator prop=pf.createPropagator(orbit, 0);
+        int i = 0;
+        AbsoluteDate lastTime = startDate;
+        while(i < endDate.durationFrom(startDate)) {
+            AbsoluteDate newTime = startDate.shiftedBy(i);
+            SpacecraftState currentState = prop.propagate(lastTime,newTime);
+            GeodeticPoint pt = earthShape.transform(
+                    currentState.getPVCoordinates().getPosition(),
+                    currentState.getFrame(),
+                    currentState.getDate());
+            double elapsedTime = newTime.durationFrom(startDate);
+            lastTime = newTime;
+            i = i+10;
+            sspMap.put(elapsedTime,pt);
         }
+        long end = System.nanoTime();
+        System.out.printf("getGroundTrack took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return sspMap;
     }
     private void computeImagerAccesses() throws OrekitException{
