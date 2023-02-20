@@ -4,8 +4,11 @@ plugins {
     id "application"
 }
 apply plugin : "java"
+ext{
+    javaMainClass = "seakers.vassar.XGrants_restart"
+}
 application {
-    mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
+    mainClassName = javaMainClass
 }
 
 group 'seakers'
