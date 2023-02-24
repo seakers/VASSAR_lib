@@ -13,10 +13,10 @@ public class SpectrometerDesign {
     private boolean tir;
     private double swath;
 
-    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean swir, boolean tir, double focalLength, double FOV, double aperture) {
+    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
         double maxWavelength = 2500e-9;
-        if(swir) {
+        if(numSWIRSpec > 0) {
             spectralRange = 2501.0-379.0;
             double swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
             spectralResolution = Math.max(vnirSpectralResolution,swirSpectralResolution);
@@ -40,18 +40,12 @@ public class SpectrometerDesign {
         double imagingRate = groundVelocity*1000 / spatialResolution;
         double numSpatialPixels = Math.floor(Math.toRadians(FOV)/IFOV);
         swath = spatialResolution * numSpatialPixels / 1000;
-        power = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * 2e-7; // based loosely on CCD power draw, refine using Teledyne website
+        power = 2.69e-5*(numVNIRSpec+numSWIRSpec)*numSpatialPixels + 1.14; // Watts, based on regression
         dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
         System.out.println("Datarate: "+dataRate);
-        double lensMass = 0.0;
-        if (focalLength > 1.7 || aperture > 0.425) {
-            lensMass = 256; // past range of regression formula
-        } else {
-            lensMass = Math.exp(4.365*focalLength+2.009*aperture - 2.447);
-        }
+        double lensMass = Math.exp(4.365*focalLength+2.009*aperture - 2.447);
         double vnirSensorMass = 0.363 + 0.0014e-3 * numSpatialPixels * numVNIRSpec;
         double swirSensorMass = 0.618 + 0.0226e-3 * numSpatialPixels * numSWIRSpec;
-        //mass = 161.5 - 0.021 * groundPixelSize * 1000;
         double tirSensorMass = 0.0;
         if(tir) {
             tirSensorMass = 10.5;

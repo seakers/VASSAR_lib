@@ -50,6 +50,7 @@ import java.util.*;
 import static java.lang.Double.parseDouble;
 import static seakers.orekit.analysis.OverlapAnalysis.arraySum;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
+import static seakers.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 
 /**
  *
@@ -70,21 +71,25 @@ public class CoverageAnalysisPlannerOverlap {
     private Map<TopocentricFrame, TimeIntervalArray> altimeterEvents;
     private HashSet<GeodeticPoint> covPoints;
 
+    private boolean fastCov;
+
     private HashMap<String, HashMap<TopocentricFrame, TimeIntervalArray>> eventsBySatellite;
     BodyShape earthShape;
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites) throws OrekitException{
-        this(satellites, 4, true, true);
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites,boolean fastCov) throws OrekitException{
+        this(satellites, 4, true, true, fastCov);
+
     }
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
-        this(satellites,numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, boolean fastCov) throws OrekitException {
+        this(satellites,numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"),fastCov);
     }
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException {
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd, boolean fastCov) throws OrekitException {
 
         this.cwd = cwd;
         this.satellites = satellites;
+        this.fastCov = fastCov;
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         Frame inertialFrame = FramesFactory.getEME2000();
         earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
@@ -214,6 +219,12 @@ public class CoverageAnalysisPlannerOverlap {
         return mrt;
     }
 
+    public double computeMaximumRevisitTimeFast() {
+        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
+        double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+        return getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600;
+    }
+
     private void computeAltimeterAccesses() throws OrekitException{
         ArrayList<Satellite> altimeters = new ArrayList<>();
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -264,9 +275,12 @@ public class CoverageAnalysisPlannerOverlap {
         swotPayload.add(swotAltimeter);
         Satellite SWOT = new Satellite("SWOT", swotOrbit, swotPayload);
         altimeters.add(SWOT);
-
-        CoverageDefinition covDef = new CoverageDefinition("covdef", covPoints, earthShape);
-        //CoverageDefinition covDef = new CoverageDefinition("Whole Earth", granularity, earthShape, UNIFORM);
+        CoverageDefinition covDef;
+        if(fastCov) {
+            covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else {
+            covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
+        }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         Constellation constellation = new Constellation("Constellation", altimeters);
         covDef.assignConstellation(constellation);
@@ -419,8 +433,12 @@ public class CoverageAnalysisPlannerOverlap {
         catch (Exception e) {
             System.out.println("Exception occurred in coverageByConstellation: "+e);
         }
-        CoverageDefinition covDef = new CoverageDefinition("covdef", covPoints, earthShape);
-        //CoverageDefinition covDef = new CoverageDefinition("Whole Earth", granularity, earthShape, UNIFORM);
+        CoverageDefinition covDef;
+        if(fastCov) {
+            covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else {
+            covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
+        }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         Constellation constellation = new Constellation("Constellation", satellites);
         covDef.assignConstellation(constellation);
@@ -443,7 +461,7 @@ public class CoverageAnalysisPlannerOverlap {
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
-        double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
+        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         eventsBySatellite = new HashMap<>();

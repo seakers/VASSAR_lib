@@ -151,7 +151,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 11) (launch-date 2022) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2023) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -978,10 +978,18 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             satellites.add(smallsat);
             i = i+1;
         }
-        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites);
+
+        boolean fastCov = Objects.equals(params.runMode, "fast");
+        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastCov);
         double overlapResult = capo.computeOverlap();
         System.out.println("Computed overlap: "+overlapResult);
-        double therevtimesGlobal = capo.computeMaximumRevisitTime(4e-3);
+        double therevtimesGlobal;
+        if(fastCov) {
+            therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
+        } else {
+            therevtimesGlobal = capo.computeMaximumRevisitTime(4e-3);
+        }
+
         System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
         for (String param : params.measurementsToInstruments.keySet()) {
             String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "

@@ -128,7 +128,7 @@ public abstract class BaseParams {
         this.templateDefinitionXls      = problemPath + "/xls/AttributeSet.xls";
         this.missionAnalysisDatabaseXls = problemPath + "/xls/Mission Analysis Database.xls";
         this.capabilityRulesXls         = problemPath + "/xls/Instrument Capability Definition.xls";
-        this.requirementSatisfactionXls = problemPath + "/xls/Requirement Rules.xls";
+        this.requirementSatisfactionXls = problemPath + "/xls/Requirement Rules_new.xls";
         this.aggregationXls             = problemPath + "/xls/Aggregation Rules.xls";
 
         this.revtimesDatFile            = problemPath + "/dat/revtimes.dat";

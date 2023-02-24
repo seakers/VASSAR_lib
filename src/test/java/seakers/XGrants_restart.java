@@ -16,7 +16,7 @@ import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.util.distributed.DistributedProblem;
 import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.moea.RadarFixedAltProblem;
-import seakers.vassar.moea.XGrantsProblem;
+import seakers.vassar.moea.XGrantsProblemFixedAgility;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class XGrants_restart {
     public static void main(String[] args){
         try{
             OrekitConfig.init(8);
-            XGrantsProblem problem = new XGrantsProblem();
+            XGrantsProblemFixedAgility problem = new XGrantsProblemFixedAgility();
             Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(8));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");

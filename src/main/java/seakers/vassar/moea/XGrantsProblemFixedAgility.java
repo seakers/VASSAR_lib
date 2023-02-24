@@ -37,23 +37,22 @@ import java.util.Locale;
 
 import static java.lang.Double.NaN;
 
-public class XGrantsProblem extends AbstractProblem {
-    public XGrantsProblem() {
-        super(11,2,0);
+public class XGrantsProblemFixedAgility extends AbstractProblem {
+    public XGrantsProblemFixedAgility() {
+        super(10,2,0);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
         solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
         solution.setVariable(1, EncodingUtils.newInt(1,5)); // number of planes
-        solution.setVariable(2, EncodingUtils.newInt(1,10)); // altitude of radar satellites (between 400 and 1400 km)
+        solution.setVariable(2, EncodingUtils.newInt(1,5)); // altitude of radar satellites (between 400 and 1400 km)
         solution.setVariable(3, EncodingUtils.newInt(1,10)); // inclination of radar satellites (between 60 and 110 deg)
         solution.setVariable(4, EncodingUtils.newInt(3,1000)); // num spectral pixels in VNIR
-        solution.setVariable(5, EncodingUtils.newInt(3,1000)); // num spectral pixels in SWIR
-        solution.setVariable(6, EncodingUtils.newInt(0,1)); // SWIR presence
-        solution.setVariable(7, EncodingUtils.newInt(0,1)); // TIR presence
-        solution.setVariable(8, new RealVariable(0.01,5)); // focal length (m)
-        solution.setVariable(9, new RealVariable(0.01,5)); // FOV (deg)
-        solution.setVariable(10, new RealVariable(0.01, 5)); // aperture (m)
+        solution.setVariable(5, EncodingUtils.newInt(0,1000)); // num spectral pixels in SWIR
+        solution.setVariable(6, EncodingUtils.newInt(0,1)); // TIR presence
+        solution.setVariable(7, new RealVariable(0.01,2)); // focal length (m)
+        solution.setVariable(8, new RealVariable(0.1,5)); // FOV (deg)
+        solution.setVariable(9, new RealVariable(0.01, 0.5)); // aperture (m)
         return solution;
     }
 
@@ -64,14 +63,13 @@ public class XGrantsProblem extends AbstractProblem {
         int inc = EncodingUtils.getInt(solution.getVariable(3)) * 5 + 60;
         int numVNIRSpec = EncodingUtils.getInt(solution.getVariable(4));
         int numSWIRSpec = EncodingUtils.getInt(solution.getVariable(5));
-        boolean swir = EncodingUtils.getInt(solution.getVariable(6)) == 1;
-        boolean tir = EncodingUtils.getInt(solution.getVariable(7)) == 1;
-        double focalLength = EncodingUtils.getReal(solution.getVariable(8));
-        double FOV = EncodingUtils.getReal(solution.getVariable(9));
-        double aperture = EncodingUtils.getReal(solution.getVariable(10));
+        boolean tir = EncodingUtils.getInt(solution.getVariable(6)) == 1;
+        double focalLength = EncodingUtils.getReal(solution.getVariable(7));
+        double FOV = EncodingUtils.getReal(solution.getVariable(8));
+        double aperture = EncodingUtils.getReal(solution.getVariable(9));
         double[] f = new double[numberOfObjectives];
 
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,swir,tir,focalLength,FOV,aperture);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture);
 
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
@@ -105,7 +103,7 @@ public class XGrantsProblem extends AbstractProblem {
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {
-            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "normal", sd);
+            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "fast", sd);
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);

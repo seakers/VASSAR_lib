@@ -80,7 +80,7 @@ public class PlannerCoverageMetrics {
 //                }
 //            }
 //        }
-        double[] latBounds = new double[]{FastMath.toRadians(-75), FastMath.toRadians(75)};
+        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         double fovMaxRevisitPlanned = getMaxRevisitTime(fovEventsPlanned,latBounds,lonBounds)/3600;
         System.out.printf("FOV max revisit time: %.2f\n",fovMaxRevisitPlanned);

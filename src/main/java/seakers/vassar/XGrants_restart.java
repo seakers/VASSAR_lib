@@ -14,7 +14,7 @@ import org.moeaframework.core.operator.real.SBX;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.util.distributed.DistributedProblem;
 import seakers.orekit.util.OrekitConfig;
-import seakers.vassar.moea.XGrantsProblem;
+import seakers.vassar.moea.XGrantsProblemFixedAgility;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class XGrants_restart {
     public static void main(String[] args){
         try{
             OrekitConfig.init(8);
-            XGrantsProblem problem = new XGrantsProblem();
+            XGrantsProblemFixedAgility problem = new XGrantsProblemFixedAgility();
             Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(8));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
@@ -90,7 +90,7 @@ public class XGrants_restart {
                 algorithm.step();
                 Population currentPop = algorithm.getResult();
                 try {
-                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0207_current_population.txt");
+                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0223_current_population.txt");
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     for (Solution sol : currentPop) {
                         o.writeObject(sol);
@@ -103,18 +103,18 @@ public class XGrants_restart {
                     System.out.println("Error initializing stream");
                 }
                 try{
-                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0207_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 100 + 400);
                         String inclination = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 5 + 60);
-                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+inclination+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getInt(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+inclination+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9)));
                     }
                     out.close();
                 } catch (FileNotFoundException e) {
                     System.out.println("File not found");
                 }
                 try {
-                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0207_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0223_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

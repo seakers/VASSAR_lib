@@ -137,7 +137,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //first check if the satellite accesses are already saved in the database
                 File file = new File(
                         System.getProperty("orekit.coveragedatabase"),
-                        String.valueOf(sat.hashCode()));
+                        sat.hashCode() +cdef.getName());
                 if (file.canRead()) {
                     //System.out.println("FOVEA found in database!!!");
                     HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = readAccesses(file);
@@ -171,7 +171,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     if (saveToDB) {
                         File file = new File(
                                 System.getProperty("orekit.coveragedatabase"),
-                                String.valueOf(sat.hashCode()));
+                                sat.hashCode() +cdef.getName());
                         writeAccesses(file, satAccesses);
                     }
                 }
