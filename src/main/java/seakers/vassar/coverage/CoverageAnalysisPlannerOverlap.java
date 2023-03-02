@@ -5,11 +5,10 @@
  */
 package seakers.vassar.coverage;
 
+import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
-import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.GeodeticPoint;
-import org.orekit.bodies.OneAxisEllipsoid;
+import org.orekit.bodies.*;
 import org.orekit.data.DataProvidersManager;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
@@ -31,7 +30,9 @@ import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.EventAnalysis;
+import seakers.orekit.event.EventAnalysisEnum;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
+import seakers.orekit.event.GroundBodyAngleEventAnalysis;
 import seakers.orekit.object.*;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
 import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
@@ -448,6 +449,15 @@ public class CoverageAnalysisPlannerOverlap {
         FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,true, true,30.0);
         eventAnalyses.add(fovea);
 
+        double threshold = 1.570795;
+        double x = 0;
+        double y = 0;
+        double z = 1;
+        Vector3D direction = new Vector3D(x, y, z);
+        CelestialBody sun = CelestialBodyFactory.getBody("SUN");
+        GroundBodyAngleEventAnalysis gndSunAngEvent = new GroundBodyAngleEventAnalysis(startDate,endDate,inertialFrame,covDefs,sun,threshold,direction);
+        eventAnalyses.add(gndSunAngEvent);
+
         Scenario scene = new Scenario.Builder(startDate, endDate, utc).eventAnalysis(eventAnalyses).covDefs(covDefs).name("CoverageByConstellation").propagatorFactory(pf).build();
         long start = System.nanoTime();
         try {
@@ -459,6 +469,8 @@ public class CoverageAnalysisPlannerOverlap {
         //System.out.printf("imageraccesses took %.4f sec\n", (end - start) / Math.pow(10, 9));
 
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
+        GroundEventAnalyzer illuminationAnalyzer = new GroundEventAnalyzer(gndSunAngEvent.getEvents(covDef));
+        Map<TopocentricFrame,TimeIntervalArray> illuminationEvents = illuminationAnalyzer.getEvents();
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
         double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};

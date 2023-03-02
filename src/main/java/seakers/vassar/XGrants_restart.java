@@ -90,7 +90,8 @@ public class XGrants_restart {
                 algorithm.step();
                 Population currentPop = algorithm.getResult();
                 try {
-                    FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0223_current_population.txt");
+                    //FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0223_current_population.txt");
+                    FileOutputStream f = new FileOutputStream("/home/ben/Dropbox/xgrants_paper_opt_results/0227_current_population.txt");
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     for (Solution sol : currentPop) {
                         o.writeObject(sol);
@@ -103,9 +104,10 @@ public class XGrants_restart {
                     System.out.println("Error initializing stream");
                 }
                 try{
-                    PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    //PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("/home/ben/Dropbox/xgrants_paper_opt_results/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
-                        String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 100 + 400);
+                        String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 50 + 400);
                         String inclination = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 5 + 60);
                         out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+inclination+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getInt(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9)));
                     }
@@ -114,7 +116,8 @@ public class XGrants_restart {
                     System.out.println("File not found");
                 }
                 try {
-                    PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0223_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    //PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0223_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    PopulationIO.writeObjectives(new File("/home/ben/Dropbox/xgrants_paper_opt_results/0223_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
