@@ -969,7 +969,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
             KeplerianOrbit orbit = convertOrbitStringToOrbit(oio.getOrbit());
             Collection<Instrument> imagerPayload = new ArrayList<>();
-            double ssCrossFOVRadians = Math.toRadians(30.0);
+            double ssCrossFOVRadians = Math.toRadians(10.0);
             double ssAlongFOVRadians = Math.toRadians(15.0); // make sure to change fovea if you change this!!!
             NadirRectangularFOV ssFOV = new NadirRectangularFOV(ssCrossFOVRadians,ssAlongFOVRadians,0.0,earthShape);
             Instrument etmPlus = new Instrument("ETM+", ssFOV, 100.0, 100.0);

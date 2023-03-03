@@ -614,15 +614,17 @@ public class JessInitializer {
                         slot_value = String.valueOf(params.getAntennaMass());
                     }
                     if (row[0].getContents().equals("Name CustomInstrument")){
-                        SpectrometerDesign sd = params.getSpectrometerDesign();
-                        if(slot_name.equals("mass#")) {
-                            slot_value = String.valueOf(sd.getMass());
-                        }
-                        if(slot_name.equals("average-data-rate#")) {
-                            slot_value = String.valueOf(sd.getDataRate());
-                        }
-                        if(slot_name.equals("avg-power#")) {
-                            slot_value = String.valueOf(sd.getPower());
+                        if(params.getSpectrometerDesign() != null) {
+                            SpectrometerDesign sd = params.getSpectrometerDesign();
+                            if(slot_name.equals("mass#")) {
+                                slot_value = String.valueOf(sd.getMass());
+                            }
+                            if(slot_name.equals("average-data-rate#")) {
+                                slot_value = String.valueOf(sd.getDataRate());
+                            }
+                            if(slot_name.equals("avg-power#")) {
+                                slot_value = String.valueOf(sd.getPower());
+                            }
                         }
                         //System.out.println(slot_name+" "+slot_value);
                     }
@@ -1104,20 +1106,28 @@ public class JessInitializer {
                         if (tokens2[1].equalsIgnoreCase("nil")) {
                             continue;
                         }
-                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spatial")) {
-                            att_value_pair2 = "VSWIR-Spatial "+params.getSpectrometerDesign().getSpatialResolution();
-                        }
-                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Resolution")) {
-                            att_value_pair2 = "VSWIR-Spectral-Resolution "+params.getSpectrometerDesign().getSpectralResolution();
-                        }
-                        if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Range")) {
-                            att_value_pair2 = "VSWIR-Spectral-Range "+params.getSpectrometerDesign().getSpectralRange();
-                        }
-                        if(tokens2[0].equalsIgnoreCase("VSWIR-Swath")) {
-                            att_value_pair2 = "VSWIR-Swath "+params.getSpectrometerDesign().getSwath();
-                        }
-                        if(tokens2[0].equalsIgnoreCase("TIR-Spectral-Resolution")) {
-                            att_value_pair2 = "TIR-Spectral-Resolution "+params.getSpectrometerDesign().getTir();
+                        if (params.getSpectrometerDesign() != null) {
+                            if(tokens2[0].equalsIgnoreCase("VSWIR-Spatial")) {
+                                att_value_pair2 = "VSWIR-Spatial "+params.getSpectrometerDesign().getSpatialResolution();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Resolution")) {
+                                att_value_pair2 = "VSWIR-Spectral-Resolution "+params.getSpectrometerDesign().getSpectralResolution();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("VSWIR-Spectral-Range")) {
+                                att_value_pair2 = "VSWIR-Spectral-Range "+params.getSpectrometerDesign().getSpectralRange();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("VSWIR-Swath")) {
+                                att_value_pair2 = "VSWIR-Swath "+params.getSpectrometerDesign().getSwath();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("VNIR-SNR")) {
+                                att_value_pair2 = "VNIR-SNR "+params.getSpectrometerDesign().getVNIRSNR();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("SWIR-SNR")) {
+                                att_value_pair2 = "SWIR-SNR "+params.getSpectrometerDesign().getSWIRSNR();
+                            }
+                            if(tokens2[0].equalsIgnoreCase("TIR-Spectral-Resolution")) {
+                                att_value_pair2 = "TIR-Spectral-Resolution "+params.getSpectrometerDesign().getTir();
+                            }
                         }
                         //System.out.println(att_value_pair2);
                         call2 += " (" + att_value_pair2 + ") ";

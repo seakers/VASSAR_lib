@@ -39,7 +39,7 @@ import static java.lang.Double.NaN;
 
 public class XGrantsProblemFixedAgility extends AbstractProblem {
     public XGrantsProblemFixedAgility() {
-        super(9,2,0);
+        super(11,2,0);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
@@ -49,9 +49,11 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
         solution.setVariable(3, EncodingUtils.newInt(3,1000)); // num spectral pixels in VNIR
         solution.setVariable(4, EncodingUtils.newInt(0,1000)); // num spectral pixels in SWIR
         solution.setVariable(5, EncodingUtils.newInt(0,1)); // TIR presence
-        solution.setVariable(6, new RealVariable(0.01,2)); // focal length (m)
+        solution.setVariable(6, new RealVariable(0.01,2.0)); // focal length (m)
         solution.setVariable(7, new RealVariable(0.1,5)); // FOV (deg)
-        solution.setVariable(8, new RealVariable(0.01, 0.5)); // aperture (m)
+        solution.setVariable(8, new RealVariable(0.01, 2.0)); // aperture (m)
+        solution.setVariable(9, new RealVariable(1e-6,20e-6)); // VNIR pixel size (m)
+        solution.setVariable(10, new RealVariable(5e-6,50e-6)); // SWIR pixel size (m)
         return solution;
     }
 
@@ -75,11 +77,13 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
         double focalLength = EncodingUtils.getReal(solution.getVariable(6));
         double FOV = EncodingUtils.getReal(solution.getVariable(7));
         double aperture = EncodingUtils.getReal(solution.getVariable(8));
+        double pixelSizeVNIR = EncodingUtils.getReal(solution.getVariable(9));
+        double pixelSizeSWIR = EncodingUtils.getReal(solution.getVariable(10));
         double[] f = new double[numberOfObjectives];
 
         double inc = getSSOInclination(alt)*180/Math.PI;
 
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,pixelSizeVNIR,pixelSizeSWIR);
 
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();

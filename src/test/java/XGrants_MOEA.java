@@ -6,7 +6,7 @@ import org.moeaframework.core.variable.EncodingUtils;
 import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.moea.MOEAInsAltProgressListener;
 import seakers.vassar.moea.RadarInsAltProblem;
-import seakers.vassar.moea.XGrantsProblem;
+import seakers.vassar.moea.XGrantsProblemFixedAgility;
 import seakers.vassar.moea.XGrantsProgressListener;
 
 import java.io.File;
@@ -20,7 +20,7 @@ public class XGrants_MOEA {
             properties.setProperty("populationSize","100");
             properties.setProperty("maxEvaluations","10000");
             XGrantsProgressListener progressListener = new XGrantsProgressListener();
-            NondominatedPopulation result = new Executor().withProblemClass(XGrantsProblem.class).withAlgorithm("eMOEA").distributeOn(12).withProperties(properties).withProgressListener(progressListener).run();
+            NondominatedPopulation result = new Executor().withProblemClass(XGrantsProblemFixedAgility.class).withAlgorithm("eMOEA").distributeOn(12).withProperties(properties).withProgressListener(progressListener).run();
 
             //NondominatedPopulation result = new Executor().withProblemClass(HeteroArchProblem.class).withAlgorithm("NSGA-II").withMaxEvaluations(1).distributeOnAllCores().run();
             int count = 1;

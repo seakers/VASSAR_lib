@@ -10,15 +10,19 @@ public class SpectrometerDesign {
     private double spatialResolution;
     private double spectralRange;
 
+    private double vnirSNR;
+    private double swirSNR;
+
     private boolean tir;
     private double swath;
 
-    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture) {
+    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture, double vnirPixelSize, double swirPixelSize) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
         double maxWavelength = 2500e-9;
+        double swirSpectralResolution = 0;
         if(numSWIRSpec > 0) {
             spectralRange = 2501.0-379.0;
-            double swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
+            swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
             spectralResolution = Math.max(vnirSpectralResolution,swirSpectralResolution);
         } else {
             spectralRange = 1001.0-379.0;
@@ -27,10 +31,10 @@ public class SpectrometerDesign {
             maxWavelength = 1000e-9;
         }
          // nm
-        double pixelSize = 6E-6; // m
         double orbitalVelocity = Math.sqrt(398600 / (6378 + alt)); // km/s
         double groundVelocity = orbitalVelocity * 6378 / (6378 + alt); // km/s
         int bitsPerPixel = 16;
+        double pixelSize = Math.max(vnirPixelSize,swirPixelSize);
         double IFOV = pixelSize / focalLength;
         spatialResolution = IFOV * alt * 1000;
         double diffractionLimitedResolution = 1.22 * alt * 1000 * maxWavelength / aperture;
@@ -52,6 +56,23 @@ public class SpectrometerDesign {
             power = power + 200;
         }
         this.tir = tir;
+
+        // Calculate SNR
+        double vnirL = 1.3*0.3; // approximate, at 600 nm
+        double swirL = 0.2*0.3; // approximate, at 1600 nm
+        double vnirLambda = 600e-9;
+        double swirLambda = 1600e-9;
+        double c = 3e8;
+        double h = 6.63e-34;
+        double eff = 0.8;
+        double vnirSignal = vnirLambda*vnirL*Math.PI*Math.pow(aperture,2)*Math.pow(vnirPixelSize,2)*(1/imagingRate)*eff*vnirSpectralResolution/(4*h*c*Math.pow(focalLength,2));
+        double swirSignal = swirLambda*swirL*Math.PI*Math.pow(aperture,2)*Math.pow(swirPixelSize,2)*(1/imagingRate)*eff*swirSpectralResolution/(4*h*c*Math.pow(focalLength,2));
+        double vnirNoise = Math.sqrt(Math.pow(Math.sqrt(vnirSignal),2)+10000);
+        double swirNoise = Math.sqrt(Math.pow(Math.sqrt(swirSignal),2)+10000);
+        vnirSNR = vnirSignal/vnirNoise;
+        swirSNR = swirSignal/swirNoise;
+        System.out.println("VNIR SNR: "+vnirSNR);
+        System.out.println("SWIR SNR: "+swirSNR);
         mass = lensMass + vnirSensorMass + swirSensorMass + tirSensorMass;
     }
 
@@ -78,4 +99,6 @@ public class SpectrometerDesign {
             return 0.1;
         }
     }
+    public double getVNIRSNR() { return vnirSNR; }
+    public double getSWIRSNR() { return swirSNR; }
 }

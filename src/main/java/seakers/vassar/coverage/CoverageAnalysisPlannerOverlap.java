@@ -27,6 +27,7 @@ import seakers.orekit.analysis.Analysis;
 import seakers.orekit.analysis.Record;
 import seakers.orekit.analysis.ephemeris.GroundTrackAnalysis;
 import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.access.TimeIntervalMerger;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.EventAnalysis;
@@ -92,7 +93,6 @@ public class CoverageAnalysisPlannerOverlap {
         this.satellites = satellites;
         this.fastCov = fastCov;
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
-        Frame inertialFrame = FramesFactory.getEME2000();
         earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
         //if running on a non-US machine, need the line below
@@ -471,16 +471,44 @@ public class CoverageAnalysisPlannerOverlap {
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
         GroundEventAnalyzer illuminationAnalyzer = new GroundEventAnalyzer(gndSunAngEvent.getEvents(covDef));
         Map<TopocentricFrame,TimeIntervalArray> illuminationEvents = illuminationAnalyzer.getEvents();
+
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
         double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
+        computeMaximumRevisitTimeWithIllumination(imagerEvents,illuminationEvents);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
         for (Satellite satellite : events.keySet()) {
+            for(TopocentricFrame tf : events.get(satellite).keySet()) {
+                ArrayList<TimeIntervalArray> tias = new ArrayList<>();
+                TimeIntervalArray baseTIA = events.get(satellite).get(tf);
+                TimeIntervalArray illuminationTIA = illuminationEvents.get(tf);
+                tias.add(baseTIA);
+                tias.add(illuminationTIA);
+                TimeIntervalMerger merger = new TimeIntervalMerger(tias);
+                TimeIntervalArray combinedArray = merger.andCombine();
+                events.get(satellite).put(tf,combinedArray);
+            }
             eventsBySatellite.put(satellite.getName(),events.get(satellite));
         }
+    }
+
+    public void computeMaximumRevisitTimeWithIllumination(Map<TopocentricFrame,TimeIntervalArray> base, Map<TopocentricFrame,TimeIntervalArray> illumination) {
+        for(TopocentricFrame tf : base.keySet()) {
+            ArrayList<TimeIntervalArray> tias = new ArrayList<>();
+            TimeIntervalArray baseTIA = base.get(tf);
+            TimeIntervalArray illuminationTIA = illumination.get(tf);
+            tias.add(baseTIA);
+            tias.add(illuminationTIA);
+            TimeIntervalMerger merger = new TimeIntervalMerger(tias);
+            TimeIntervalArray combinedArray = merger.andCombine();
+            base.put(tf,combinedArray);
+        }
+        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
+        double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+        System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(base,latBounds,lonBounds)/3600);
     }
 
     public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
