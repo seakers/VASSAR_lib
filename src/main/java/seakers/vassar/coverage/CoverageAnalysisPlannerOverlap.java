@@ -111,7 +111,7 @@ public class CoverageAnalysisPlannerOverlap {
 
         // Default start date and end date with 7-day run time
         TimeScale utc = TimeScalesFactory.getUTC();
-        this.startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
+        this.startDate = new AbsoluteDate(2020, 6, 1, 0, 0, 0.000, utc);
         this.endDate = startDate.shiftedBy(16.1 * 24 * 60 * 60); // 16 days in seconds
 
         this.numThreads = numThreads;
@@ -194,7 +194,7 @@ public class CoverageAnalysisPlannerOverlap {
         return overlap;
     }
 
-    public double computeMaximumRevisitTime(double maxTorque) {
+    public double computeMaximumRevisitTime(double maxSlewRate) {
         double mrt = 10000.0;
         Map<String,String> settings = new HashMap<>();
         settings.put("crosslinkEnabled","true");
@@ -205,7 +205,7 @@ public class CoverageAnalysisPlannerOverlap {
         settings.put("downlinkOnPower","0.0");
         settings.put("crosslinkOnPower","0.0");
         settings.put("chlBonusReward","100.0");
-        settings.put("maxTorque",Double.toString(maxTorque));
+        settings.put("maxSlewRate",Double.toString(maxSlewRate));
         settings.put("planner","greedy_coverage");
         settings.put("resources","false");
         Map<String,ArrayList<Observation>> obsMap = computeObservations();
@@ -221,7 +221,7 @@ public class CoverageAnalysisPlannerOverlap {
     }
 
     public double computeMaximumRevisitTimeFast() {
-        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
+        double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         return getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600;
     }
@@ -474,9 +474,10 @@ public class CoverageAnalysisPlannerOverlap {
 
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
-        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
+        double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
+        System.out.println("95th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         computeMaximumRevisitTimeWithIllumination(imagerEvents,illuminationEvents);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
@@ -506,9 +507,10 @@ public class CoverageAnalysisPlannerOverlap {
             TimeIntervalArray combinedArray = merger.andCombine();
             base.put(tf,combinedArray);
         }
-        double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
+        double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(base,latBounds,lonBounds)/3600);
+        System.out.println("95th percentile revisit time illuminated, FOR: "+get99thRevisitTime(base,latBounds,lonBounds)/3600);
     }
 
     public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
@@ -524,9 +526,25 @@ public class CoverageAnalysisPlannerOverlap {
         }else{
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
+        double max = stat.getPercentile(99);
+        return max;
+    }
 
-        //double max = stat.getElement((int) Math.round(0.95*stat.getValues().length));
-        double max = stat.getMax();
+    public double get99thRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, this.propertiesPropagator);
+
+        }else{
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
+        }
+
+        double max = stat.getPercentile(99);
         return max;
     }
 

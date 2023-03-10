@@ -13,13 +13,16 @@ public class SpectrometerDesign {
     private double vnirSNR;
     private double swirSNR;
 
+    private double agility;
+
     private boolean tir;
     private double swath;
 
-    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture, double vnirPixelSize, double swirPixelSize) {
+    public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture, double vnirPixelSize, double swirPixelSize, double agility) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
         double maxWavelength = 2500e-9;
         double swirSpectralResolution = 0;
+        this.agility = agility;
         if(numSWIRSpec > 0) {
             spectralRange = 2501.0-379.0;
             swirSpectralResolution = (2500.0-1000.0)/numSWIRSpec;
@@ -101,4 +104,6 @@ public class SpectrometerDesign {
     }
     public double getVNIRSNR() { return vnirSNR; }
     public double getSWIRSNR() { return swirSNR; }
+
+    public double getAgility() { return agility; }
 }

@@ -1,19 +1,6 @@
 package seakers.vassar.moea;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.moeaframework.core.Solution;
-import org.moeaframework.core.variable.BinaryVariable;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.problem.AbstractProblem;
@@ -23,28 +10,18 @@ import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
 import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
-import seakers.vassar.utils.RadarDesign;
 import seakers.vassar.utils.SpectrometerDesign;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
-import static java.lang.Double.NaN;
-
-public class XGrantsProblemFixedAgility extends AbstractProblem {
-    public XGrantsProblemFixedAgility() {
-        super(11,2,0);
+public class XGrantsProblemVariableAgility extends AbstractProblem {
+    public XGrantsProblemVariableAgility() {
+        super(12,2,0);
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
-        solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
-        solution.setVariable(1, EncodingUtils.newInt(1,5)); // number of planes
+        solution.setVariable(0, EncodingUtils.newInt(1,10)); // number of radar satellites
+        solution.setVariable(1, EncodingUtils.newInt(1,10)); // number of planes
         solution.setVariable(2, EncodingUtils.newInt(1,10)); // altitude of radar satellites (between 400 and 900 km)
         solution.setVariable(3, EncodingUtils.newInt(3,1000)); // num spectral pixels in VNIR
         solution.setVariable(4, EncodingUtils.newInt(0,1000)); // num spectral pixels in SWIR
@@ -54,6 +31,7 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
         solution.setVariable(8, new RealVariable(0.01, 2.0)); // aperture (m)
         solution.setVariable(9, new RealVariable(1e-6,20e-6)); // VNIR pixel size (m)
         solution.setVariable(10, new RealVariable(5e-6,50e-6)); // SWIR pixel size (m)
+        solution.setVariable(11, new RealVariable(0.1,10.0)); // agility (deg/s)
         return solution;
     }
 
@@ -79,11 +57,12 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
         double aperture = EncodingUtils.getReal(solution.getVariable(8));
         double pixelSizeVNIR = EncodingUtils.getReal(solution.getVariable(9));
         double pixelSizeSWIR = EncodingUtils.getReal(solution.getVariable(10));
+        double agility = EncodingUtils.getReal(solution.getVariable(11));
         double[] f = new double[numberOfObjectives];
 
         double inc = getSSOInclination(alt)*180/Math.PI;
 
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,pixelSizeVNIR,pixelSizeSWIR, 1.0);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,pixelSizeVNIR,pixelSizeSWIR,agility);
 
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();

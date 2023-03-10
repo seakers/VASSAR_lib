@@ -151,7 +151,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 5) (launch-date 2023) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -987,7 +987,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         if(fastCov) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
         } else {
-            therevtimesGlobal = capo.computeMaximumRevisitTime(4e-3);
+            therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());
         }
 
         System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
@@ -1012,7 +1012,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         double mu = Constants.WGS84_EARTH_MU;
         Frame inertialFrame = FramesFactory.getEME2000();
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 0, 0, 0.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2020, 6, 1, 0, 0, 0.000, utc);
         KeplerianOrbit kepOrbit = new KeplerianOrbit(6378000+Double.parseDouble(tokens[1])*1000,0.01,FastMath.toRadians(Double.parseDouble(tokens[2])),0.0,FastMath.toRadians(Double.parseDouble(tokens[3])),FastMath.toRadians(Double.parseDouble(tokens[4])),PositionAngle.MEAN, inertialFrame, startDate, mu);
         return kepOrbit;
     }

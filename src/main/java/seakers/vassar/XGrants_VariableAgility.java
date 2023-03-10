@@ -15,17 +15,18 @@ import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.util.distributed.DistributedProblem;
 import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.moea.XGrantsProblemFixedAgility;
+import seakers.vassar.moea.XGrantsProblemVariableAgility;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
 
-public class XGrants_restart {
+public class XGrants_VariableAgility {
     public static void main(String[] args){
         try{
             OrekitConfig.init(12);
-            XGrantsProblemFixedAgility problem = new XGrantsProblemFixedAgility();
+            XGrantsProblemVariableAgility problem = new XGrantsProblemVariableAgility();
             Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(12));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
@@ -66,8 +67,8 @@ public class XGrants_restart {
                             new CrowdingComparator()));
 
             Variation variation = new GAVariation(
-                    new SBX(1.0, 15.0),
-                    new PM(1.0 / distributedProblem.getNumberOfVariables(), 15.0));
+                    new SBX(1.0, 12.0),
+                    new PM(1.0 / distributedProblem.getNumberOfVariables(), 12.0));
 //            File stateFile = new File("last.state");
 //            Checkpoints checkpoints = new Checkpoints(new NSGAII(
 //                    distributedProblem,
@@ -108,7 +109,7 @@ public class XGrants_restart {
                     PrintWriter out = new PrintWriter("./src/test/output/xgrants/0310_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 50 + 400);
-                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+EncodingUtils.getInt(sol.getVariable(3))+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getReal(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10)));
+                        out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+EncodingUtils.getInt(sol.getVariable(3))+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getReal(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10))+","+EncodingUtils.getReal(sol.getVariable(11)));
                     }
                     out.close();
                 } catch (FileNotFoundException e) {
