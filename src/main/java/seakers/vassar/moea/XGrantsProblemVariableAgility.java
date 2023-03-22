@@ -81,6 +81,8 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
                 String orbitName = "LEO-"+alt+"-"+inc+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
+                } else {
+                    System.out.println("Duplicate orbit name!");
                 }
                 OrbitInstrumentObject radarOnlySatellite = new OrbitInstrumentObject(new String[]{"CustomInstrument"},orbitName);
                 satellites.add(radarOnlySatellite);
@@ -96,7 +98,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {
-            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "normal", sd);
+            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "fast", sd);
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);
@@ -104,6 +106,13 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
             evaluationManager.clear();
             f[0] = result.getCost();
             f[1] = -result.getScience();
+            solution.setAttribute("hsr",sd.getSpatialResolution());
+            solution.setAttribute("swath",sd.getSwath());
+            solution.setAttribute("vnirSNR",sd.getVNIRSNR());
+            solution.setAttribute("swirSNR",sd.getSWIRSNR());
+            solution.setAttribute("spectralResolution",sd.getSpectralResolution());
+            solution.setAttribute("overlap",result.getOverlap());
+            solution.setAttribute("mrt",result.getMRT());
         } catch (Exception e) {
             e.printStackTrace();
         }

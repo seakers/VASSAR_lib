@@ -24,6 +24,8 @@ public class Result implements Serializable {
 
     private double science;
     private double cost;
+    private double mrt;
+    private double overlap;
     private ArrayList<Double> coverage;
     private ArrayList<ArrayList<ArrayList<Double>>> subobjectiveScores;
     private ArrayList<ArrayList<Double>> objectiveScores;
@@ -126,6 +128,20 @@ public class Result implements Serializable {
     }
     public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    public double getMRT() {
+        return mrt;
+    }
+    public void setMRT(double mrt) {
+        this.mrt = mrt;
+    }
+
+    public double getOverlap() {
+        return overlap;
+    }
+    public void setOverlap(double overlap) {
+        this.overlap = overlap;
     }
 
     public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() { return subobjectiveScores; }

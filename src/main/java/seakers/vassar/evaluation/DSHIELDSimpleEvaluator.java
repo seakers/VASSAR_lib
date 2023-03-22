@@ -48,6 +48,9 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
 
     protected double[] smError;
 
+    public double mrt;
+    public double overlap;
+
     public DSHIELDSimpleEvaluator() {
         this.resourcePool = null;
         this.arch = null;
@@ -111,6 +114,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         QueryBuilder qb = res.getQueryBuilder();
         MatlabFunctions m = res.getM();
         Result result = new Result();
+        mrt = 86400.0;
+        overlap = 0.0;
         result.setScience(evaluateScience(params,r,arch,qb,m));
         result.setExplanations(aggregate_performance_score_facts(params, r, m, qb).getExplanations());
         result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
@@ -127,7 +132,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
 
         result.setCost(evaluateCosts(params,r,arch,qb,m));
-
+        result.setOverlap(this.overlap);
+        result.setMRT(this.mrt);
 
         this.resourcePool.freeResource(res);
 
@@ -199,6 +205,22 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             r.eval(call2);
             //System.out.println(call2);
         }
+    }
+
+    protected void setMRT(double mrt) {
+        this.mrt = mrt;
+    }
+
+    public double getMRT() {
+        return this.mrt;
+    }
+
+    protected void setOverlapAttribute(double overlap) {
+        this.overlap = overlap;
+    }
+
+    public double getOverlap() {
+        return this.overlap;
     }
 
     public double arraySum(double[] array) {
@@ -969,8 +991,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         for(OrbitInstrumentObject oio : simpleArch.getSatelliteList()) {
             KeplerianOrbit orbit = convertOrbitStringToOrbit(oio.getOrbit());
             Collection<Instrument> imagerPayload = new ArrayList<>();
-            double ssCrossFOVRadians = Math.toRadians(10.0);
-            double ssAlongFOVRadians = Math.toRadians(15.0); // make sure to change fovea if you change this!!!
+            double ssCrossFOVRadians = Math.toRadians(30.0);
+            double ssAlongFOVRadians = Math.toRadians(30.0); // make sure to change fovea if you change this!!!
             NadirRectangularFOV ssFOV = new NadirRectangularFOV(ssCrossFOVRadians,ssAlongFOVRadians,0.0,earthShape);
             Instrument etmPlus = new Instrument("ETM+", ssFOV, 100.0, 100.0);
             imagerPayload.add(etmPlus);
@@ -989,7 +1011,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         } else {
             therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());
         }
-
+        setMRT(therevtimesGlobal);
+        setOverlapAttribute(overlapResult);
         System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
         for (String param : params.measurementsToInstruments.keySet()) {
             String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "

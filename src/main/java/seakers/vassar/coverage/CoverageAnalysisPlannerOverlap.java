@@ -180,14 +180,15 @@ public class CoverageAnalysisPlannerOverlap {
         double overlap = 0.0;
         double uniqueAltimeterLocations = 0;
         for (TopocentricFrame tf : altimeterEvents.keySet()) {
-            if(altimeterEvents.get(tf).getDurations().length > 0) {
+            if(altimeterEvents.get(tf).getDurations().length > 0 && FastMath.toDegrees(Math.abs(tf.getPoint().getLatitude())) < (90-Math.abs(90-FastMath.toDegrees(satellites.get(0).getOrbit().getI())))) {
                 uniqueAltimeterLocations += 1;
             }
-
         }
+        System.out.println("Unique altimeter locations: "+uniqueAltimeterLocations);
         for (int i = 10; i > 0; i--) {
             Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
-            if(overlapPeriods.size() == uniqueAltimeterLocations) {
+            System.out.println("Number of overlaps for "+(60*15+i*3600.0*24.0*7.0/10.0)+" seconds of delay: "+overlapPeriods.size());
+            if(overlapPeriods.size() >= uniqueAltimeterLocations) {
                 overlap = 1-0.1*i;
             }
         }
@@ -477,11 +478,11 @@ public class CoverageAnalysisPlannerOverlap {
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
-        System.out.println("95th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
+        System.out.println("99th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         computeMaximumRevisitTimeWithIllumination(imagerEvents,illuminationEvents);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
-        for (Satellite satellite : events.keySet()) {
+        for (Satellite satellite : satellites) {
             for(TopocentricFrame tf : events.get(satellite).keySet()) {
                 ArrayList<TimeIntervalArray> tias = new ArrayList<>();
                 TimeIntervalArray baseTIA = events.get(satellite).get(tf);
@@ -491,6 +492,9 @@ public class CoverageAnalysisPlannerOverlap {
                 TimeIntervalMerger merger = new TimeIntervalMerger(tias);
                 TimeIntervalArray combinedArray = merger.andCombine();
                 events.get(satellite).put(tf,combinedArray);
+            }
+            if(events.get(satellite) == null) {
+                System.out.println(satellite.getName());
             }
             eventsBySatellite.put(satellite.getName(),events.get(satellite));
         }
@@ -526,8 +530,7 @@ public class CoverageAnalysisPlannerOverlap {
         }else{
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
-        double max = stat.getPercentile(99);
-        return max;
+        return stat.getMax();
     }
 
     public double get99thRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
