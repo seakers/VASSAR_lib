@@ -25,9 +25,9 @@ import java.util.concurrent.Executors;
 public class XGrants_VariableAgility {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(12);
+            OrekitConfig.init(2);
             XGrantsProblemVariableAgility problem = new XGrantsProblemVariableAgility();
-            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(12));
+            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(2));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
             boolean exists = tmpDir.exists();

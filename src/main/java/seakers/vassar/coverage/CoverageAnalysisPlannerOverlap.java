@@ -509,7 +509,17 @@ public class CoverageAnalysisPlannerOverlap {
             tias.add(illuminationTIA);
             TimeIntervalMerger merger = new TimeIntervalMerger(tias);
             TimeIntervalArray combinedArray = merger.andCombine();
-            base.put(tf,combinedArray);
+            if(illuminationTIA.getDurations().length > 1) {
+                base.put(tf,combinedArray);
+                if(combinedArray.isEmpty()) {
+                    System.out.println("Illumination but no overlap for "+FastMath.toDegrees(tf.getPoint().getLatitude())+", "+FastMath.toDegrees(tf.getPoint().getLongitude()));
+                    System.out.println("Length of baseTIA: "+baseTIA.getDurations().length);
+                    System.out.println("Length of illuminationTIA: "+illuminationTIA.getDurations().length);
+                }
+            } else {
+                System.out.println("No illumination for "+FastMath.toDegrees(tf.getPoint().getLatitude())+", "+FastMath.toDegrees(tf.getPoint().getLongitude()));
+            }
+
         }
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};

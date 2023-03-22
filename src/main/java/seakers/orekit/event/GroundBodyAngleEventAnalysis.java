@@ -5,9 +5,11 @@
  */
 package seakers.orekit.event;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.ode.events.Action;
@@ -23,6 +25,7 @@ import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.detector.GroundBodyAngleDetector;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.util.RawSafety;
 
 /**
  * An analysis for recording when the angle between a direction centered at a
@@ -63,12 +66,21 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
         double threshold = 1E-3; //for root finding [s]
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finest(String.format("Computing sun angles for %s...", cdef));
-
+            HashMap<TopocentricFrame, TimeIntervalArray> illuminationTimes = new HashMap<>();
+            File file = new File(
+                    System.getProperty("orekit.coveragedatabase"),
+                    "illumination");
+            if (file.canRead()) {
+                System.out.println("Illumination found in database!!!");
+                illuminationTimes = readAccesses(file);
+                getEvents().put(cdef, illuminationTimes);
+                continue;
+            }
             KeplerianOrbit dummyOrbit
                     = new KeplerianOrbit(1, 0, Math.PI, 0, 0, 0,
                             PositionAngle.TRUE, getInertialFrame(), getStartDate(), 0);
 
-            Map<TopocentricFrame, TimeIntervalArray> illuminationTimes = new HashMap<>();
+
             for (CoveragePoint point : cdef.getPoints()) {
                 KeplerianPropagator kp = new KeplerianPropagator(dummyOrbit, 0);
 
@@ -81,9 +93,37 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
                 illuminationTimes.put(point, gsd.getTimeIntervalArray());
             }
             getEvents().put(cdef, illuminationTimes);
+            File writeFile = new File(
+                    System.getProperty("orekit.coveragedatabase"),
+                    "illumination");
+            writeAccesses(writeFile, illuminationTimes);
         }
 
         return this;
+    }
+
+    private void writeAccesses(File file, HashMap<TopocentricFrame, TimeIntervalArray> accesses) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(accesses);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(GroundBodyAngleEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(GroundBodyAngleEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private HashMap<TopocentricFrame, TimeIntervalArray> readAccesses(File file) {
+        HashMap<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            out = RawSafety.castHashMap(ois.readObject());
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(GroundBodyAngleEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(GroundBodyAngleEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(GroundBodyAngleEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return out;
     }
 
     @Override
