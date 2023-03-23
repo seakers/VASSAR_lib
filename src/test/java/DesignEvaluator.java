@@ -18,12 +18,23 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DesignEvaluator {
+    public static double getSSOInclination(double alt) {
+        double RE = 6378;
+        double a = RE + alt;
+        double J2 = 1.08e-3;
+        double mu = 398600.0;
+        double rate = 2*Math.PI/365.25/86400;
+        double n = Math.sqrt(mu/Math.pow(a,3));
+        return Math.acos(-2*rate*Math.pow(a,2)/(3*J2*Math.pow(RE,2)*n));
+    }
     public static void main(String[] args) {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 1; // planes
-        int s = 2; // satellites per plane
+        int r = 6; // planes
+        int s = 4; // satellites per plane
+        double alt = 900;
+        double inc = getSSOInclination(alt)*180/Math.PI;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {
@@ -34,7 +45,7 @@ public class DesignEvaluator {
                 int f = 1;
                 int phasing = pu * f;
                 int anom = (n * delAnom + phasing * m);
-                String orbitName = "LEO-600-110"+"-"+RAAN+"-"+anom;
+                String orbitName = "LEO-"+alt+"-"+inc+"-"+RAAN+"-"+anom;
                 if(!orbitList.contains(orbitName)) {
                     orbitList.add(orbitName);
                 }
@@ -48,7 +59,6 @@ public class DesignEvaluator {
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        double alt = 1400;
         int numVNIRSpec = 124;
         int numSWIRSpec = 300;
         boolean tir = true;
@@ -57,8 +67,8 @@ public class DesignEvaluator {
         double aperture = 0.043122038556047675;
         double vnirPixelSize = 6e-6;
         double swirPixelSize= 6e-6;
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,1.0);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fast", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);

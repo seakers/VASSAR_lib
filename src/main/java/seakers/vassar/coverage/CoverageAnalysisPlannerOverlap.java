@@ -26,6 +26,7 @@ import org.orekit.utils.PVCoordinates;
 import seakers.orekit.analysis.Analysis;
 import seakers.orekit.analysis.Record;
 import seakers.orekit.analysis.ephemeris.GroundTrackAnalysis;
+import seakers.orekit.coverage.access.RiseSetTime;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
@@ -71,6 +72,8 @@ public class CoverageAnalysisPlannerOverlap {
 
     private Map<TopocentricFrame, TimeIntervalArray> imagerEvents;
     private Map<TopocentricFrame, TimeIntervalArray> altimeterEvents;
+
+    private Map<TopocentricFrame, TimeIntervalArray> illuminationEvents;
     private HashSet<GeodeticPoint> covPoints;
 
     private boolean fastCov;
@@ -153,7 +156,7 @@ public class CoverageAnalysisPlannerOverlap {
             GeodeticPoint lakePoint = new GeodeticPoint(lat, lon, 0.0);
             covPoints.add(lakePoint);
         }
-
+        computeIllumination();
         computeImagerAccesses();
         computeAltimeterAccesses();
         reset();
@@ -184,10 +187,8 @@ public class CoverageAnalysisPlannerOverlap {
                 uniqueAltimeterLocations += 1;
             }
         }
-        System.out.println("Unique altimeter locations: "+uniqueAltimeterLocations);
-        for (int i = 10; i > 0; i--) {
+        for (int i = 10; i >= 0; i--) {
             Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
-            System.out.println("Number of overlaps for "+(60*15+i*3600.0*24.0*7.0/10.0)+" seconds of delay: "+overlapPeriods.size());
             if(overlapPeriods.size() >= uniqueAltimeterLocations) {
                 overlap = 1-0.1*i;
             }
@@ -222,9 +223,7 @@ public class CoverageAnalysisPlannerOverlap {
     }
 
     public double computeMaximumRevisitTimeFast() {
-        double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
-        double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
-        return getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600;
+        return getMaximumRevisitTimeWithIllumination(imagerEvents,illuminationEvents);
     }
 
     private void computeAltimeterAccesses() throws OrekitException{
@@ -415,6 +414,59 @@ public class CoverageAnalysisPlannerOverlap {
         System.out.printf("getGroundTrack took %.4f sec\n", (end - start) / Math.pow(10, 9));
         return sspMap;
     }
+
+    private void computeIllumination() throws OrekitException{
+        TimeScale utc = TimeScalesFactory.getUTC();
+
+        //define the scenario parameters
+        //must use IERS_2003 and EME2000 frames to be consistent with STK
+        Frame inertialFrame = FramesFactory.getEME2000();
+
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
+        //define coverage params
+        List<List<String>> riverRecords = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/grwl_river_output.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                riverRecords.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Exception occurred in coverageByConstellation: "+e);
+        }
+        CoverageDefinition covDef;
+        if(fastCov) {
+            covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else {
+            covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
+        }
+        HashSet<CoverageDefinition> covDefs = new HashSet<>();
+        Constellation constellation = new Constellation("Constellation", satellites);
+        covDef.assignConstellation(constellation);
+        covDefs.add(covDef);
+
+        ArrayList<EventAnalysis> eventAnalyses = new ArrayList<>();
+
+        double threshold = 1.570795;
+        double x = 0;
+        double y = 0;
+        double z = 1;
+        Vector3D direction = new Vector3D(x, y, z);
+        CelestialBody sun = CelestialBodyFactory.getBody("SUN");
+        GroundBodyAngleEventAnalysis gndSunAngEvent = new GroundBodyAngleEventAnalysis(startDate,endDate,inertialFrame,covDefs,sun,threshold,direction);
+        eventAnalyses.add(gndSunAngEvent);
+
+        Scenario scene = new Scenario.Builder(startDate, endDate, utc).eventAnalysis(eventAnalyses).covDefs(covDefs).name("CoverageByConstellation").propagatorFactory(pf).build();
+        try {
+            scene.call();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        GroundEventAnalyzer illuminationAnalyzer = new GroundEventAnalyzer(gndSunAngEvent.getEvents(covDef));
+        illuminationEvents = illuminationAnalyzer.getEvents();
+    }
     private void computeImagerAccesses() throws OrekitException{
         TimeScale utc = TimeScalesFactory.getUTC();
 
@@ -450,15 +502,6 @@ public class CoverageAnalysisPlannerOverlap {
         FieldOfViewEventAnalysis fovea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,covDefs,pf,true, true,30.0);
         eventAnalyses.add(fovea);
 
-        double threshold = 1.570795;
-        double x = 0;
-        double y = 0;
-        double z = 1;
-        Vector3D direction = new Vector3D(x, y, z);
-        CelestialBody sun = CelestialBodyFactory.getBody("SUN");
-        GroundBodyAngleEventAnalysis gndSunAngEvent = new GroundBodyAngleEventAnalysis(startDate,endDate,inertialFrame,covDefs,sun,threshold,direction);
-        eventAnalyses.add(gndSunAngEvent);
-
         Scenario scene = new Scenario.Builder(startDate, endDate, utc).eventAnalysis(eventAnalyses).covDefs(covDefs).name("CoverageByConstellation").propagatorFactory(pf).build();
         long start = System.nanoTime();
         try {
@@ -470,8 +513,6 @@ public class CoverageAnalysisPlannerOverlap {
         //System.out.printf("imageraccesses took %.4f sec\n", (end - start) / Math.pow(10, 9));
 
         GroundEventAnalyzer gea = new GroundEventAnalyzer(fovea.getEvents(covDef));
-        GroundEventAnalyzer illuminationAnalyzer = new GroundEventAnalyzer(gndSunAngEvent.getEvents(covDef));
-        Map<TopocentricFrame,TimeIntervalArray> illuminationEvents = illuminationAnalyzer.getEvents();
 
         //System.out.printf("coverageByConstellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         imagerEvents = gea.getEvents();
@@ -479,7 +520,6 @@ public class CoverageAnalysisPlannerOverlap {
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         System.out.println("99th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
-        computeMaximumRevisitTimeWithIllumination(imagerEvents,illuminationEvents);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
         for (Satellite satellite : satellites) {
@@ -500,31 +540,59 @@ public class CoverageAnalysisPlannerOverlap {
         }
     }
 
-    public void computeMaximumRevisitTimeWithIllumination(Map<TopocentricFrame,TimeIntervalArray> base, Map<TopocentricFrame,TimeIntervalArray> illumination) {
+    public double getMaximumRevisitTimeWithIllumination(Map<TopocentricFrame,TimeIntervalArray> base, Map<TopocentricFrame,TimeIntervalArray> illumination) {
+        Map<TopocentricFrame,TimeIntervalArray> newMap = new HashMap<>();
         for(TopocentricFrame tf : base.keySet()) {
             ArrayList<TimeIntervalArray> tias = new ArrayList<>();
             TimeIntervalArray baseTIA = base.get(tf);
             TimeIntervalArray illuminationTIA = illumination.get(tf);
+            if(!baseTIA.isEmpty() && !illuminationTIA.isEmpty()) {
+                if(baseTIA.getRiseSetTimes().get(0).getTime() == 0.0 && illuminationTIA.getRiseSetTimes().get(0).getTime() == 0.0 && illuminationTIA.getRiseSetTimes().get(1).getTime() != 86400.0*16.1) {
+                    TimeIntervalArray newBaseTIA = new TimeIntervalArray(baseTIA.getHead(),baseTIA.getTail());
+                    TimeIntervalArray newIlluminationTIA = new TimeIntervalArray(illuminationTIA.getHead(),illuminationTIA.getTail());
+                    int i = 0;
+                    for(RiseSetTime time : baseTIA.getRiseSetTimes()) {
+                        if(i < 2) {
+                            i+=1;
+                            continue;
+                        }
+                        if (i%2 == 0) {
+                            newBaseTIA.addRiseTime(time.getTime());
+                        } else {
+                            newBaseTIA.addSetTime(time.getTime());
+                        }
+                        i = i+1;
+                    }
+                    i = 0;
+                    for(RiseSetTime time : illuminationTIA.getRiseSetTimes()) {
+                        if(i < 2) {
+                            i+=1;
+                            continue;
+                        }
+                        if (i%2 == 0) {
+                            newIlluminationTIA.addRiseTime(time.getTime());
+                        } else {
+                            newIlluminationTIA.addSetTime(time.getTime());
+                        }
+                        i = i+1;
+                    }
+                    baseTIA = newBaseTIA;
+                    illuminationTIA = newIlluminationTIA;
+                }
+            }
             tias.add(baseTIA);
             tias.add(illuminationTIA);
             TimeIntervalMerger merger = new TimeIntervalMerger(tias);
             TimeIntervalArray combinedArray = merger.andCombine();
             if(illuminationTIA.getDurations().length > 1) {
-                base.put(tf,combinedArray);
-                if(combinedArray.isEmpty()) {
-                    System.out.println("Illumination but no overlap for "+FastMath.toDegrees(tf.getPoint().getLatitude())+", "+FastMath.toDegrees(tf.getPoint().getLongitude()));
-                    System.out.println("Length of baseTIA: "+baseTIA.getDurations().length);
-                    System.out.println("Length of illuminationTIA: "+illuminationTIA.getDurations().length);
-                }
-            } else {
-                System.out.println("No illumination for "+FastMath.toDegrees(tf.getPoint().getLatitude())+", "+FastMath.toDegrees(tf.getPoint().getLongitude()));
+                newMap.put(tf,combinedArray);
             }
-
         }
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
-        System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(base,latBounds,lonBounds)/3600);
-        System.out.println("95th percentile revisit time illuminated, FOR: "+get99thRevisitTime(base,latBounds,lonBounds)/3600);
+        System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(newMap,latBounds,lonBounds)/3600);
+        System.out.println("99th percentile revisit time illuminated, FOR: "+get99thRevisitTime(newMap,latBounds,lonBounds)/3600);
+        return getMaxRevisitTime(newMap,latBounds,lonBounds)/3600;
     }
 
     public double getMaxRevisitTime(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
