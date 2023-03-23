@@ -5,7 +5,7 @@ plugins {
 }
 apply plugin : "java"
 ext{
-    javaMainClass = "seakers.vassar.XGrants_restart"
+    javaMainClass = "seakers.vassar.XGrants_VariableAgility"
 }
 application {
     mainClassName = javaMainClass
