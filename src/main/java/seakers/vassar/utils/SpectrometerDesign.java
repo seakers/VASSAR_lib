@@ -49,7 +49,7 @@ public class SpectrometerDesign {
         swath = spatialResolution * numSpatialPixels / 1000;
         power = 2.69e-5*(numVNIRSpec+numSWIRSpec)*numSpatialPixels + 1.14; // Watts, based on regression
         dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
-        System.out.println("Datarate: "+dataRate);
+        //System.out.println("Datarate: "+dataRate);
         double lensMass = Math.exp(4.365*focalLength+2.009*aperture - 2.447);
         double vnirSensorMass = 0.363 + 0.0014e-3 * numSpatialPixels * numVNIRSpec;
         double swirSensorMass = 0.618 + 0.0226e-3 * numSpatialPixels * numSWIRSpec;
@@ -74,8 +74,8 @@ public class SpectrometerDesign {
         double swirNoise = Math.sqrt(Math.pow(Math.sqrt(swirSignal),2)+10000);
         vnirSNR = vnirSignal/vnirNoise;
         swirSNR = swirSignal/swirNoise;
-        System.out.println("VNIR SNR: "+vnirSNR);
-        System.out.println("SWIR SNR: "+swirSNR);
+        //System.out.println("VNIR SNR: "+vnirSNR);
+        //System.out.println("SWIR SNR: "+swirSNR);
         mass = lensMass + vnirSensorMass + swirSensorMass + tirSensorMass;
     }
 

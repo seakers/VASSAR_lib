@@ -381,7 +381,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             theresult.setCapabilities(qb.makeQuery("REQUIREMENTS::Measurement"));
             theresult.setExplanations(explanations);
         }
-        System.out.println("aggregating performance score facts");
         theresult.setCapabilities(qb.makeQuery("REQUIREMENTS::Measurement"));
         theresult.setExplanations(explanations);
 

@@ -518,8 +518,8 @@ public class CoverageAnalysisPlannerOverlap {
         imagerEvents = gea.getEvents();
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
-        System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
-        System.out.println("99th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
+        //System.out.println("Maximum revisit time, FOR: "+getMaxRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
+        //System.out.println("99th percentile revisit time, FOR: "+get99thRevisitTime(imagerEvents,latBounds,lonBounds)/3600);
         eventsBySatellite = new HashMap<>();
         HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>> events = fovea.getAllEvents(covDef);
         for (Satellite satellite : satellites) {
@@ -590,8 +590,8 @@ public class CoverageAnalysisPlannerOverlap {
         }
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
-        System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(newMap,latBounds,lonBounds)/3600);
-        System.out.println("99th percentile revisit time illuminated, FOR: "+get99thRevisitTime(newMap,latBounds,lonBounds)/3600);
+        //System.out.println("Maximum revisit time illuminated, FOR: "+getMaxRevisitTime(newMap,latBounds,lonBounds)/3600);
+        //System.out.println("99th percentile revisit time illuminated, FOR: "+get99thRevisitTime(newMap,latBounds,lonBounds)/3600);
         return getMaxRevisitTime(newMap,latBounds,lonBounds)/3600;
     }
 

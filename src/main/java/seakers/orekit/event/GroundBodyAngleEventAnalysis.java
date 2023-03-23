@@ -71,7 +71,7 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
                     System.getProperty("orekit.coveragedatabase"),
                     "illumination");
             if (file.canRead()) {
-                System.out.println("Illumination found in database!!!");
+                //System.out.println("Illumination found in database!!!");
                 illuminationTimes = readAccesses(file);
                 getEvents().put(cdef, illuminationTimes);
                 continue;

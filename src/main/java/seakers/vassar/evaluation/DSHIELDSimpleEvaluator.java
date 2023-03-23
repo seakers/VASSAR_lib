@@ -136,7 +136,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         result.setMRT(this.mrt);
 
         this.resourcePool.freeResource(res);
-
+        System.out.println("Finished evaluating architecture!");
         return result;
     }
 
@@ -258,7 +258,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             long start = System.nanoTime();
             updateRevisitTimesPlanner(params, r, arch, qb, m, 1);
             long end = System.nanoTime();
-            System.out.printf("updateRevisitTimesPlanner took %.4f sec\n", (end - start) / Math.pow(10, 9));
+            //System.out.printf("updateRevisitTimesPlanner took %.4f sec\n", (end - start) / Math.pow(10, 9));
             //setOverlap(params, r, arch, qb, m);
 
             r.setFocus("ASSIMILATION2");
@@ -377,7 +377,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     fzcost = fzcost.add((FuzzyValue)mission.getSlotValue("lifecycle-cost").javaObjectValue(r.getGlobalContext()));
                 }
             }
-            r.eval("(facts MANIFEST)");
+            //r.eval("(facts MANIFEST)");
 
         }
         catch (JessException e) {
@@ -1004,7 +1004,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         boolean fastCov = Objects.equals(params.runMode, "fast");
         CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastCov);
         double overlapResult = capo.computeOverlap();
-        System.out.println("Computed overlap: "+overlapResult);
+        //System.out.println("Computed overlap: "+overlapResult);
         double therevtimesGlobal;
         if(fastCov) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
@@ -1013,7 +1013,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
         setMRT(therevtimesGlobal);
         setOverlapAttribute(overlapResult);
-        System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
+        //System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
         for (String param : params.measurementsToInstruments.keySet()) {
             String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "
                     + "(overlap-time# " + overlapResult + ") "

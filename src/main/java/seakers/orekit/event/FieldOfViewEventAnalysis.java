@@ -139,7 +139,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         System.getProperty("orekit.coveragedatabase"),
                         sat.hashCode() +cdef.getName());
                 if (file.canRead()) {
-                    System.out.println("FOVEA found in database!!!");
+                    //System.out.println("FOVEA found in database!!!");
                     HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = readAccesses(file);
                     processAccesses(sat, cdef, satAccesses);
                     continue;

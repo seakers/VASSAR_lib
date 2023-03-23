@@ -92,9 +92,9 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
         architecture.setRepeatCycle(0);
         architecture.setName(inc+", "+alt+", " );
         String[] orbList = new String[orbitList.size()];
-        System.out.println("Spectrometer mass (kg): "+sd.getMass());
-        System.out.println("Spectrometer power (W): "+sd.getPower());
-        System.out.println("Data rate (Mbps): "+sd.getDataRate());
+        //System.out.println("Spectrometer mass (kg): "+sd.getMass());
+        //System.out.println("Spectrometer power (W): "+sd.getPower());
+        //System.out.println("Data rate (Mbps): "+sd.getDataRate());
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {

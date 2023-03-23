@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 public class XGrants_VariableAgility {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(64);
+            OrekitConfig.init(16);
             XGrantsProblemVariableAgility problem = new XGrantsProblemVariableAgility();
             Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(64));
             ArrayList<Solution> initPop = new ArrayList<>();
