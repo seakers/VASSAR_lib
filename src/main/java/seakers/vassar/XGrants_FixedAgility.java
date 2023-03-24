@@ -57,7 +57,7 @@ public class XGrants_FixedAgility {
                         100,array);
                 System.out.println("Injecting existing solution!");
             } else {
-                initialization = new RandomInitialization(distributedProblem,1);
+                initialization = new RandomInitialization(distributedProblem,100);
             }
 
 
