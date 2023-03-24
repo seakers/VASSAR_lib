@@ -106,7 +106,7 @@ public class XGrants_VariableAgility {
                 }
                 try{
                     //PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
-                    PrintWriter out = new PrintWriter("./results/xgrants/0323v_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./results/xgrants/0323_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 50 + 400);
                         out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+EncodingUtils.getInt(sol.getVariable(3))+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getReal(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10))+","+EncodingUtils.getReal(sol.getVariable(11)));
