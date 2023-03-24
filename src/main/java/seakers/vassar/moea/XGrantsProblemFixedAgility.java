@@ -1,19 +1,6 @@
 package seakers.vassar.moea;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.moeaframework.core.Solution;
-import org.moeaframework.core.variable.BinaryVariable;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.problem.AbstractProblem;
@@ -23,19 +10,9 @@ import seakers.vassar.evaluation.DSHIELDSimpleEvaluator;
 import seakers.vassar.problems.OrbitInstrumentObject;
 import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
-import seakers.vassar.utils.RadarDesign;
 import seakers.vassar.utils.SpectrometerDesign;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static java.lang.Double.NaN;
 
 public class XGrantsProblemFixedAgility extends AbstractProblem {
     public XGrantsProblemFixedAgility() {
@@ -43,8 +20,8 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
     }
     public Solution newSolution() {
         Solution solution = new Solution(getNumberOfVariables(),getNumberOfObjectives(),getNumberOfConstraints());
-        solution.setVariable(0, EncodingUtils.newInt(1,5)); // number of radar satellites
-        solution.setVariable(1, EncodingUtils.newInt(1,5)); // number of planes
+        solution.setVariable(0, EncodingUtils.newInt(1,10)); // number of radar satellites
+        solution.setVariable(1, EncodingUtils.newInt(1,10)); // number of planes
         solution.setVariable(2, EncodingUtils.newInt(1,10)); // altitude of radar satellites (between 400 and 900 km)
         solution.setVariable(3, EncodingUtils.newInt(3,1000)); // num spectral pixels in VNIR
         solution.setVariable(4, EncodingUtils.newInt(0,1000)); // num spectral pixels in SWIR
@@ -83,7 +60,7 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
 
         double inc = getSSOInclination(alt)*180/Math.PI;
 
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,pixelSizeVNIR,pixelSizeSWIR, 1.0);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,pixelSizeVNIR,pixelSizeSWIR,1.0);
 
         String path = "../VASSAR_resources";
         ArrayList<String> orbitList = new ArrayList<>();
@@ -111,13 +88,13 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
         architecture.setRepeatCycle(0);
         architecture.setName(inc+", "+alt+", " );
         String[] orbList = new String[orbitList.size()];
-        System.out.println("Spectrometer mass (kg): "+sd.getMass());
-        System.out.println("Spectrometer power (W): "+sd.getPower());
-        System.out.println("Data rate (Mbps): "+sd.getDataRate());
+        //System.out.println("Spectrometer mass (kg): "+sd.getMass());
+        //System.out.println("Spectrometer power (W): "+sd.getPower());
+        //System.out.println("Data rate (Mbps): "+sd.getDataRate());
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {
-            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "normal", sd);
+            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "fastPoints", sd);
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);
@@ -125,6 +102,13 @@ public class XGrantsProblemFixedAgility extends AbstractProblem {
             evaluationManager.clear();
             f[0] = result.getCost();
             f[1] = -result.getScience();
+            solution.setAttribute("hsr",sd.getSpatialResolution());
+            solution.setAttribute("swath",sd.getSwath());
+            solution.setAttribute("vnirSNR",sd.getVNIRSNR());
+            solution.setAttribute("swirSNR",sd.getSWIRSNR());
+            solution.setAttribute("spectralResolution",sd.getSpectralResolution());
+            solution.setAttribute("overlap",result.getOverlap());
+            solution.setAttribute("mrt",result.getMRT());
         } catch (Exception e) {
             e.printStackTrace();
         }

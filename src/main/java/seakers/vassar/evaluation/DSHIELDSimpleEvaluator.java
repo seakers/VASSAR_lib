@@ -1001,12 +1001,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             i = i+1;
         }
 
-        boolean fastCov = Objects.equals(params.runMode, "fast");
-        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastCov);
+        boolean fastGrid = Objects.equals(params.runMode, "fastGrid");
+        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastGrid);
         double overlapResult = capo.computeOverlap();
         //System.out.println("Computed overlap: "+overlapResult);
         double therevtimesGlobal;
-        if(fastCov) {
+        if(Objects.equals(params.runMode, "fastPoints")) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
         } else {
             therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());

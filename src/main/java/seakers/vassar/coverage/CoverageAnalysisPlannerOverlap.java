@@ -181,18 +181,30 @@ public class CoverageAnalysisPlannerOverlap {
 
     public double computeOverlap() {
         double overlap = 0.0;
+        boolean linear = true;
         double uniqueAltimeterLocations = 0;
         for (TopocentricFrame tf : altimeterEvents.keySet()) {
             if(altimeterEvents.get(tf).getDurations().length > 0 && FastMath.toDegrees(Math.abs(tf.getPoint().getLatitude())) < (90-Math.abs(90-FastMath.toDegrees(satellites.get(0).getOrbit().getI())))) {
                 uniqueAltimeterLocations += 1;
             }
         }
-        for (int i = 10; i >= 0; i--) {
-            Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
-            if(overlapPeriods.size() >= uniqueAltimeterLocations) {
-                overlap = 1-0.1*i;
+        if(linear) {
+            for (int i = 10; i >= 0; i--) {
+                Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
+                if(overlapPeriods.size() >= uniqueAltimeterLocations) {
+                    overlap = 1-0.1*i;
+                }
+            }
+        } else {
+            Map<TopocentricFrame, ArrayList<Double>> overlapPeriods15Min = analyzeOverlap(altimeterEvents, imagerEvents, 60*15);
+            Map<TopocentricFrame, ArrayList<Double>> overlapPeriods1Day = analyzeOverlap(altimeterEvents, imagerEvents, 3600*24);
+            if(overlapPeriods15Min.size() >= uniqueAltimeterLocations) {
+                overlap = 1.0;
+            } else if(overlapPeriods1Day.size() >= uniqueAltimeterLocations) {
+                overlap = 0.5;
             }
         }
+
         return overlap;
     }
 

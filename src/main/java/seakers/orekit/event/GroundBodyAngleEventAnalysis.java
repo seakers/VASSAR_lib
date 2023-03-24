@@ -69,7 +69,7 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
             HashMap<TopocentricFrame, TimeIntervalArray> illuminationTimes = new HashMap<>();
             File file = new File(
                     System.getProperty("orekit.coveragedatabase"),
-                    "illumination");
+                    "illumination"+cdef.getName());
             if (file.canRead()) {
                 //System.out.println("Illumination found in database!!!");
                 illuminationTimes = readAccesses(file);
@@ -95,7 +95,7 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
             getEvents().put(cdef, illuminationTimes);
             File writeFile = new File(
                     System.getProperty("orekit.coveragedatabase"),
-                    "illumination");
+                    "illumination"+cdef.getName());
             writeAccesses(writeFile, illuminationTimes);
         }
 
