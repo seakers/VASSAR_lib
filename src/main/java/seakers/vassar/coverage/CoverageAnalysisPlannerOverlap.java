@@ -259,7 +259,7 @@ public class CoverageAnalysisPlannerOverlap {
         altimeters.add(jason3);
 
         // Sentinel-6
-        Orbit sentinel6Orbit = new KeplerianOrbit(6378000+1336000, 0.0, FastMath.toRadians(66.038), 0.0, 0.0, 0.0, PositionAngle.MEAN, inertialFrame, startDate, mu);
+        Orbit sentinel6Orbit = new KeplerianOrbit(6378000+1336000, 0.0, FastMath.toRadians(66.038), 0.0, 0.0, 180.0, PositionAngle.MEAN, inertialFrame, startDate, mu);
         Collection<Instrument> sentinel6Payload = new ArrayList<>();
         double poseidon4FOVRadians = Math.atan(20/1336.0/2);
         NadirSimpleConicalFOV poseidon4FOV = new NadirSimpleConicalFOV(poseidon4FOVRadians, earthShape);
@@ -269,7 +269,7 @@ public class CoverageAnalysisPlannerOverlap {
         altimeters.add(sentinel6);
 
         // Icesat-2
-        Orbit icesat2Orbit = new KeplerianOrbit(6378000+481000, 0.0, FastMath.toRadians(66.038), 0.0, 0.0, 0.0, PositionAngle.MEAN, inertialFrame, startDate, mu);
+        Orbit icesat2Orbit = new KeplerianOrbit(6378000+481000, 0.0, FastMath.toRadians(94), 0.0, 0.0, 0.0, PositionAngle.MEAN, inertialFrame, startDate, mu);
         Collection<Instrument> icesat2Payload = new ArrayList<>();
         double atlasFOVRadians = Math.atan(5/481.0/2);
         NadirSimpleConicalFOV atlasFOV = new NadirSimpleConicalFOV(atlasFOVRadians, earthShape);
