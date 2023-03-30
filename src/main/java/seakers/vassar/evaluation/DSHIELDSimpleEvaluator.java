@@ -1006,7 +1006,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         double overlapResult = capo.computeOverlap();
         //System.out.println("Computed overlap: "+overlapResult);
         double therevtimesGlobal;
-        if(Objects.equals(params.runMode, "fastPoints")) {
+        if(Objects.equals(params.runMode, "fastPoints") || Objects.equals(params.runMode, "fastGrid")) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
         } else {
             therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());

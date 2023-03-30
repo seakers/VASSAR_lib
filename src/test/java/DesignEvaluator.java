@@ -31,8 +31,8 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 6; // planes
-        int s = 4; // satellites per plane
+        int r = 1; // planes
+        int s = 8; // satellites per plane
         double alt = 900;
         double inc = getSSOInclination(alt)*180/Math.PI;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
@@ -68,7 +68,7 @@ public class DesignEvaluator {
         double vnirPixelSize = 6e-6;
         double swirPixelSize= 6e-6;
         SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,1.0);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fast", sd);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);
