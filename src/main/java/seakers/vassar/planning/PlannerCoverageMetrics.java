@@ -44,13 +44,12 @@ public class PlannerCoverageMetrics {
             Map<GeodeticPoint,ArrayList<TimeIntervalArray>> plannerAccessesPerSat = plannerAccesses.get(sat);
             for (GeodeticPoint gp : plannerAccessesPerSat.keySet()) {
                 ArrayList<TimeIntervalArray> tias = plannerAccessesPerSat.get(gp);
-                TimeIntervalArray baseTIA = new TimeIntervalArray(startDate,endDate);
                 for(GeodeticPoint gp2 : fovEventsPlannedGP.keySet()) {
                     if(gp == gp2) {
-                        baseTIA = fovEventsPlannedGP.get(gp2);
+                        TimeIntervalArray baseTIA = fovEventsPlannedGP.get(gp2);
+                        tias.add(baseTIA);
                     }
                 }
-                tias.add(baseTIA);
                 TimeIntervalMerger merger = new TimeIntervalMerger(tias);
                 TimeIntervalArray combinedArray = merger.orCombine();
                 fovEventsPlannedGP.put(gp,combinedArray);
@@ -62,30 +61,33 @@ public class PlannerCoverageMetrics {
             fovEventsPlanned.put(tf,fovEventsPlannedGP.get(gp));
         }
         Map<TopocentricFrame,TimeIntervalArray> forEvents = new HashMap<>();
-//        forEvents = accessEvents.get("smallsat00");
-//        for(String sat : accessEvents.keySet()) {
-//            Map<TopocentricFrame, TimeIntervalArray> forAccessesPerSat = accessEvents.get(sat);
-//            for (TopocentricFrame tf : forAccessesPerSat.keySet()) {
-//                for(TopocentricFrame tf2 : forEvents.keySet()) {
-//                    if(tf.getPoint().getLatitude() == tf2.getPoint().getLatitude() && tf.getPoint().getLongitude() == tf2.getPoint().getLongitude()) {
-//                        TimeIntervalArray tia = forEvents.get(tf);
-//                        TimeIntervalArray tia2 = forAccessesPerSat.get(tf2);
-//                        ArrayList<TimeIntervalArray> tias = new ArrayList<>();
-//                        tias.add(tia);
-//                        tias.add(tia2);
-//                        TimeIntervalMerger merger = new TimeIntervalMerger(tias);
-//                        TimeIntervalArray combinedArray = merger.orCombine();
-//                        forEvents.put(tf,combinedArray);
-//                    }
-//                }
-//            }
-//        }
+        forEvents = accessEvents.get("sat0");
+        for(String sat : accessEvents.keySet()) {
+            Map<TopocentricFrame, TimeIntervalArray> forAccessesPerSat = accessEvents.get(sat);
+            for (TopocentricFrame tf : forAccessesPerSat.keySet()) {
+                for(TopocentricFrame tf2 : forEvents.keySet()) {
+                    if(tf.getPoint().getLatitude() == tf2.getPoint().getLatitude() && tf.getPoint().getLongitude() == tf2.getPoint().getLongitude()) {
+                        TimeIntervalArray tia = forEvents.get(tf);
+                        TimeIntervalArray tia2 = forAccessesPerSat.get(tf2);
+                        ArrayList<TimeIntervalArray> tias = new ArrayList<>();
+                        tias.add(tia);
+                        tias.add(tia2);
+                        TimeIntervalMerger merger = new TimeIntervalMerger(tias);
+                        TimeIntervalArray combinedArray = merger.orCombine();
+                        forEvents.put(tf,combinedArray);
+                    }
+                }
+            }
+        }
+
         double[] latBounds = new double[]{FastMath.toRadians(-85), FastMath.toRadians(85)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         double fovMaxRevisitPlanned = getMaxRevisitTime(fovEventsPlanned,latBounds,lonBounds)/3600;
         System.out.printf("FOV max revisit time: %.2f\n",fovMaxRevisitPlanned);
-//        double forMaxRevisit = getMaxRevisitTime(forEvents,latBounds,lonBounds)/3600;
-//        System.out.printf("FOR max revisit time, all points: %.2f\n",forMaxRevisit);
+        double forMaxRevisit = getMaxRevisitTime(forEvents,latBounds,lonBounds)/3600;
+        System.out.printf("FOR max revisit time, all points: %.2f\n",forMaxRevisit);
+        System.out.print(Arrays.toString(getValues(forEvents, latBounds, lonBounds)));
+        System.out.print(Arrays.toString(getValues(fovEventsPlanned, latBounds, lonBounds)));
         maximumRevisitTime = fovMaxRevisitPlanned;
     }
 
@@ -107,6 +109,22 @@ public class PlannerCoverageMetrics {
             stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
         }
         return stat.getMax();
+    }
+
+    public double[] getValues(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){
+        // Method to compute average revisit time from accesses
+
+        GroundEventAnalyzer eventAnalyzer = new GroundEventAnalyzer(accesses);
+
+        DescriptiveStatistics stat;
+
+        if(latBounds.length == 0 && lonBounds.length == 0){
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, this.propertiesPropagator);
+
+        } else {
+            stat = eventAnalyzer.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, this.propertiesPropagator);
+        }
+        return stat.getSortedValues();
     }
 
     public double getPercentCoverage(Map<TopocentricFrame, TimeIntervalArray> accesses, double[] latBounds, double[] lonBounds){

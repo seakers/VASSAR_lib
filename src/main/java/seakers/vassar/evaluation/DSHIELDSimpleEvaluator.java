@@ -1004,16 +1004,16 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         boolean fastGrid = Objects.equals(params.runMode, "fastGrid");
         CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastGrid);
         double overlapResult = capo.computeOverlap();
-        //System.out.println("Computed overlap: "+overlapResult);
+        System.out.println("Computed overlap: "+overlapResult);
         double therevtimesGlobal;
-        if(Objects.equals(params.runMode, "fastPoints")) {
+        if(Objects.equals(params.runMode, "fastPoints") || Objects.equals(params.runMode, "fastGrid")) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
         } else {
             therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());
         }
         setMRT(therevtimesGlobal);
         setOverlapAttribute(overlapResult);
-        //System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
+        System.out.println("Computed maximum revisit time: "+therevtimesGlobal);
         for (String param : params.measurementsToInstruments.keySet()) {
             String call2 = "(assert (ASSIMILATION2::UPDATE-OVERLAP (parameter " + param + ") "
                     + "(overlap-time# " + overlapResult + ") "

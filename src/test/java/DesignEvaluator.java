@@ -13,9 +13,13 @@ import seakers.vassar.problems.SimpleArchitecture;
 import seakers.vassar.problems.SimpleParams;
 import seakers.vassar.utils.SpectrometerDesign;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DesignEvaluator {
     public static double getSSOInclination(double alt) {
@@ -27,13 +31,13 @@ public class DesignEvaluator {
         double n = Math.sqrt(mu/Math.pow(a,3));
         return Math.acos(-2*rate*Math.pow(a,2)/(3*J2*Math.pow(RE,2)*n));
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String path = "../VASSAR_resources";
         OrekitConfig.init(16);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 6; // planes
-        int s = 4; // satellites per plane
-        double alt = 900;
+        int r = 1; // planes
+        int s = 8; // satellites per plane
+        double alt = 650;
         double inc = getSSOInclination(alt)*180/Math.PI;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
@@ -68,7 +72,7 @@ public class DesignEvaluator {
         double vnirPixelSize = 6e-6;
         double swirPixelSize= 6e-6;
         SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,1.0);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fast", sd);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);
@@ -78,6 +82,7 @@ public class DesignEvaluator {
         evaluationManager.getResourcePool().freeResource(res);
         Result result = evaluationManager.evaluateArchitectureSync(architecture, "Slow");
         ArrayList<String> subobjs = new ArrayList<>();
+        ArrayList<String> rows = new ArrayList<>();
         ArrayList<ArrayList<ArrayList<String>>> subobjectives = params.subobjectives;
         for (ArrayList<ArrayList<String>> panel : subobjectives) {
             for(ArrayList<String> objective : panel) {
@@ -101,76 +106,83 @@ public class DesignEvaluator {
             ArrayList<Double> scores = new ArrayList<>();
             ArrayList<String> takenBy = new ArrayList<>();
             ArrayList<List<String>> justifications = new ArrayList<>();
-            for (Fact explanation: result.getExplanations().get(subobj)) {
-                try {
-                    // Try to find the requirement fact!
-                    int measurementId = -1;
-                    try{
-                        measurementId = explanation.getSlotValue("requirement-id").intValue(null);
-                    } catch (JessException e) {
-                        continue;
+            Fact explanation = result.getExplanations().get(subobj).get(1);
+            try {
+                // Try to find the requirement fact!
+                int measurementId = -1;
+                try{
+                    measurementId = explanation.getSlotValue("requirement-id").intValue(null);
+                } catch (JessException e) {
+                    continue;
+                }
+                if (measurementId == -1) {
+                    continue;
+                }
+                Fact measurement = null;
+                for (Fact capability: result.getCapabilities()) {
+                    if (capability.getFactId() == measurementId) {
+                        measurement = capability;
+                        break;
                     }
-                    if (measurementId == -1) {
-                        continue;
-                    }
-                    Fact measurement = null;
-                    for (Fact capability: result.getCapabilities()) {
-                        if (capability.getFactId() == measurementId) {
-                            measurement = capability;
+                }
+                // Start by putting all attribute values into list
+                ArrayList<String> rowValues = new ArrayList<>();
+                for (String attrName: attrNames) {
+                    String attrType = requirementRules.get(attrName).get(0);
+                    // Check type and convert to String if needed
+                    Value attrValue = measurement.getSlotValue(attrName);
+                    switch (attrType) {
+                        case "SIB":
+                        case "LIB": {
+                            Double value = attrValue.floatValue(null);
+                            double scale = 100;
+                            if (numDecimals.containsKey(attrName)) {
+                                scale = Math.pow(10, numDecimals.get(attrName));
+                            }
+                            value = Math.round(value * scale) / scale;
+                            rowValues.add(attrName+", Measured: "+value.toString()+", Required: "+requirementRules.get(attrName).get(1).toString()+"\n");
+                            break;
+                        }
+                        default: {
+                            rowValues.add(attrValue.toString());
                             break;
                         }
                     }
-                    // Start by putting all attribute values into list
-                    ArrayList<String> rowValues = new ArrayList<>();
-                    for (String attrName: attrNames) {
-                        String attrType = requirementRules.get(attrName).get(0);
-                        // Check type and convert to String if needed
-                        Value attrValue = measurement.getSlotValue(attrName);
-                        switch (attrType) {
-                            case "SIB":
-                            case "LIB": {
-                                Double value = attrValue.floatValue(null);
-                                double scale = 100;
-                                if (numDecimals.containsKey(attrName)) {
-                                    scale = Math.pow(10, numDecimals.get(attrName));
-                                }
-                                value = Math.round(value * scale) / scale;
-                                rowValues.add(attrName+", Measured: "+value.toString()+", Required: "+requirementRules.get(attrName).get(1).toString()+"\n");
-                                break;
-                            }
-                            default: {
-                                rowValues.add(attrValue.toString());
-                                break;
-                            }
-                        }
-                    }
-                    // Get information from explanation fact
-                    Double score = explanation.getSlotValue("satisfaction").floatValue(null);
-                    String satisfiedBy = explanation.getSlotValue("satisfied-by").stringValue(null);
-                    ArrayList<String> rowJustifications = new ArrayList<>();
-                    ValueVector reasons = explanation.getSlotValue("reasons").listValue(null);
-                    for (int i = 0; i < reasons.size(); ++i) {
-                        String reason = reasons.get(i).stringValue(null);
-                        if (!reason.equals("N-A")) {
-                            rowJustifications.add(reason);
-                        }
-                    }
-                    System.out.println("Subobj: "+subobj);
-                    System.out.println("Attr values: "+rowValues);
-                    System.out.println("Score: "+score);
-                    System.out.println("-------------------------------------------------");
-                    //System.out.println("Justifications: "+rowJustifications);
-                    // Put everything in their lists
-                    attrValues.add(rowValues);
-                    scores.add(score);
-                    takenBy.add(satisfiedBy);
-                    justifications.add(rowJustifications);
                 }
-                catch (JessException e) {
-                    System.err.println(e.toString());
+                // Get information from explanation fact
+                Double score = explanation.getSlotValue("satisfaction").floatValue(null);
+                String satisfiedBy = explanation.getSlotValue("satisfied-by").stringValue(null);
+                ArrayList<String> rowJustifications = new ArrayList<>();
+                ValueVector reasons = explanation.getSlotValue("reasons").listValue(null);
+                for (int i = 0; i < reasons.size(); ++i) {
+                    String reason = reasons.get(i).stringValue(null);
+                    if (!reason.equals("N-A")) {
+                        rowJustifications.add(reason);
+                    }
                 }
+                System.out.println("Subobj: "+subobj);
+                System.out.println("Attr values: "+rowValues);
+                System.out.println("Score: "+score);
+                System.out.println("-------------------------------------------------");
+                //System.out.println("Justifications: "+rowJustifications);
+                // Put everything in their lists
+                attrValues.add(rowValues);
+                scores.add(score);
+                takenBy.add(satisfiedBy);
+                justifications.add(rowJustifications);
             }
+            catch (JessException e) {
+                System.err.println(e.toString());
+            }
+            String[] scoreArray = (String[]) scores.toArray();
+            String collect = String.join(",", scoreArray);
+            rows.add(collect);
         }
+        FileWriter writer = new FileWriter("./arch_scores.csv");
+        for (String row : rows) {
+            writer.write(row);
+        }
+        writer.close();
         long end = System.nanoTime();
         System.out.printf("Full constellation took %.4f sec\n", (end - start) / Math.pow(10, 9));
         evaluationManager.clear();
