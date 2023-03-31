@@ -314,7 +314,13 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             // General and panel scores
             ArrayList<Fact> vals = qb.makeQuery("AGGREGATION::VALUE");
             Fact val = vals.get(0);
-            science = val.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
+            try{
+                science = val.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
+            } catch (JessException e) {
+                science = 0.0;
+                System.out.println(e);
+            }
+
             if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
                 fuzzy_science = (FuzzyValue)val.getSlotValue("fuzzy-value").javaObjectValue(r.getGlobalContext());
             }

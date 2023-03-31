@@ -64,15 +64,15 @@ public class DesignEvaluator {
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        int numVNIRSpec = 124;
-        int numSWIRSpec = 300;
+        int numVNIRSpec = 438;
+        int numSWIRSpec = 448;
         boolean tir = true;
-        double focalLength = 1.326;
+        double focalLength = 1.33;
         double FOV = 0.923;
-        double aperture = 1.128;
-        double vnirPixelSize = 6e-6;
-        double swirPixelSize= 6e-6;
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,10.0);
+        double aperture = 1.23;
+        double vnirPixelSize = 20.0e-6;
+        double swirPixelSize= 14.7e-6;
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,5.9);
         SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fastPoints", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
@@ -111,8 +111,11 @@ public class DesignEvaluator {
             Fact realExplanation = result.getExplanations().get(subobj).get(0);
             for (Fact explanation : result.getExplanations().get(subobj)) {
                 try{
-                    measurementId = explanation.getSlotValue("requirement-id").intValue(null);
                     realExplanation = explanation;
+                    measurementId = explanation.getSlotValue("requirement-id").intValue(null);
+                    if(measurementId == -1) {
+                        continue;
+                    }
                     break;
                 } catch (JessException e) {
                     continue;
@@ -188,7 +191,7 @@ public class DesignEvaluator {
                             } else if (value >= Double.parseDouble(thresholds.split(",")[1])) {
                                 itemScore = 0.5;
                             }
-                            if(Objects.equals(attrName, "VSWIR-Spatial")) {
+                            if(Objects.equals(attrName, "VSWIR-Spectral-Range")) {
                                 dblArray[3] = itemScore;
                             }
                             if(Objects.equals(attrName, "VSWIR-Swath")) {
@@ -245,7 +248,7 @@ public class DesignEvaluator {
                 System.err.println(e.toString());
             }
         }
-        FileWriter writer = new FileWriter("./arch_scores.csv");
+        FileWriter writer = new FileWriter("./arch_5_scores.csv");
         for (String row : rows) {
             writer.write(row);
             writer.write(System.getProperty( "line.separator" ));

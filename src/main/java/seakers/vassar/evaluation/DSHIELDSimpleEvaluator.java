@@ -118,7 +118,12 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         overlap = 0.0;
         result.setScience(evaluateScience(params,r,arch,qb,m));
         result.setExplanations(aggregate_performance_score_facts(params, r, m, qb).getExplanations());
-        result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
+        try{
+            result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
         //result.setScience(0.0);
         try {
             r.eval("(reset)");
@@ -157,7 +162,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate " + params.getSpectrometerDesign().getAgility() + ") (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate " + FastMath.toRadians(params.getSpectrometerDesign().getAgility()) + ") (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -1000,7 +1005,40 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
             satellites.add(smallsat);
             i = i+1;
         }
-
+        boolean oldSatellites = false;
+        if(oldSatellites) {
+            double ssCrossFOVRadians = Math.toRadians(30.0);
+            double ssAlongFOVRadians = Math.toRadians(30.0); // make sure to change fovea if you change this!!!
+            NadirRectangularFOV ssFOV = new NadirRectangularFOV(ssCrossFOVRadians,ssAlongFOVRadians,0.0,earthShape);
+            String landsatOrbitName = "LEO-705-98.2-0.0-0.0";
+            KeplerianOrbit landsatOrbit = convertOrbitStringToOrbit(landsatOrbitName);
+            Collection<Instrument> landsatPayload = new ArrayList<>();
+            Instrument etmPlus = new Instrument("ETM+", ssFOV, 100.0, 100.0);
+            landsatPayload.add(etmPlus);
+            Satellite landsat = new Satellite("landsat", landsatOrbit, landsatPayload);
+            satellites.add(landsat);
+            String sbgOrbitName = "LEO-623-97.2-0.0-180.0";
+            KeplerianOrbit sbgOrbit = convertOrbitStringToOrbit(sbgOrbitName);
+            Collection<Instrument> sbgPayload = new ArrayList<>();
+            Instrument sbg = new Instrument("SBG", ssFOV, 100.0, 100.0);
+            sbgPayload.add(sbg);
+            Satellite sbgsat = new Satellite("SBG", sbgOrbit, sbgPayload);
+            satellites.add(sbgsat);
+            String sentinel2aOrbitName = "LEO-786-98.62-0.0-90.0";
+            KeplerianOrbit sentinel2aOrbit = convertOrbitStringToOrbit(sentinel2aOrbitName);
+            Collection<Instrument> sentinel2aPayload = new ArrayList<>();
+            Instrument sentinel2a = new Instrument("sentinel2a", ssFOV, 100.0, 100.0);
+            sentinel2aPayload.add(sentinel2a);
+            Satellite sentinel2asat = new Satellite("sentinel2a", sentinel2aOrbit, sentinel2aPayload);
+            satellites.add(sentinel2asat);
+            String sentinel2bOrbitName = "LEO-786-98.62-0.0-270.0";
+            KeplerianOrbit sentinel2bOrbit = convertOrbitStringToOrbit(sentinel2bOrbitName);
+            Collection<Instrument> sentinel2bPayload = new ArrayList<>();
+            Instrument sentinel2b = new Instrument("sentinel2b", ssFOV, 100.0, 100.0);
+            sentinel2bPayload.add(sentinel2b);
+            Satellite sentinel2bsat = new Satellite("sentinel2b", sentinel2bOrbit, sentinel2bPayload);
+            satellites.add(sentinel2bsat);
+        }
         boolean fastGrid = Objects.equals(params.runMode, "fastGrid");
         boolean reduced = Objects.equals(params.runMode, "reduced");
         CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastGrid,reduced);

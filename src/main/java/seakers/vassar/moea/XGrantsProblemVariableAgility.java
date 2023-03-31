@@ -88,6 +88,21 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
                 satellites.add(radarOnlySatellite);
             }
         }
+        boolean oldSatellites = true;
+        if (oldSatellites) {
+            String landsatOrbitName = "LEO-705-98.2-0.0-0.0";
+            OrbitInstrumentObject landsat = new OrbitInstrumentObject(new String[]{"Landsat"},landsatOrbitName);
+            satellites.add(landsat);
+            String sbgOrbitName = "LEO-623-97.2-0.0-180.0";
+            OrbitInstrumentObject sbg = new OrbitInstrumentObject(new String[]{"SBG"},sbgOrbitName);
+            satellites.add(sbg);
+            String sentinel2aOrbitName = "LEO-786-98.62-0.0-90.0";
+            OrbitInstrumentObject sentinel2a = new OrbitInstrumentObject(new String[]{"Sentinel2A"},sentinel2aOrbitName);
+            satellites.add(sentinel2a);
+            String sentinel2bOrbitName = "LEO-786-98.62-0.0-270.0";
+            OrbitInstrumentObject sentinel2b = new OrbitInstrumentObject(new String[]{"Sentinel2B"},sentinel2bOrbitName);
+            satellites.add(sentinel2b);
+        }
         SimpleArchitecture architecture = new SimpleArchitecture(satellites);
         architecture.setRepeatCycle(0);
         architecture.setName(inc+", "+alt+", " );
@@ -98,7 +113,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {
-            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "normal", sd);
+            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "fastGrid", sd);
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);
