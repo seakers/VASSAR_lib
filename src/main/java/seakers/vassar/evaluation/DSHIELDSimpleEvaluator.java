@@ -157,7 +157,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate 0.052) (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate " + params.getSpectrometerDesign().getAgility() + ") (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 
@@ -1002,7 +1002,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         }
 
         boolean fastGrid = Objects.equals(params.runMode, "fastGrid");
-        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastGrid);
+        boolean reduced = Objects.equals(params.runMode, "reduced");
+        CoverageAnalysisPlannerOverlap capo = new CoverageAnalysisPlannerOverlap(satellites,fastGrid,reduced);
         double overlapResult = capo.computeOverlap();
         System.out.println("Computed overlap: "+overlapResult);
         double therevtimesGlobal;

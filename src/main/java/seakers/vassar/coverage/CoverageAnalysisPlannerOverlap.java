@@ -77,24 +77,26 @@ public class CoverageAnalysisPlannerOverlap {
     private HashSet<GeodeticPoint> covPoints;
     private HashSet<GeodeticPoint> covPointsReduced;
     private boolean fastCov;
+    private boolean reduced;
 
     private HashMap<String, HashMap<TopocentricFrame, TimeIntervalArray>> eventsBySatellite;
     BodyShape earthShape;
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites,boolean fastCov) throws OrekitException{
-        this(satellites, 4, true, true, fastCov);
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites,boolean fastCov, boolean reduced) throws OrekitException{
+        this(satellites, 4, true, true, fastCov, reduced);
 
     }
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, boolean fastCov) throws OrekitException {
-        this(satellites,numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"),fastCov);
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, boolean fastCov, boolean reduced) throws OrekitException {
+        this(satellites,numThreads, saveAccessData, binaryEncoding, System.getProperty("user.dir"),fastCov,reduced);
     }
 
-    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd, boolean fastCov) throws OrekitException {
+    public CoverageAnalysisPlannerOverlap(ArrayList<Satellite> satellites, int numThreads, boolean saveAccessData, boolean binaryEncoding, String cwd, boolean fastCov, boolean reduced) throws OrekitException {
 
         this.cwd = cwd;
         this.satellites = satellites;
         this.fastCov = fastCov;
+        this.reduced = reduced;
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
@@ -305,8 +307,9 @@ public class CoverageAnalysisPlannerOverlap {
         CoverageDefinition covDef;
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else if(reduced) {
+            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
         } else {
-            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
@@ -468,8 +471,9 @@ public class CoverageAnalysisPlannerOverlap {
         CoverageDefinition covDef;
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else if(reduced) {
+            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
         } else {
-            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
@@ -521,8 +525,9 @@ public class CoverageAnalysisPlannerOverlap {
         CoverageDefinition covDef;
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
+        } else if(reduced) {
+            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
         } else {
-            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
