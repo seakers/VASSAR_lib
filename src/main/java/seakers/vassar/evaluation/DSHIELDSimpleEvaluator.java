@@ -1009,7 +1009,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         if(Objects.equals(params.runMode, "fastPoints") || Objects.equals(params.runMode, "fastGrid")) {
             therevtimesGlobal = capo.computeMaximumRevisitTimeFast();
         } else {
-            therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility());
+            therevtimesGlobal = capo.computeMaximumRevisitTime(params.getSpectrometerDesign().getAgility(),params.getSpectrometerDesign().getSwath());
         }
         setMRT(therevtimesGlobal);
         setOverlapAttribute(overlapResult);

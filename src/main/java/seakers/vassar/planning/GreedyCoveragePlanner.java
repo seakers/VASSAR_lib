@@ -35,7 +35,7 @@ public class GreedyCoveragePlanner {
         // roll number
         public int compare(Observation a, Observation b)
         {
-            return (int) (a.getObservationStart() - b.getObservationStart());
+            return Double.compare(a.getObservationStart(),b.getObservationStart());
         }
     }
     public ArrayList<StateAction> greedyPlan(SatelliteState initialState) {
@@ -53,18 +53,6 @@ public class GreedyCoveragePlanner {
             moreActions = !getActionSpace(s).isEmpty();
         }
         return resultList;
-    }
-
-    ArrayList<GeodeticPoint> getPointsInFOV(GeodeticPoint location, ArrayList<GeodeticPoint> groundPoints) {
-        ArrayList<GeodeticPoint> pointsInFOV = new ArrayList<>();
-        for (GeodeticPoint gp : groundPoints) {
-            double distance = Math.sqrt(Math.pow(location.getLatitude()-gp.getLatitude(),2)+Math.pow(location.getLongitude()-gp.getLongitude(),2)); // in radians latitude
-            double radius = 577; // kilometers for 500 km orbit height, 30 deg half angle, NOT spherical trig TODO
-            if(distance * 111.1 * 180 / Math.PI < radius) {
-                pointsInFOV.add(gp);
-            }
-        }
-        return pointsInFOV;
     }
     public SatelliteState transitionFunction(SatelliteState s, SatelliteAction a) {
         double t = a.gettEnd();
@@ -133,7 +121,7 @@ public class GreedyCoveragePlanner {
         ArrayList<SatelliteAction> possibleActions = new ArrayList<>();
         for (Observation obs : sortedObservations) {
             if(obs.getObservationStart() > currentTime) {
-                SatelliteAction obsAction = new SatelliteAction(obs.getObservationStart(),obs.getObservationStart()+0.01,obs.getObservationPoint(),"imaging",rewardGrid.get(obs.getObservationPoint()),obs.getObservationAngle());
+                SatelliteAction obsAction = new SatelliteAction(obs.getObservationStart(),obs.getObservationStart()+0.001,obs.getObservationPoint(),"imaging",rewardGrid.get(obs.getObservationPoint()),obs.getObservationAngle());
                 if(canSlew(s.getCurrentAngle(),obs.getObservationAngle(),currentTime,obs.getObservationStart())) {
                     possibleActions.add(obsAction);
                     break;

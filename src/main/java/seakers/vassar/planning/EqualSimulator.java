@@ -77,12 +77,12 @@ public class EqualSimulator {
             naiveActionsTaken.put(sat,planExec.getActionsTaken());
         }
         System.out.println("Done!");
-        computeStatistics("Non-reactive",naiveActionsTaken);
+        computeStatistics("Non-reactive",naiveActionsTaken,settings);
         long end = System.nanoTime();
         System.out.printf("Took %.4f sec\n", (end - start) / Math.pow(10, 9));
     }
 
-    public void computeStatistics(String flag, Map<String, ArrayList<SatelliteAction>> takenActions) {
+    public void computeStatistics(String flag, Map<String, ArrayList<SatelliteAction>> takenActions,Map<String,String> settings) {
         for (String sat : takenActions.keySet()) {
             Map<GeodeticPoint,ArrayList<TimeIntervalArray>> gpAccessesPerSat = gpAccesses.get(sat);
             for (SatelliteAction sa : takenActions.get(sat)) {
@@ -91,7 +91,7 @@ public class EqualSimulator {
                         break;
                     case "imaging":
                         GeodeticPoint gp = sa.getLocation();
-                        ArrayList<GeodeticPoint> nearbyGPs = getPointsInFOV(gp,new ArrayList<>(globalRewardGrid.keySet()));
+                        ArrayList<GeodeticPoint> nearbyGPs = getPointsInFOV(gp,new ArrayList<>(globalRewardGrid.keySet()),settings);
                         for (GeodeticPoint nearbyGP : nearbyGPs) {
                             TimeIntervalArray tia = new TimeIntervalArray(startDate,endDate);
                             tia.addRiseTime(sa.gettStart());
@@ -147,11 +147,11 @@ public class EqualSimulator {
     public Map<String,Map<GeodeticPoint,ArrayList<TimeIntervalArray>>> getPlannerAccesses() {
         return gpAccesses;
     }
-    ArrayList<GeodeticPoint> getPointsInFOV(GeodeticPoint location, ArrayList<GeodeticPoint> groundPoints) {
+    ArrayList<GeodeticPoint> getPointsInFOV(GeodeticPoint location, ArrayList<GeodeticPoint> groundPoints, Map<String,String> settings) {
         ArrayList<GeodeticPoint> pointsInFOV = new ArrayList<>();
         for (GeodeticPoint gp : groundPoints) {
             double distance = Math.sqrt(Math.pow(location.getLatitude()-gp.getLatitude(),2)+Math.pow(location.getLongitude()-gp.getLongitude(),2)); // in radians latitude
-            double radius = 577; // kilometers for 500 km orbit height, 30 deg half angle, NOT spherical trig TODO
+            double radius = Double.parseDouble(settings.get("swath"))/2.0; // kilometers for 500 km orbit height, 30 deg half angle, NOT spherical trig TODO
             if(distance * 111.1 * 180 / Math.PI < radius) {
                 pointsInFOV.add(gp);
             }

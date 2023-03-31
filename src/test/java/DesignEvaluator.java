@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,7 +34,7 @@ public class DesignEvaluator {
     }
     public static void main(String[] args) throws IOException {
         String path = "../VASSAR_resources";
-        OrekitConfig.init(16);
+        OrekitConfig.init(12);
         ArrayList<String> orbitList = new ArrayList<>();
         int r = 1; // planes
         int s = 8; // satellites per plane
@@ -66,13 +67,13 @@ public class DesignEvaluator {
         int numVNIRSpec = 124;
         int numSWIRSpec = 300;
         boolean tir = true;
-        double focalLength = 0.0871618219064214;
-        double FOV = 0.04309536171700537;
-        double aperture = 0.043122038556047675;
+        double focalLength = 1.326;
+        double FOV = 0.923;
+        double aperture = 1.128;
         double vnirPixelSize = 6e-6;
         double swirPixelSize= 6e-6;
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,1.0);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "normal", sd);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,10.0);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fastPoints", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);
@@ -106,18 +107,19 @@ public class DesignEvaluator {
             ArrayList<Double> scores = new ArrayList<>();
             ArrayList<String> takenBy = new ArrayList<>();
             ArrayList<List<String>> justifications = new ArrayList<>();
-            Fact explanation = result.getExplanations().get(subobj).get(1);
-            try {
-                // Try to find the requirement fact!
-                int measurementId = -1;
+            int measurementId = -1;
+            Fact realExplanation = result.getExplanations().get(subobj).get(0);
+            for (Fact explanation : result.getExplanations().get(subobj)) {
                 try{
                     measurementId = explanation.getSlotValue("requirement-id").intValue(null);
+                    realExplanation = explanation;
+                    break;
                 } catch (JessException e) {
                     continue;
                 }
-                if (measurementId == -1) {
-                    continue;
-                }
+            }
+            try {
+                // Try to find the requirement fact!
                 Fact measurement = null;
                 for (Fact capability: result.getCapabilities()) {
                     if (capability.getFactId() == measurementId) {
@@ -127,12 +129,49 @@ public class DesignEvaluator {
                 }
                 // Start by putting all attribute values into list
                 ArrayList<String> rowValues = new ArrayList<>();
+                Double[] dblArray = new Double[9];
+                for (int i = 0; i < 9; i++) {
+                    dblArray[i] = 0.0;
+                }
                 for (String attrName: attrNames) {
+                    if(Objects.equals(attrName, "VSWIR-Accuracy") || Objects.equals(attrName, "lifetime") || Objects.equals(attrName, "TIR-Sensitivity")) {
+                        continue;
+                    }
                     String attrType = requirementRules.get(attrName).get(0);
                     // Check type and convert to String if needed
                     Value attrValue = measurement.getSlotValue(attrName);
                     switch (attrType) {
                         case "SIB":
+                        {
+                            Double value = attrValue.floatValue(null);
+                            double scale = 100;
+                            if (numDecimals.containsKey(attrName)) {
+                                scale = Math.pow(10, numDecimals.get(attrName));
+                            }
+                            value = Math.round(value * scale) / scale;
+                            rowValues.add(attrName+", Measured: "+value.toString()+", Required: "+requirementRules.get(attrName).get(1).toString()+"\n");
+                            Double itemScore = 0.0;
+                            String thresholds = requirementRules.get(attrName).get(1);
+                            thresholds = thresholds.replaceAll("[-+^:\\[\\]]","");
+                            if(value <= Double.parseDouble(thresholds.split(",")[0])) {
+                                itemScore = 1.0;
+                            } else if (value <= Double.parseDouble(thresholds.split(",")[1])) {
+                                itemScore = 0.5;
+                            }
+                            if(Objects.equals(attrName, "VSWIR-Spatial")) {
+                                dblArray[0] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "VSWIR-Temporal")) {
+                                dblArray[1] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "VSWIR-Spectral-Resolution")) {
+                                dblArray[2] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "TIR-Spatial")) {
+                                dblArray[7] = itemScore;
+                            }
+                            break;
+                        }
                         case "LIB": {
                             Double value = attrValue.floatValue(null);
                             double scale = 100;
@@ -141,6 +180,29 @@ public class DesignEvaluator {
                             }
                             value = Math.round(value * scale) / scale;
                             rowValues.add(attrName+", Measured: "+value.toString()+", Required: "+requirementRules.get(attrName).get(1).toString()+"\n");
+                            Double itemScore = 0.0;
+                            String thresholds = requirementRules.get(attrName).get(1);
+                            thresholds = thresholds.replaceAll("[-+^:\\[\\]]","");
+                            if(value >= Double.parseDouble(thresholds.split(",")[0])) {
+                                itemScore = 1.0;
+                            } else if (value >= Double.parseDouble(thresholds.split(",")[1])) {
+                                itemScore = 0.5;
+                            }
+                            if(Objects.equals(attrName, "VSWIR-Spatial")) {
+                                dblArray[3] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "VSWIR-Swath")) {
+                                dblArray[4] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "VNIR-SNR")) {
+                                dblArray[5] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "SWIR-SNR")) {
+                                dblArray[6] = itemScore;
+                            }
+                            if(Objects.equals(attrName, "Opt-Alt-Coincidence#")) {
+                                dblArray[8] = itemScore;
+                            }
                             break;
                         }
                         default: {
@@ -150,10 +212,10 @@ public class DesignEvaluator {
                     }
                 }
                 // Get information from explanation fact
-                Double score = explanation.getSlotValue("satisfaction").floatValue(null);
-                String satisfiedBy = explanation.getSlotValue("satisfied-by").stringValue(null);
+                Double score = realExplanation.getSlotValue("satisfaction").floatValue(null);
+                String satisfiedBy = realExplanation.getSlotValue("satisfied-by").stringValue(null);
                 ArrayList<String> rowJustifications = new ArrayList<>();
-                ValueVector reasons = explanation.getSlotValue("reasons").listValue(null);
+                ValueVector reasons = realExplanation.getSlotValue("reasons").listValue(null);
                 for (int i = 0; i < reasons.size(); ++i) {
                     String reason = reasons.get(i).stringValue(null);
                     if (!reason.equals("N-A")) {
@@ -170,17 +232,23 @@ public class DesignEvaluator {
                 scores.add(score);
                 takenBy.add(satisfiedBy);
                 justifications.add(rowJustifications);
+                int size = dblArray.length;
+                String[] str = new String[size];
+
+                for(int i=0; i<size; i++) {
+                    str[i] = dblArray[i].toString();
+                }
+                String collect = String.join(",", str);
+                rows.add(collect);
             }
             catch (JessException e) {
                 System.err.println(e.toString());
             }
-            String[] scoreArray = (String[]) scores.toArray();
-            String collect = String.join(",", scoreArray);
-            rows.add(collect);
         }
         FileWriter writer = new FileWriter("./arch_scores.csv");
         for (String row : rows) {
             writer.write(row);
+            writer.write(System.getProperty( "line.separator" ));
         }
         writer.close();
         long end = System.nanoTime();

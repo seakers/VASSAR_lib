@@ -75,7 +75,7 @@ public class CoverageAnalysisPlannerOverlap {
 
     private Map<TopocentricFrame, TimeIntervalArray> illuminationEvents;
     private HashSet<GeodeticPoint> covPoints;
-
+    private HashSet<GeodeticPoint> covPointsReduced;
     private boolean fastCov;
 
     private HashMap<String, HashMap<TopocentricFrame, TimeIntervalArray>> eventsBySatellite;
@@ -133,11 +133,18 @@ public class CoverageAnalysisPlannerOverlap {
             System.out.println("Exception occurred in coverageByConstellation: "+e);
         }
         covPoints = new HashSet<>();
+        covPointsReduced = new HashSet<>();
         for (int i = 0; i < 1000; i++) {
             double lon = Math.toRadians(parseDouble(riverRecords.get(i).get(0)));
             double lat = Math.toRadians(parseDouble(riverRecords.get(i).get(1)));
             GeodeticPoint riverPoint = new GeodeticPoint(lat, lon, 0.0);
             covPoints.add(riverPoint);
+        }
+        for (int i = 0; i < 100; i++) {
+            double lon = Math.toRadians(parseDouble(riverRecords.get(i).get(0)));
+            double lat = Math.toRadians(parseDouble(riverRecords.get(i).get(1)));
+            GeodeticPoint riverPoint = new GeodeticPoint(lat, lon, 0.0);
+            covPointsReduced.add(riverPoint);
         }
         List<List<String>> lakeRecords = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/hydrolakes.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
@@ -155,6 +162,12 @@ public class CoverageAnalysisPlannerOverlap {
             double lon = Math.toRadians(parseDouble(lakeRecords.get(i).get(1)));
             GeodeticPoint lakePoint = new GeodeticPoint(lat, lon, 0.0);
             covPoints.add(lakePoint);
+        }
+        for (int i = 0; i < 100; i++) {
+            double lat = Math.toRadians(parseDouble(lakeRecords.get(i).get(0)));
+            double lon = Math.toRadians(parseDouble(lakeRecords.get(i).get(1)));
+            GeodeticPoint lakePoint = new GeodeticPoint(lat, lon, 0.0);
+            covPointsReduced.add(lakePoint);
         }
         computeIllumination();
         computeImagerAccesses();
@@ -208,7 +221,7 @@ public class CoverageAnalysisPlannerOverlap {
         return overlap;
     }
 
-    public double computeMaximumRevisitTime(double maxSlewRate) {
+    public double computeMaximumRevisitTime(double maxSlewRate, double swath) {
         double mrt = 10000.0;
         Map<String,String> settings = new HashMap<>();
         settings.put("crosslinkEnabled","true");
@@ -220,6 +233,7 @@ public class CoverageAnalysisPlannerOverlap {
         settings.put("crosslinkOnPower","0.0");
         settings.put("chlBonusReward","100.0");
         settings.put("maxSlewRate",Double.toString(maxSlewRate));
+        settings.put("swath",Double.toString(swath));
         settings.put("planner","greedy_coverage");
         settings.put("resources","false");
         Map<String,ArrayList<Observation>> obsMap = computeObservations();
@@ -292,6 +306,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else {
+            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
@@ -353,6 +368,9 @@ public class CoverageAnalysisPlannerOverlap {
                 double dist = Math.sqrt(Math.pow(LLAtoECI(closestPoint)[0] - LLAtoECI(point)[0], 2) + Math.pow(LLAtoECI(closestPoint)[1] - LLAtoECI(point)[1], 2) + Math.pow(LLAtoECI(closestPoint)[2] - LLAtoECI(point)[2], 2));
                 if (dist < closestDist) {
                     closestDist = dist;
+                }
+                if (sspTime > time + 30) {
+                    break;
                 }
             }
         }
@@ -451,6 +469,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else {
+            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
@@ -503,6 +522,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else {
+            //covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
