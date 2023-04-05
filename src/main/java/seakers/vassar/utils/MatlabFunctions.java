@@ -548,13 +548,12 @@ public class MatlabFunctions implements Userfunction {
 
         try {
             bps = vv.get(2).floatValue(c);
-            bps = 2e11;
             drymass = vv.get(3).floatValue(c);
             alt = vv.get(4).floatValue(c);
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
             String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-            double[] receiverPower = new double[500];
-            double[] antennaGain = new double[500];
+            double[] receiverPower = new double[50];
+            double[] antennaGain = new double[50];
             double costMin = 1e10;
             int band_min = -1;
             int i_min = -1;
@@ -563,13 +562,13 @@ public class MatlabFunctions implements Userfunction {
             for(int band = 0; band < bands_NEN.length; band++) {
                 ArrayList<ArrayList<AntennaDesign>> bandAntennas = new ArrayList<>();
                 for (int i = 0; i < receiverPower.length; i++) {
-                    if (i == 0) receiverPower[i] = 1;
-                    else receiverPower[i] = receiverPower[i-1] + 1;
+                    if (i == 0) receiverPower[i] = 10;
+                    else receiverPower[i] = receiverPower[i-1] + 10;
 
                     ArrayList<AntennaDesign> powerAntennas = new ArrayList<>();
                     for(int j = 0; j < antennaGain.length; j++) {
-                        if (j == 0) antennaGain[j] = 1;
-                        else antennaGain[j] = j+1;
+                        if (j == 0) antennaGain[j] = 10;
+                        else antennaGain[j] = j+10;
 
                         AntennaDesign antenna = new AntennaDesign();
                         antenna.designAntenna(alt, drymass, bps, receiverPower[i], pow(10, antennaGain[j]/10.0), bands_NEN[band]);
