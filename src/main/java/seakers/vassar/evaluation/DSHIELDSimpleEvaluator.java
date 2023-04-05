@@ -162,7 +162,7 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
                     for (int j = 0; j < ninstrs; j++) {
                         payload += " " + arch.getSatelliteList().get(i).getInstrumentList()[j];
                     }
-                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-rate " + FastMath.toRadians(params.getSpectrometerDesign().getAgility()) + ") (select-orbit no) " + orb.toJessSlots() + ""
+                    call += "(instruments " + payload + ") (lifetime 10) (launch-date 2023) (slew-torque " + params.getSpectrometerDesign().getAgility() + ") (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
 

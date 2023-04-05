@@ -548,13 +548,13 @@ public class MatlabFunctions implements Userfunction {
 
         try {
             bps = vv.get(2).floatValue(c);
+            bps = 2e11;
             drymass = vv.get(3).floatValue(c);
             alt = vv.get(4).floatValue(c);
-
             ArrayList<ArrayList<ArrayList<AntennaDesign>>> nenAntennas = new ArrayList<>();
             String[] bands_NEN = {"UHF", "Sband", "Xband", "Kaband"};
-            double[] receiverPower = new double[250];
-            double[] antennaGain = new double[100];
+            double[] receiverPower = new double[500];
+            double[] antennaGain = new double[500];
             double costMin = 1e10;
             int band_min = -1;
             int i_min = -1;
@@ -588,12 +588,19 @@ public class MatlabFunctions implements Userfunction {
                 nenAntennas.add(bandAntennas);
             }
 
+            if(band_min == -1 || i_min == -1 || j_min == -1) {
+                System.out.println("No antenna solutions found!!!");
+                ValueVector vv2 = new ValueVector(2);
+                vv2.add(1000);
+                vv2.add(1000);
+                return new Value(vv2, RU.LIST);
+            }
             AntennaDesign bestAntenna = nenAntennas.get(band_min).get(i_min).get(j_min);
             double commsMass = bestAntenna.getMass();
             double commsPower = bestAntenna.getPower();
             if (bestAntenna.getCost() > 0.9e9) {
-                commsMass = 100000;
-                commsPower = 100000;
+                commsMass = 1000;
+                commsPower = 1000;
             }
 
             switch(band_min) {
@@ -601,8 +608,10 @@ public class MatlabFunctions implements Userfunction {
                     break;
                 case 1: // S-band
                     commsMass = commsMass + 15.74; // Table 11-26, SMAD 3rd ed
+                    break;
                 case 2: // X-band
                     commsMass = commsMass + 9.1; // Table 11-26, SMAD 3rd ed (7.6 + 1.5)
+                    break;
                 case 3: // Ka-band
                     break;
                 default:

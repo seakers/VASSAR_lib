@@ -223,7 +223,7 @@ public class CoverageAnalysisPlannerOverlap {
         return overlap;
     }
 
-    public double computeMaximumRevisitTime(double maxSlewRate, double swath) {
+    public double computeMaximumRevisitTime(double maxTorque, double swath) {
         double mrt = 10000.0;
         Map<String,String> settings = new HashMap<>();
         settings.put("crosslinkEnabled","true");
@@ -234,14 +234,20 @@ public class CoverageAnalysisPlannerOverlap {
         settings.put("downlinkOnPower","0.0");
         settings.put("crosslinkOnPower","0.0");
         settings.put("chlBonusReward","100.0");
-        settings.put("maxSlewRate",Double.toString(maxSlewRate));
+        settings.put("maxTorque",Double.toString(maxTorque));
         settings.put("swath",Double.toString(swath));
         settings.put("planner","greedy_coverage");
         settings.put("resources","false");
         Map<String,ArrayList<Observation>> obsMap = computeObservations();
         Map<GeodeticPoint, Double> pointRewards = new HashMap<>();
-        for (GeodeticPoint gp : covPoints) {
-            pointRewards.put(gp, 1.0);
+        if(reduced) {
+            for (GeodeticPoint gp : covPointsReduced) {
+                pointRewards.put(gp, 1.0);
+            }
+        } else {
+            for (GeodeticPoint gp : covPoints) {
+                pointRewards.put(gp, 1.0);
+            }
         }
         EqualSimulator equalSimulator = new EqualSimulator(settings,startDate,endDate,pointRewards,obsMap);
         Map<String,Map<GeodeticPoint, ArrayList<TimeIntervalArray>>> plannerAccesses = equalSimulator.getPlannerAccesses();
@@ -308,7 +314,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else if(reduced) {
-            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
+            covDef = new CoverageDefinition("Reduced", covPointsReduced, earthShape);
         } else {
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
@@ -472,7 +478,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else if(reduced) {
-            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
+            covDef = new CoverageDefinition("Reduced", covPointsReduced, earthShape);
         } else {
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
@@ -526,7 +532,7 @@ public class CoverageAnalysisPlannerOverlap {
         if(fastCov) {
             covDef = new CoverageDefinition("Whole Earth", 10.0, earthShape, EQUAL_AREA);
         } else if(reduced) {
-            covDef = new CoverageDefinition("ATLASPointsReduced", covPointsReduced, earthShape);
+            covDef = new CoverageDefinition("Reduced", covPointsReduced, earthShape);
         } else {
             covDef = new CoverageDefinition("ATLASPoints", covPoints, earthShape);
         }
