@@ -38,7 +38,7 @@ public class DesignEvaluator {
         ArrayList<String> orbitList = new ArrayList<>();
         int r = 1; // planes
         int s = 1; // satellites per plane
-        double alt = 900;
+        double alt = 650;
         double inc = getSSOInclination(alt)*180/Math.PI;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
@@ -72,8 +72,8 @@ public class DesignEvaluator {
         double aperture = 2.0;
         double vnirPixelSize = 1.0e-6;
         double swirPixelSize= 5.0e-6;
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,10.0);
-        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "fastGrid", sd);
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,0.1);
+        SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "reduced", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);
         evaluationManager.init(1);

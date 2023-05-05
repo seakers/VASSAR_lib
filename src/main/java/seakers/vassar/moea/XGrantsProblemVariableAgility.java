@@ -31,7 +31,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
         solution.setVariable(8, new RealVariable(0.01, 2.0)); // aperture (m)
         solution.setVariable(9, new RealVariable(1e-6,20e-6)); // VNIR pixel size (m)
         solution.setVariable(10, new RealVariable(5e-6,50e-6)); // SWIR pixel size (m)
-        solution.setVariable(11, new RealVariable(0.1,10.0)); // agility (deg/s)
+        solution.setVariable(11, new RealVariable(0.01,10.0)); // agility (deg/s)
         return solution;
     }
 
@@ -88,7 +88,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
                 satellites.add(radarOnlySatellite);
             }
         }
-        boolean oldSatellites = false;
+        boolean oldSatellites = true;
         if (oldSatellites) {
             String landsatOrbitName = "LEO-705-98.2-0.0-0.0";
             OrbitInstrumentObject landsat = new OrbitInstrumentObject(new String[]{"Landsat"},landsatOrbitName);

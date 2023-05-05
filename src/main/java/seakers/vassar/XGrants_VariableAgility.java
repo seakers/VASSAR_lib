@@ -25,9 +25,9 @@ import java.util.concurrent.Executors;
 public class XGrants_VariableAgility {
     public static void main(String[] args){
         try{
-            OrekitConfig.init(64);
+            OrekitConfig.init(12);
             XGrantsProblemVariableAgility problem = new XGrantsProblemVariableAgility();
-            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(64));
+            Problem distributedProblem = new DistributedProblem(problem, Executors.newFixedThreadPool(12));
             ArrayList<Solution> initPop = new ArrayList<>();
             File tmpDir = new File("current_population.txt");
             boolean exists = tmpDir.exists();
@@ -92,7 +92,7 @@ public class XGrants_VariableAgility {
                 Population currentPop = algorithm.getResult();
                 try {
                     //FileOutputStream f = new FileOutputStream("./src/test/output/xgrants/0223_current_population.txt");
-                    FileOutputStream f = new FileOutputStream("./results/xgrants/0404_current_population.txt");
+                    FileOutputStream f = new FileOutputStream("./results/xgrants/0411_current_population.txt");
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     for (Solution sol : currentPop) {
                         o.writeObject(sol);
@@ -106,7 +106,7 @@ public class XGrants_VariableAgility {
                 }
                 try{
                     //PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
-                    PrintWriter out = new PrintWriter("./results/xgrants/0404_variables_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./results/xgrants/0411_variables_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         String altitude = String.valueOf(EncodingUtils.getInt(sol.getVariable(2)) * 50 + 400);
                         out.println(EncodingUtils.getInt(sol.getVariable(0))+","+EncodingUtils.getInt(sol.getVariable(1))+","+altitude+","+EncodingUtils.getInt(sol.getVariable(3))+","+EncodingUtils.getInt(sol.getVariable(4))+","+EncodingUtils.getInt(sol.getVariable(5))+","+EncodingUtils.getReal(sol.getVariable(6))+","+EncodingUtils.getReal(sol.getVariable(7))+","+EncodingUtils.getReal(sol.getVariable(8))+","+EncodingUtils.getReal(sol.getVariable(9))+","+EncodingUtils.getReal(sol.getVariable(10))+","+EncodingUtils.getReal(sol.getVariable(11)));
@@ -117,7 +117,7 @@ public class XGrants_VariableAgility {
                 }
                 try{
                     //PrintWriter out = new PrintWriter("./src/test/output/xgrants/0223_variables_"+algorithm.getNumberOfEvaluations()+".txt");
-                    PrintWriter out = new PrintWriter("./results/xgrants/0404_attributes_"+algorithm.getNumberOfEvaluations()+".txt");
+                    PrintWriter out = new PrintWriter("./results/xgrants/0411_attributes_"+algorithm.getNumberOfEvaluations()+".txt");
                     for (Solution sol : currentPop) {
                         out.println(sol.getAttribute("hsr")+","+sol.getAttribute("swath")+","+sol.getAttribute("vnirSNR")+","+sol.getAttribute("swirSNR")+","+sol.getAttribute("spectralResolution")+","+sol.getAttribute("mrt")+","+sol.getAttribute("overlap"));
                     }
@@ -127,7 +127,7 @@ public class XGrants_VariableAgility {
                 }
                 try {
                     //PopulationIO.writeObjectives(new File("./src/test/output/xgrants/0223_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
-                    PopulationIO.writeObjectives(new File("./results/xgrants/0404_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
+                    PopulationIO.writeObjectives(new File("./results/xgrants/0411_objectives_"+algorithm.getNumberOfEvaluations()+".txt"), currentPop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
