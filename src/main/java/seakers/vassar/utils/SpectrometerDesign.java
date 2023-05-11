@@ -39,14 +39,12 @@ public class SpectrometerDesign {
         int bitsPerPixel = 16;
         double pixelSize = Math.max(vnirPixelSize,swirPixelSize);
         double IFOV = pixelSize / focalLength;
-        spatialResolution = IFOV * alt * 1000;
+        double gsd = IFOV * alt * 1000;
         double diffractionLimitedResolution = 1.22 * alt * 1000 * maxWavelength / aperture;
-        if (diffractionLimitedResolution > spatialResolution) {
-            spatialResolution = diffractionLimitedResolution;
-        }
-        double imagingRate = groundVelocity*1000 / spatialResolution;
+        spatialResolution = Math.max(diffractionLimitedResolution, gsd);
+        double imagingRate = groundVelocity*1000 / gsd;
         double numSpatialPixels = Math.floor(Math.toRadians(FOV)/IFOV);
-        swath = spatialResolution * numSpatialPixels / 1000;
+        swath = gsd * numSpatialPixels / 1000;
         power = 2.69e-5*(numVNIRSpec+numSWIRSpec)*numSpatialPixels + 1.14; // Watts, based on regression
         dataRate = (numVNIRSpec+numSWIRSpec) * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
         //System.out.println("Datarate: "+dataRate);
@@ -61,8 +59,8 @@ public class SpectrometerDesign {
         this.tir = tir;
 
         // Calculate SNR
-        double vnirL = 1.3*0.3; // approximate, at 600 nm
-        double swirL = 0.2*0.3; // approximate, at 1600 nm
+        double vnirL = 0.1; // approximate, at 600 nm
+        double swirL = 0.02; // approximate, at 1600 nm
         double vnirLambda = 600e-9;
         double swirLambda = 1600e-9;
         double c = 3e8;

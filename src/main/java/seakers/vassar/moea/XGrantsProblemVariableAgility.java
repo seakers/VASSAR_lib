@@ -88,7 +88,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
                 satellites.add(radarOnlySatellite);
             }
         }
-        boolean oldSatellites = true;
+        boolean oldSatellites = false;
         if (oldSatellites) {
             String landsatOrbitName = "LEO-705-98.2-0.0-0.0";
             OrbitInstrumentObject landsat = new OrbitInstrumentObject(new String[]{"Landsat"},landsatOrbitName);

@@ -204,8 +204,14 @@ public class CoverageAnalysisPlannerOverlap {
             }
         }
         if(linear) {
-            for (int i = 10; i >= 0; i--) {
-                Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0*7.0/10.0);
+            for (int i = 10; i > 5; i--) {
+                Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24.0+i*3600.0*24.0*7.0/5.0); // 1 day to 7 days in steps of 5
+                if(overlapPeriods.size() >= uniqueAltimeterLocations) {
+                    overlap = 1-0.1*i;
+                }
+            }
+            for (int i = 5; i >= 0; i--) {
+                Map<TopocentricFrame, ArrayList<Double>> overlapPeriods = analyzeOverlap(altimeterEvents, imagerEvents, 60*15+i*3600.0*24.0/5.0); // 15 minutes to 1 day in steps of 5
                 if(overlapPeriods.size() >= uniqueAltimeterLocations) {
                     overlap = 1-0.1*i;
                 }
