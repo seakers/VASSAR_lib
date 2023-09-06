@@ -40,6 +40,17 @@ public abstract class AssigningParams extends BaseParams {
         for (int i = 0; i < numOrbits; i++) {
             orbitIndexes.put(orbitList[i], i);
         }
+
+        System.out.println("--> PROBLEM INSTRUMENTS");
+        for(String inst: this.instrumentList){
+            System.out.println(inst);
+        }
+
+        System.out.println("--> PROBLEM ORBITS");
+        for(String orb: this.orbitList){
+            System.out.println(orb);
+        }
+
     }
 
     public void setInstrumentList(String[] instrumentList){

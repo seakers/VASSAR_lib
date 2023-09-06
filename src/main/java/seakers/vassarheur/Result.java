@@ -39,6 +39,8 @@ public class Result implements Serializable {
     private ArrayList<ArrayList<String>> satellitePayloads;
     private ArrayList<String> satelliteOrbits;
 
+    public ArrayList<String> fired_rules = new ArrayList<>();
+
     //Constructors
     public Result(){}
 
@@ -207,6 +209,13 @@ public class Result implements Serializable {
     }
     public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    public ArrayList<String> getFiredRules(){
+        return this.fired_rules;
+    }
+    public void setFiredRules(ArrayList<String> fired_rules){
+        this.fired_rules = fired_rules;
     }
 
     public ArrayList<ArrayList<ArrayList<Double>>> getSubobjectiveScores() {

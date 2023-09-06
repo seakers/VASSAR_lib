@@ -1,5 +1,6 @@
 package seakers.vassarheur.evaluation;
 
+import com.google.gson.JsonObject;
 import jess.*;
 import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
@@ -12,6 +13,8 @@ import seakers.vassarheur.spacecraft.Orbit;
 import seakers.vassarheur.utils.MatlabFunctions;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.EventIntervalMerger;
+import java.io.StringWriter;
+import seakers.vassarheur.WatchParser;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -131,6 +134,16 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             Result result = new Result();
 
             try {
+
+                StringWriter watch_router = new StringWriter();
+                r.addOutputRouter("wrouter", watch_router);
+                r.setWatchRouter("wrouter");
+//            r.eval("(watch facts)");
+//            r.eval("(watch activations)");
+                r.eval("(watch rules)");
+                WatchParser wparser = new WatchParser(r, watch_router);
+
+
                 if (type.equalsIgnoreCase("Slow")) {
                     result = evaluatePerformance(params, r, arch, qb, m);
                     r.eval("(reset)");
@@ -161,6 +174,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 // Extract and store satellite orbits
                 ArrayList<String> satelliteOrbits = getSatelliteOrbits(r, qb);
                 result.setSatelliteOrbits(satelliteOrbits);
+
+                wparser.runParsing(result, arch);
             }
             catch (Exception e) {
                 System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
@@ -497,9 +512,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
 
-            if (debug) {
-                res.setCostFacts(satellites);
-            }
+//            if (debug) {
+//                res.setCostFacts(satellites);
+//            }
+            res.setCostFacts(satellites);
 
         }
         catch (JessException e) {

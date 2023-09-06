@@ -62,7 +62,7 @@ public class ArchitectureEvaluationManager {
         reset();
     }
 
-    public void evaluatePopulation(List<AbstractArchitecture> population, BaseParams params, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
+    public void evaluatePopulation(List<AbstractArchitecture> population, HashMap<String, String[]> interferenceMap, HashMap<String, String[]> synergyMap, double dcThreshold, double massThreshold, double packEffThreshold) {
 
         int populationSize = population.size();
 

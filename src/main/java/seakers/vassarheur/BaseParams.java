@@ -125,6 +125,9 @@ public abstract class BaseParams {
         this.orekitResourcesPath = resourcesPath + File.separator + "orekit";
         this.pathSaveResults = problemPath + File.separator + "results";
 
+//        String clp_set = "/clp2/";
+        String clp_set = "/clp/";
+
         // Paths for common xls files
         this.templateDefinitionXls      = problemPath + "/xls/AttributeSet.xls";
         this.missionAnalysisDatabaseXls = problemPath + "/xls/Mission Analysis Database.xls";
@@ -137,39 +140,39 @@ public abstract class BaseParams {
         this.dsmDatFile                 = problemPath + "/dat/all_dsms.dat";
 
         // Paths for common clp files
-        this.moduleDefinitionClp            = problemPath + "/clp/modules.clp";
-        this.templateDefinitionClp          = problemPath + "/clp/templates.clp";
-        this.functionsClp[0]                = problemPath + "/clp/jess_functions.clp";
-        this.functionsClp[1]                = problemPath + "/clp/functions.clp";
-        this.attributeInheritanceClp        = problemPath + "/clp/attribute_inheritance_rules.clp";
-        this.orbitRulesClp                  = problemPath + "/clp/orbit_rules.clp";
-        this.massBudgetRulesClp             = problemPath + "/clp/mass_budget_rules.clp";
-        this.subsystemMassBudgetRulesClp    = problemPath + "/clp/subsystem_mass_budget_rules.clp";
-        this.deltaVBudgetRulesClp           = problemPath + "/clp/deltaV_budget_rules.clp";
-        this.epsDesignRulesClp              = problemPath + "/clp/eps_design_rules.clp";
-        this.adcsDesignRulesClp             = problemPath + "/clp/adcs_design_rules.clp";
-        this.propulsionDesignRulesClp       = problemPath + "/clp/propulsion_design_rules.clp";
-        this.costEstimationRulesClp         = problemPath + "/clp/cost_estimation_rules.clp";
-        this.fuzzyCostEstimationRulesClp    = problemPath + "/clp/fuzzy_cost_estimation_rules.clp";
-        this.launchVehicleSelectionRulesClp = problemPath + "/clp/launch_cost_estimation_rules.clp";
-        this.capabilityRulesClp             = problemPath + "/clp/capability_rules.clp";
-        this.synergyRulesClp                = problemPath + "/clp/synergy_rules.clp";
-        this.assimilationRulesClp           = problemPath + "/clp/assimilation_rules.clp";
-        this.adhocRulesClp                  = problemPath + "/clp/smap_rules_test.clp";
-        this.downSelectionRulesClp          = problemPath + "/clp/down_selection_rules_smap.clp";
-        this.searchHeuristicRulesClp    = problemPath + "/clp/search_heuristic_rules_smap_improveOrbit.clp";
-        this.explanationRulesClp            = problemPath + "/clp/explanation_rules.clp";
-        this.aggregationRulesClp            = problemPath + "/clp/aggregation_rules.clp";
-        this.fuzzyAggregationRulesClp       = problemPath + "/clp/fuzzy_aggregation_rules.clp";
-        this.designHeuristicsRulesClp       = problemPath + "/clp/design_heuristics_rules.clp";
-        this.constellationRulesClp          = problemPath + "/clp/constellation_rules.clp";
+        this.moduleDefinitionClp            = problemPath + clp_set + "modules.clp";
+        this.templateDefinitionClp          = problemPath + clp_set + "templates.clp";
+        this.functionsClp[0]                = problemPath + clp_set + "jess_functions.clp";
+        this.functionsClp[1]                = problemPath + clp_set + "functions.clp";
+        this.attributeInheritanceClp        = problemPath + clp_set + "attribute_inheritance_rules.clp";
+        this.orbitRulesClp                  = problemPath + clp_set + "orbit_rules.clp";
+        this.massBudgetRulesClp             = problemPath + clp_set + "mass_budget_rules.clp";
+        this.subsystemMassBudgetRulesClp    = problemPath + clp_set + "subsystem_mass_budget_rules.clp";
+        this.deltaVBudgetRulesClp           = problemPath + clp_set + "deltaV_budget_rules.clp";
+        this.epsDesignRulesClp              = problemPath + clp_set + "eps_design_rules.clp";
+        this.adcsDesignRulesClp             = problemPath + clp_set + "adcs_design_rules.clp";
+        this.propulsionDesignRulesClp       = problemPath + clp_set + "propulsion_design_rules.clp";
+        this.costEstimationRulesClp         = problemPath + clp_set + "cost_estimation_rules.clp";
+        this.fuzzyCostEstimationRulesClp    = problemPath + clp_set + "fuzzy_cost_estimation_rules.clp";
+        this.launchVehicleSelectionRulesClp = problemPath + clp_set + "launch_cost_estimation_rules.clp";
+        this.capabilityRulesClp             = problemPath + clp_set + "capability_rules.clp";
+        this.synergyRulesClp                = problemPath + clp_set + "synergy_rules.clp";
+        this.assimilationRulesClp           = problemPath + clp_set + "assimilation_rules.clp";
+        this.adhocRulesClp                  = problemPath + clp_set + "smap_rules_test.clp";
+        this.downSelectionRulesClp          = problemPath + clp_set + "down_selection_rules_smap.clp";
+        this.searchHeuristicRulesClp    = problemPath + clp_set + "search_heuristic_rules_smap_improveOrbit.clp";
+        this.explanationRulesClp            = problemPath + clp_set + "explanation_rules.clp";
+        this.aggregationRulesClp            = problemPath + clp_set + "aggregation_rules.clp";
+        this.fuzzyAggregationRulesClp       = problemPath + clp_set + "fuzzy_aggregation_rules.clp";
+        this.designHeuristicsRulesClp       = problemPath + clp_set + "design_heuristics_rules.clp";
+        this.constellationRulesClp          = problemPath + clp_set + "constellation_rules.clp";
 
-        this.critiqueCostClp                       = problemPath + "/clp/critique/critique_cost.clp";
-        this.critiquePerformanceClp                = problemPath + "/clp/critique/critique_performance.clp";
-        this.critiquePerformancePrecalculationClp  = problemPath + "/clp/critique/critique_performance_precalculation.clp";
-        this.critiqueCostPrecalculationClp         = problemPath + "/clp/critique/critique_cost_precalculation.clp";
-        this.critiquePerformanceInitializeFactsClp = problemPath + "/clp/critique/critique_performance_initialize_facts.clp";
-        this.critiqueCostInitializeFactsClp        = problemPath + "/clp/critique/critique_cost_initialize_facts.clp";
+        this.critiqueCostClp                       = problemPath + clp_set + "critique/critique_cost.clp";
+        this.critiquePerformanceClp                = problemPath + clp_set + "critique/critique_performance.clp";
+        this.critiquePerformancePrecalculationClp  = problemPath + clp_set + "critique/critique_performance_precalculation.clp";
+        this.critiqueCostPrecalculationClp         = problemPath + clp_set + "critique/critique_cost_precalculation.clp";
+        this.critiquePerformanceInitializeFactsClp = problemPath + clp_set + "critique/critique_performance_initialize_facts.clp";
+        this.critiqueCostInitializeFactsClp        = problemPath + clp_set + "critique/critique_cost_initialize_facts.clp";
     }
 
     /**
