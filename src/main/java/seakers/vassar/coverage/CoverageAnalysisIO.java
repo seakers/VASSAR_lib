@@ -69,7 +69,7 @@ public class CoverageAnalysisIO {
         this.binaryEncoding = binaryEncoding;
     }
 
-    public void writeAccessData(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> fovEvents){
+    public void writeAccessData(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> fovEvents) throws FileNotFoundException, IOException {
         if(this.binaryEncoding){
             this.writeAccessDataBinary(definition, fovEvents);
 
@@ -78,7 +78,7 @@ public class CoverageAnalysisIO {
         }
     }
 
-    public Map<TopocentricFrame, TimeIntervalArray> readAccessData(AccessDataDefinition definition){
+    public Map<TopocentricFrame, TimeIntervalArray> readAccessData(AccessDataDefinition definition) throws IOException, ClassNotFoundException {
         if(this.binaryEncoding){
             return this.readAccessDataBinary(definition);
         }else{
@@ -96,13 +96,13 @@ public class CoverageAnalysisIO {
 
 
         Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
-            
+
         String line;
         List<SimpleDateFormat> startTime = new ArrayList<>();
         List<AbsoluteDate> stopTime = new ArrayList<>();
         List<Double> riseTime = new ArrayList<>();
         List<Double> setTime = new ArrayList<>();
-        
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
             // Skip first line
@@ -117,24 +117,24 @@ public class CoverageAnalysisIO {
                 double lon = Double.parseDouble(entry[1]);
 
                 GeodeticPoint geoPoint = new GeodeticPoint(lat, lon, 0.0);
-                
+
                 //using a default body frame since we are simulating earth
                 //must use IERS_2003 and EME2000 frames to be consistent with STK
                 Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
                 BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                         Constants.WGS84_EARTH_FLATTENING, earthFrame);
-                
+
                 TopocentricFrame topos = new TopocentricFrame(earthShape, geoPoint, String.valueOf(definition.hashCode()));
                 AbsoluteDate head = new AbsoluteDate(entry[2], timeScale);
                 AbsoluteDate tail = new AbsoluteDate(entry[3], timeScale);
 
                 TimeIntervalArray timeInterval = new TimeIntervalArray(head, tail);
-                
+
                 for (int i = 0; i < columns; i = i + 2) {
                     timeInterval.addRiseTime(Double.parseDouble(entry[i + 4]));
                     timeInterval.addSetTime(Double.parseDouble(entry[i + 5]));
                 }
-                
+
                 out.put(topos, timeInterval);
             }
         }
@@ -145,8 +145,8 @@ public class CoverageAnalysisIO {
             CoverageAnalysisIO.unlockFile(filename);
         }
         return out;
-    } 
-    
+    }
+
     public void writeAccessDataCSV(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> fovEvents){
 
         String filename = getAccessDataFilename(definition);
@@ -244,10 +244,10 @@ public class CoverageAnalysisIO {
         return new File(
                 System.getProperty("orekit.coveragedatabase"),
                 filename
-                );
+        );
     }
 
-    public Map<TopocentricFrame, TimeIntervalArray> readAccessDataBinary(AccessDataDefinition definition) {
+    public Map<TopocentricFrame, TimeIntervalArray> readAccessDataBinary(AccessDataDefinition definition) throws FileNotFoundException, IOException, ClassNotFoundException {
 
         String filename = getAccessDataFilename(definition);
 
@@ -263,13 +263,16 @@ public class CoverageAnalysisIO {
         } catch (FileNotFoundException exc) {
             System.out.println("Exc in finding the file: " + exc.getMessage());
             exc.printStackTrace();
+            throw exc;
 
         } catch (IOException exc) {
             System.out.println("Exc in reading binary access data: " + filename + "\n"+ exc.getMessage());
             exc.printStackTrace();
+            throw exc;
 
         } catch (ClassNotFoundException exc) {
             exc.printStackTrace();
+            throw exc;
         }
         finally {
             CoverageAnalysisIO.unlockFile(filename);
@@ -278,7 +281,7 @@ public class CoverageAnalysisIO {
         return out;
     }
 
-    public void writeAccessDataBinary(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> accesses) {
+    public void writeAccessDataBinary(AccessDataDefinition definition, Map<TopocentricFrame, TimeIntervalArray> accesses) throws FileNotFoundException, IOException {
 
         String filename = getAccessDataFilename(definition);
 
@@ -293,10 +296,12 @@ public class CoverageAnalysisIO {
         } catch (FileNotFoundException exc) {
             System.out.println("Exc in finding the file: " + exc.getMessage());
             exc.printStackTrace();
+            throw exc;
 
         } catch (IOException exc) {
             System.out.println("Exc in writing binary access data: " + exc.getMessage());
             exc.printStackTrace();
+            throw exc;
         }
         finally {
             CoverageAnalysisIO.unlockFile(filename);

@@ -6,6 +6,7 @@ package seakers.vassar;
 
 import jess.*;
 import seakers.vassar.utils.MatlabFunctions;
+import seakers.vassar.ModelParser;
 
 public class Resource {
 
@@ -23,6 +24,15 @@ public class Resource {
         this.r.addUserfunction(this.m);
         
         JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m);
+
+        // PARSE RULES
+        try{
+            ModelParser mParser = new ModelParser(this.r);
+            mParser.saveVocabulary();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
 
     public BaseParams getParams(){ return params; }

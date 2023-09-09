@@ -11,10 +11,13 @@ package seakers.vassar;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import jess.*;
+import jmetal.metaheuristics.singleObjective.differentialEvolution.DE;
 import jxl.*;
 import java.io.File;
 import java.io.StringWriter;
+import java.lang.reflect.Array;
 import java.util.*;
+import java.util.regex.Matcher;
 
 import seakers.vassar.attribute.AttributeBuilder;
 import seakers.vassar.attribute.EOAttribute;
@@ -70,8 +73,10 @@ public class JessInitializer {
             
             // Load mission analysis database
             Workbook missionAnalysisXls = Workbook.getWorkbook(new File(params.missionAnalysisDatabaseXls));
+
             loadOrderedDeffacts(r, missionAnalysisXls, "Walker", "Walker-revisit-time-facts","DATABASE::Revisit-time-of");
             loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit");
+
 
             // Load launch vehicle database
             loadOrderedDeffacts(r, missionAnalysisXls, "Launch Vehicles", "DATABASE::launch-vehicle-information-facts", "DATABASE::Launch-vehicle");
@@ -92,11 +97,14 @@ public class JessInitializer {
                 ValueVector payload_HEO = lv.getSlotValue("payload-HEO").listValue(r.getGlobalContext());
 //                ValueVector payload_ISS = lv.getSlotValue("payload-ISS").listValue(r.getGlobalContext());
                 payload_coeffs.put("LEO-polar", payload_LEO_polar);
+                payload_coeffs.put("LEO-np", payload_LEO_polar);
                 payload_coeffs.put("SSO-SSO", payload_SSO);
                 payload_coeffs.put("LEO-equat", payload_LEO_equat);
                 payload_coeffs.put("MEO-polar", payload_MEO);
+                payload_coeffs.put("MEO-np", payload_MEO);
                 payload_coeffs.put("GEO-equat", payload_GEO);
                 payload_coeffs.put("HEO-polar", payload_HEO);
+                payload_coeffs.put("HEO-np", payload_HEO);
 //                payload_coeffs.put("LEO-ISS", payload_ISS);
                 LaunchVehicle lvh = new LaunchVehicle(id, payload_coeffs, diam, height, cost);
                 m.addLaunchVehicletoDB(id, lvh);
@@ -139,11 +147,16 @@ public class JessInitializer {
 
             // Load requirement rules
             Workbook requirementsXls = Workbook.getWorkbook(new File(params.requirementSatisfactionXls));
-            if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
+            if (params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
+                loadFuzzyRequirementRules(r, requirementsXls, "Requirement rules");
+            } else if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
                 loadRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
             } else if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) {
                 loadFuzzyRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
             }
+//            else if (params.req_mode.equalsIgnoreCase("CRISP-CASES")) {
+//                loadRequirementRules(r, requirementsXls, "Requirement rules");
+//            }
 
             // Load capability rules
             loadCapabilityRules(r, instrumentXls, params.capabilityRulesClp);
@@ -231,6 +244,7 @@ public class JessInitializer {
         HashMap<String,Fact> db_instruments = new HashMap<>();
         for (int i = 0; i < params.getNumInstr(); i++) {
             String instr = params.getInstrumentList()[i];
+//            System.out.println("--> INSTRUMENT FACT: " + instr);
             ArrayList<Fact> facts = qb.makeQuery("DATABASE::Instrument (Name " + instr + ")");
             Fact f = facts.get(0);
             db_instruments.put(instr, f);
@@ -432,6 +446,7 @@ public class JessInitializer {
             writer.getBuffer().setLength(0);
 
             r.eval("(deffunction numerical-to-fuzzy (?num ?values ?mins ?maxs)"  +
+//                    "(printout t \"numerical-to-fuzzy printout \" ?num \" \" ?values crlf)" +
                     "(bind ?ind 1)"  +
                     "(bind ?n (length$ ?values))"  +
                     "(while (<= ?ind ?n)"  +
@@ -454,6 +469,7 @@ public class JessInitializer {
                     "))");
 
             r.eval("(deffunction fuzzy-max (?att ?v1 ?v2) "  +
+//                    "(printout t \"fuzzy-max printout: \" ?att \" \" ?v1 \" \" ?v2 crlf)" +
                     "(if (>= (SameOrBetter ?att ?v1 ?v2) 0) then "  +
                     "?v1 else ?v2))");
 
@@ -539,6 +555,13 @@ public class JessInitializer {
             Sheet meas = xls.getSheet(sheet);
             int numFacts = meas.getRows();
             int numSlots = meas.getColumns();
+
+            if(template.equalsIgnoreCase("DATABASE::Orbit")){
+//                System.out.println("--> ORBIT SLOTS: " + numSlots);
+                numSlots = 8;
+            }
+
+
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);
                 ArrayList<String> slots = new ArrayList<>();
@@ -565,6 +588,7 @@ public class JessInitializer {
         }
         catch (Exception e) {
             System.out.println("EXC in loadOrderedDeffacts " + e.getMessage());
+            System.out.println("--> MODULE: " + template);
         }
     }
 
@@ -574,6 +598,14 @@ public class JessInitializer {
             String call = "(deffacts " + name + " ";
             int numFacts = meas.getRows();
             int numSlots = meas.getColumns();
+
+            if(sheet.equalsIgnoreCase("CHARACTERISTICS")){
+                numFacts = 42;
+            }
+
+//            System.out.println(sheet + " " + name + " " + template);
+//            System.out.println("--> NUM FACTS: " + numFacts);
+//            System.out.println("--> NUM COLS: " + numSlots);
 
             for (int i = 1; i < numFacts; i++) {
                 Cell[] row = meas.getRow(i);
@@ -585,6 +617,7 @@ public class JessInitializer {
                     int len = splitted.length;
                     String slot_name;
                     String slot_value;
+//                    System.out.println("--> CELL VALUE: " + cell_value + " " + Integer.toString(len));
                     if (len < 2) {
                         System.out.println("EXC in loadUnorderedDeffacts, expected format is slot_name slot_value. Space not found.");
                     }
@@ -616,10 +649,16 @@ public class JessInitializer {
 
     private void loadAttributeInheritanceRules(Rete r, Workbook xls, String sheet, String clp) {
         try {
+            ArrayList<String> attrib_inher_rules = new ArrayList<>();
+
             r.batch(clp);
             Sheet meas = xls.getSheet(sheet);
 
             int numRules = meas.getRows();
+
+//            System.out.println("--> NUM ATTRIB INHERIT ROWS: " + numRules);
+//            System.exit(0);
+
             for (int i = 1; i < numRules; i++) {
                 Cell[] row = meas.getRow(i);
                 String template1 = row[0].getContents();
@@ -665,7 +704,9 @@ public class JessInitializer {
                         + "(factHistory "+ newFactHistory +")"
                         + "))";
                 r.eval(call);
+                attrib_inher_rules.add(call);
             }
+            DebugWriter.writeDebug(attrib_inher_rules, "inheritance_rules.txt");
         }
         catch (Exception e) {
             System.out.println("EXC in loadAttributeInheritanceRules " + e.getMessage());
@@ -674,6 +715,7 @@ public class JessInitializer {
 
     private void loadFuzzyAttributeRules(Rete r, Workbook xls, String sheet, String template) {
         try {
+            ArrayList<String> fuzzy_rules_ary = new ArrayList<>();
             Sheet meas = xls.getSheet(sheet);
 
             int numRules = meas.getRows();
@@ -710,7 +752,9 @@ public class JessInitializer {
 
                 fuzzyAttributeRules.evaluate(writer, context);
                 r.eval(writer.toString());
+                fuzzy_rules_ary.add(writer.toString());
             }
+            DebugWriter.writeDebug(fuzzy_rules_ary, "fuzzy_rules.txt");
         }
         catch (Exception e) {
             System.out.println("EXC in loadAttributeInheritanceRules " + e.getMessage());
@@ -868,6 +912,220 @@ public class JessInitializer {
             e.printStackTrace();
             System.out.println("EXC in loadRequirementRulesAttribs " + e.getMessage());
         }
+    }
+
+    private void loadFuzzyRequirementRules(Rete r, Workbook xls, String sheet) {
+        ArrayList<String> rrules = new ArrayList<>();
+
+        try {
+            Sheet meas = xls.getSheet(sheet);
+
+            int nrules = meas.getRows();
+            int nobj = 0;
+            int nsubobj = 0;
+            String current_obj = "";
+            String current_subobj = "";
+            String var_name = "";
+            String call2 = "(deffacts REQUIREMENTS::init-subobjectives ";
+
+            for (int i = 1;i<nrules;i++) {
+                Cell[] row = meas.getRow(i);
+                String obj = row[0].getContents();
+                String explan = row[1].getContents();
+                params.subobjMeasurementParams.put(obj, explan);
+                if(!obj.equalsIgnoreCase(current_obj)) {
+                    nobj++;
+                    nsubobj = 0;
+                    var_name = "?*obj-" + obj + "*";
+                    r.eval("(defglobal " + var_name + " = 0)");
+                    current_obj = obj;
+                }
+                String subobj = row[2].getContents();
+                if(!subobj.equalsIgnoreCase(current_subobj)) {
+                    nsubobj++;
+                    var_name = "?*subobj-" + subobj + "*";
+                    r.eval("(defglobal " + var_name + " = 0)");
+                    current_subobj = subobj;
+                }
+                String type = row[5].getContents();
+                String value = row[6].getContents();
+                String desc = row[7].getContents();
+                String param = row[8].getContents();
+
+                if(value.endsWith("%")){
+                    String numberPart = value.substring(0, value.length() - 1);
+                    double percentValue = Double.parseDouble(numberPart);
+                    double decimalValue = percentValue / 100;
+                    value = Double.toString(decimalValue);
+                }
+
+
+
+                String tmp = "?*subobj-" + subobj + "*";
+
+                if (params.measurementsToSubobjectives.containsKey(param)) {
+                    ArrayList list = (ArrayList) params.measurementsToSubobjectives.get(param);
+                    if(!list.contains(tmp)) {
+                        list.add(tmp);
+                        params.measurementsToSubobjectives.put(param,list);
+                    }
+                } else {
+                    ArrayList list = new ArrayList();
+                    list.add(tmp);
+                    params.measurementsToSubobjectives.put(param,list);
+                }
+
+                if (params.measurementsToObjectives.containsKey(param)) {
+                    ArrayList list = (ArrayList) params.measurementsToObjectives.get(param);
+                    if(!list.contains(obj)) {
+                        list.add(obj);
+                        params.measurementsToObjectives.put(param,list);
+                    }
+                } else {
+                    ArrayList list = new ArrayList();
+                    list.add(obj);
+                    params.measurementsToObjectives.put(param,list);
+                }
+                String pan = obj.substring(0,2);
+                if (params.measurementsToPanels.containsKey(param)) {
+                    ArrayList list = (ArrayList) params.measurementsToPanels.get(param);
+                    if(!list.contains(pan)) {
+                        list.add(pan);
+                        params.measurementsToPanels.put(param,list);
+                    }
+                } else {
+                    ArrayList list = new ArrayList();
+                    list.add(pan);
+                    params.measurementsToPanels.put(param,list);
+                }
+
+                String call = "(defrule FUZZY-REQUIREMENTS::subobjective-" + subobj + "-" + type + " " + desc + " ?mea <- (REQUIREMENTS::Measurement (Parameter " + param + ") (data-rate-duty-cycle# ?drdc) (power-duty-cycle# ?pdc) ";
+//                String ruleName = "FUZZY-REQUIREMENTS::subobjective-" + subobj + "-" + type + " " + desc;
+                String ruleName = "FUZZY-REQUIREMENTS::subobjective-" + subobj + "-" + type;
+                //boolean more_attributes = true;
+                int ntests = 0;
+                String calls_for_later = "";
+                for (int j = 9;j<row.length;j++) {
+                    if (row[j].getType().toString().equalsIgnoreCase("Empty")) {
+                        break;
+                    }
+                    String attrib = row[j].getContents();
+
+                    String[] tokens = attrib.split(" ",2);// limit = 2 so that remain contains RegionofInterest Global
+                    String header = tokens[0];
+                    String remain = tokens[1];
+                    if (attrib.equalsIgnoreCase("")) {
+                        call = call + " (taken-by ?who))";
+                        //more_attributes = false;
+                    } else if (header.startsWith("SameOrBetter")) {
+                        ntests++;
+                        String[] tokens2 = remain.split(" ");
+                        String att = tokens2[0];
+                        String val = tokens2[1];
+                        if(val.equalsIgnoreCase("")){
+                            System.out.println("--> INCORRECT READING OF VAL: " + att + " " + val);
+                            tokens2 = remain.split("  ");
+                            att = tokens2[0];
+                            val = tokens2[1];
+                            if(val.equalsIgnoreCase("")){
+                                System.out.println("--> ATTEMPTED READING OF VAL: " + att + " " + val);
+                                System.out.println("--> HEADERS: " + header + " " + remain);
+                                System.exit(0);
+                            }
+                        }
+                        String new_var_name = "?x" + ntests;
+                        String match = att + " " +  new_var_name + "&~nil";
+                        call = call + "(" + match + ")";
+                        calls_for_later = calls_for_later + " (test (>= (SameOrBetter " + att + " " + new_var_name + " " + val + ") 0))";
+                    } else if (header.startsWith("ContainsRegion")) {
+                        ntests++;
+                        String[] tokens2 = remain.split(" ");
+                        String att = tokens2[0];
+                        String val = tokens2[1];
+                        if(val.equalsIgnoreCase("")){
+                            System.out.println("--> INCORRECT READING OF VAL: " + att + " " + val);
+                            tokens2 = remain.split("  ");
+                            att = tokens2[0];
+                            val = tokens2[1];
+                            if(val.equalsIgnoreCase("")){
+                                System.out.println("--> ATTEMPTED READING OF VAL: " + att + " " + val);
+                                System.out.println("--> HEADERS: " + header + " " + remain);
+                                System.exit(0);
+                            }
+                        }
+                        String new_var_name = "?x" + ntests;
+                        String match = att + " " +  new_var_name + "&~nil";
+                        call = call + "(" + match + ")";
+                        calls_for_later = calls_for_later + " (test (ContainsRegion " + new_var_name + " " + val + "))";
+                    } else if (header.startsWith("ContainsBands")) {
+                        ntests++;
+                        String new_var_name = "?x" + ntests;
+                        String match = " spectral-bands $" +  new_var_name;
+                        call = call + "(" + match + ")";
+                        calls_for_later = calls_for_later + " (test (ContainsBands  (create$ " + remain + ") $" + new_var_name + "))";
+                    } else {
+                        call = call + "(" + attrib + ")";
+                    }
+                }
+
+                // END LHS OF REQUIREMENT RULE
+                call = call + "(taken-by ?who)) " + calls_for_later + " => ";
+                var_name = "?*subobj-" + subobj + "*";
+
+                // CALCULATE PERFORMANCE DEGRIDATION DUE TO DUTY CYCLE LIMITATIONS
+                call = call + " (bind ?mdc (min ?pdc ?drdc)) ";
+                call = call + " (bind ?sValue (* ?mdc "+value+")) ";
+
+
+                // ASSERT REASONING
+                if (type.startsWith("nominal")) {
+                    call = call + "(assert (REASONING::fully-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (taken-by ?who)"
+                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+                            + "))" ;
+                } else {
+                    call = call + "(assert (REASONING::partially-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (attribute " + desc + ") (taken-by ?who)"
+                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+                            + "))" ;
+                }
+                //Addition for fuzzy rules
+//                tmpp = regexp(subobj,'(?<parent>.+)-(?<index>.+)','names');
+                String[] tokens = subobj.split("-",2);// limit = 2 so that remain contains RegionofInterest Global
+                String the_parent = tokens[0];
+                String the_index = tokens[1];
+//                String the_index = "";
+//                String the_parent = "";
+
+                // "(MatlabFunctions getValueHashmap)) getFuzzy_val) \"utils\" (MatlabFunctions getValueInvHashmap))) "
+                call2 = call2 + " (AGGREGATION::SUBOBJECTIVE (satisfaction 0.0) (fuzzy-value (new FuzzyValue \"Value\" 0.0 0.0 0.0 \"utils\" (MatlabFunctions getValueInvHashmap))) (id " + subobj + ") (index " +
+                        the_index + ") (parent " + the_parent + " )"
+                        + "(factHistory F" + params.nof + ")) ";
+                params.nof++;
+                call = call + "(assert (AGGREGATION::SUBOBJECTIVE (id " + subobj + ") (index " + the_index + " ) (parent " + the_parent +
+                        " ) (fuzzy-value (new FuzzyValue \"Value\" (call (new FuzzyValue \"Value\" (new Interval \"interval\" ?sValue ?sValue) \"utils\" (MatlabFunctions getValueHashmap)) getFuzzy_val) \"utils\" (MatlabFunctions getValueInvHashmap))) (satisfaction ?sValue)  (satisfied-by ?who)"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+                        + " ))";
+
+                //Back to normal rules
+                call = call + " (bind " + var_name + " (max " + var_name + " ?sValue )))";
+//                System.out.println("--> REQUIREMENT CASE RULES: " + call);
+                r.eval(call);
+                rrules.add(call);
+//                System.out.println("--> FINISHED CASE RULES");
+                r.eval("(defglobal ?*num-soundings-per-day* = 0)");
+            }
+            params.subobjectivesToMeasurements = getInverseHashMap(params.measurementsToSubobjectives);
+            params.objectivesToMeasurements = getInverseHashMap(params.measurementsToObjectives);
+            params.panelsToMeasurements = getInverseHashMap(params.measurementsToPanels);
+
+            call2 += " )";
+            r.eval(call2);
+//            DebugWriter.writeDebug(call2, "init_subobjectives.txt");
+
+
+        }catch (Exception e) {
+            System.out.println( "EXC in loadRequirementRules " +e.getMessage() );
+        }
+        DebugWriter.writeDebug(rrules, "requirement_rules.txt");
     }
 
     private void loadFuzzyRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
@@ -1030,10 +1288,144 @@ public class JessInitializer {
         }
     }
 
+    private HashMap getInverseHashMap(HashMap hm) {
+        HashMap inverse = new HashMap();
+        Iterator es = hm.entrySet().iterator();
+        while (es.hasNext()) {
+            Map.Entry<String,ArrayList> entr = (Map.Entry<String,ArrayList>) es.next();
+            String key = (String) entr.getKey();
+            ArrayList vals = (ArrayList) entr.getValue();
+            Iterator vals2 = vals.iterator();
+            while (vals2.hasNext()) {
+                String val = (String) vals2.next();
+                if (inverse.containsKey(val)) {
+                    ArrayList list = (ArrayList) inverse.get(val);
+                    if (!list.contains(key)) {
+                        list.add(key);
+                        inverse.put(val,list);
+                    }
+                } else {
+                    ArrayList list = new ArrayList();
+                    list.add(key);
+                    inverse.put(val,list);
+                }
+            }
+        }
+        return inverse;
+    }
+
+    private void loadCapabilityRules2(Rete r, Workbook xls, String clp) {
+        try {
+            r.batch(clp);
+            for (String instrument:params.getInstrumentList()) {
+                Sheet sh = xls.getSheet(instrument);
+                int nmeasurements = sh.getRows();
+                ArrayList meas = new ArrayList();
+                ArrayList subobj = new ArrayList();
+                ArrayList obj = new ArrayList();
+                ArrayList pan = new ArrayList();
+                String ruleName = "MANIFEST::" + instrument + "-init-can-measure";
+                String call = "(defrule MANIFEST::" + instrument + "-init-can-measure " + "(declare (salience -20)) ?this <- (CAPABILITIES::Manifested-instrument  (Name ?ins&" + instrument
+                        +  ") (Id ?id) (flies-in ?miss) (Intent ?int) (Spectral-region ?sr) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Illumination ?il) (factHistory ?fh)) "
+                        + " (not (CAPABILITIES::can-measure (instrument ?ins) (in-orbit ?miss) (can-take-measurements no))) => "
+                        + "(assert (CAPABILITIES::can-measure (instrument ?ins) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (data-rate-duty-cycle# nil) (power-duty-cycle# nil)(orbit-RAAN ?raan)"
+                        + "(in-orbit (eval (str-cat ?typ \"-\" ?h \"-\" ?inc \"-\" ?raan))) (can-take-measurements yes) (reason \"by default\") "
+                        + "(copied-to-measurement-fact no)(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \"}\")))))";
+                r.eval(call);
+
+                ruleName = "CAPABILITIES::" + instrument + "-measurements";
+                String call2 = "(defrule CAPABILITIES-GENERATE::" + instrument + "-measurements " + "?this <- (CAPABILITIES::Manifested-instrument  (Name ?ins&" + instrument
+                        +  ") (Id ?id) (flies-in ?miss) (Intent ?int) (orbit-string ?orb) (Spectral-region ?sr) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Illumination ?il) (factHistory ?fh1)) "
+                        + " ?this2 <- (CAPABILITIES::can-measure (instrument ?ins) (in-orbit ?orb) (can-take-measurements yes) (data-rate-duty-cycle# ?dc-d) (power-duty-cycle# ?dc-p) (copied-to-measurement-fact no)(factHistory ?fh2)) => "
+                        + " (if (and (numberp ?dc-d) (numberp ?dc-p)) then (bind ?*science-multiplier* (min ?dc-d ?dc-p)) else (bind ?*science-multiplier* 1.0)) "
+                        + "(assert (CAPABILITIES::resource-limitations (data-rate-duty-cycle# ?dc-d) (power-duty-cycle# ?dc-p)"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+                        + ")) ";//+ " (if (and (numberp ?dc-d) (numberp ?dc-d)) then (bind ?*science-multiplier* (min ?dc-d ?dc-p)) else (bind ?*science-multiplier* 1.0)) "
+                String list_of_measurements = "";
+                for (int i = 0;i<nmeasurements;i++) {
+                    Cell[] row = sh.getRow(i);
+                    call2 = call2 + "(assert (REQUIREMENTS::Measurement";
+
+                    String capability_type = row[0].getContents();//Measurement
+                    if (!capability_type.equalsIgnoreCase("Measurement")) {
+                        throw new Exception("loadCapabilityRules: Type of capability not recognized (use Measurement)");
+                    }
+                    String att_value_pair = row[1].getContents();
+                    String[] tokens2 = att_value_pair.split(" ",2);
+                    String att = tokens2[0];//Parameter
+                    String val = tokens2[1];//"x.x.x Soil moisture"
+                    meas.add(val);
+
+                    ArrayList list_subobjs = (ArrayList) params.measurementsToSubobjectives.get(val);
+                    if (list_subobjs != null) {
+                        Iterator list_subobjs2 = list_subobjs.iterator();
+                        while (list_subobjs2.hasNext()) {
+                            String tmp = (String) list_subobjs2.next();
+                            String subob = tmp.substring(9,tmp.length()-1);
+                            if (!subobj.contains(subob)) {
+                                subobj.add(subob);
+                            }
+                            String[] tokens3 = subob.split("-",2);
+                            String ob = tokens3[0];
+                            if (!obj.contains(ob)) {
+                                obj.add(ob);
+                            }
+                            java.util.regex.Pattern p = java.util.regex.Pattern.compile("^[A-Z]+");
+                            Matcher m = p.matcher(ob);
+                            m.find();
+                            String pa = m.group();
+                            if (!pan.contains(pa)) {
+                                pan.add(pa);
+                            }
+                        }
+                    }
+                    for (int j = 1;j<row.length;j++) {
+                        String att_value_pair2 = row[j].getContents();
+                        if(att_value_pair2.equalsIgnoreCase("")){
+                            continue;
+                        }
+                        tokens2 = att_value_pair2.split(" ",2);
+                        if(tokens2[1].equalsIgnoreCase("nil")){
+                            continue;
+                        }
+                        call2 = call2 + " (" + att_value_pair2 + ") ";
+                    }
+                    call2 = call2 + "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"
+                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+                            + ")) ";
+                    list_of_measurements = list_of_measurements + " " + instrument + i + " ";
+                }
+                call2 = call2 + "(assert (SYNERGIES::cross-registered (measurements " + list_of_measurements + " ) (degree-of-cross-registration instrument) (platform ?id  )"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+                        + "))";
+                call2 = call2 + "(modify ?this (measurement-ids " + list_of_measurements + ")"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
+                        + ")";
+                call2 = call2 + "(modify ?this2 (copied-to-measurement-fact yes)"
+                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
+                        + "))";
+
+                r.eval(call2);
+                params.instrumentsToMeasurements.put(instrument,meas);
+                params.instrumentsToSubobjectives.put(instrument,subobj);
+                params.instrumentsToObjectives.put(instrument,obj);
+                params.instrumentsToPanels.put(instrument,pan);
+            }
+            params.measurementsToInstruments = getInverseHashMap(params.instrumentsToMeasurements);
+            params.subobjectivesToInstruments = getInverseHashMap(params.instrumentsToSubobjectives);
+            params.objectivesToInstruments = getInverseHashMap(params.instrumentsToObjectives);
+            params.panelsToInstruments = getInverseHashMap(params.instrumentsToPanels);
+        }catch (Exception e) {
+            System.out.println( "EXC in loadCapabilityRules " +e.getMessage() );
+        }
+    }
+
+
     private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
         try {
             r.batch(clp);
             for (String instrument: params.getInstrumentList()) {
+//                System.out.println("--> INSTRUMENT: " + instrument);
                 Sheet sh = xls.getSheet(instrument);
                 int numMeasurements = sh.getRows();
                 ArrayList<String> meas = new ArrayList<>();
@@ -1057,6 +1449,13 @@ public class JessInitializer {
                         + "(assert (CAPABILITIES::resource-limitations (data-rate-duty-cycle# ?dc-d) (power-duty-cycle# ?dc-p)"
                         + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
                         + ")) ";
+//                String call2 = "(defrule CAPABILITIES-GENERATE::" + instrument + "-measurements " + "?this <- (CAPABILITIES::Manifested-instrument  (Name ?ins&" + instrument
+//                        +  ") (Id ?id) (flies-in ?miss) (Intent ?int) (orbit-string ?orb) (ThreeD ?thrd) (Spectral-sampling ?spsamp) (Spectral-region ?spreg) (spectral-bands ?spbnd) (sensitivity-NEDT# ?snedt) (sensitivity-in-upper-troposphere-and-stratosphere ?siutas) (sensitivity-in-cirrus ?sic) (Swath# ?swth) (sensitivity-in-low-troposphere-PBL ?siltplb) (Pointing-capability ?pntc) (On-board-calibration ?obc) (Field-of-view# ?fov) (Spectral-region ?sr) (orbit-type ?typ) (orbit-altitude# ?h) (orbit-inclination ?inc) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Illumination ?il) (factHistory ?fh1)) "
+//                        + " ?this2 <- (CAPABILITIES::can-measure (instrument ?ins) (in-orbit ?orb) (can-take-measurements yes) (data-rate-duty-cycle# ?dc-d) (power-duty-cycle# ?dc-p) (copied-to-measurement-fact no)(factHistory ?fh2)) => "
+//                        + " (if (and (numberp ?dc-d) (numberp ?dc-p)) then (bind ?*science-multiplier* (min ?dc-d ?dc-p)) else (bind ?*science-multiplier* 1.0)) "
+//                        + "(assert (CAPABILITIES::resource-limitations (data-rate-duty-cycle# ?dc-d) (power-duty-cycle# ?dc-p)"
+//                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+//                        + ")) ";
                 String listOfMeasurements = "";
                 for (int i = 0; i < numMeasurements; i++) {
                     Cell[] row = sh.getRow(i);
@@ -1071,8 +1470,15 @@ public class JessInitializer {
                     String att = tokens2[0]; // Parameter
                     String val = tokens2[1]; // "x.x.x Soil moisture"
                     meas.add(val);
+
+
+
+
                     for (int j = 1; j < row.length; j++) {
                         String att_value_pair2 = row[j].getContents();
+                        if(att_value_pair2.equalsIgnoreCase("")){
+                            continue;
+                        }
                         tokens2 = att_value_pair2.split(" ",2);
                         if (tokens2[1].equalsIgnoreCase("nil")) {
                             continue;
@@ -1082,6 +1488,9 @@ public class JessInitializer {
                     call2 += "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"
                             + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
                             + ")) ";
+//                    call2 += "(taken-by " + instrument +  ") (flies-in ?miss)  (orbit-string ?orb) (ThreeD ?thrd) (Spectral-sampling ?spsamp) (Spectral-region ?spreg) (spectral-bands ?spbnd) (sensitivity-NEDT# ?snedt) (sensitivity-in-upper-troposphere-and-stratosphere ?siutas) (sensitivity-in-cirrus ?sic) (sensitivity-in-low-troposphere-PBL ?siltplb) (orbit-inclination ?inc) (Pointing-capability ?pntc) (Swath# ?swth) (On-board-calibration ?obc) (Field-of-view# ?fov) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"
+//                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+//                            + ")) ";
                     listOfMeasurements += " " + instrument + i + " ";
                 }
                 call2 += "(assert (SYNERGIES::cross-registered (measurements " + listOfMeasurements + " ) (degree-of-cross-registration instrument) (platform ?id  )"

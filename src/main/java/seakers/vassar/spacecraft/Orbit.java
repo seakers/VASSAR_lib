@@ -24,6 +24,7 @@ public class Orbit {
     private String nplanes;
     private String num_sats_per_plane;
     private String mission_arch;
+    private double raanNum;
 
     private double altitudeNum; // [m]
     private double inclinationNum; // [deg]

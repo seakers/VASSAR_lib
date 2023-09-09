@@ -1,6 +1,7 @@
 package seakers.vassar.problems.Assigning;
 
 import jess.*;
+import seakers.vassar.DebugWriter;
 import seakers.vassar.ResourcePool;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
@@ -39,6 +40,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
 
         boolean[][] mat = arch.getBitMatrix();
         try {
+            ArrayList<String> lines = new ArrayList<>();
             this.orbitsUsed = new HashSet<>();
 
             for (int i = 0; i < params.getNumOrbits(); i++) {
@@ -65,10 +67,13 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                             ") (degree-of-cross-registration spacecraft) " +
                             " (platform " + orbitName +  " )"
                             + "(factHistory F" + params.nof + ")))";
+                    lines.add(call);
                     params.nof++;
                     r.eval(call);
+//                    System.out.println("--> MISSION " + orb.toString() + ": " + payload);
                 }
             }
+            DebugWriter.writeDebug(lines, "design.txt");
         }
         catch (Exception e) {
             System.out.println("" + e.getClass() + " " + e.getMessage());

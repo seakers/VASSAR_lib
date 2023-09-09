@@ -22,7 +22,10 @@ public class SameOrBetter implements Userfunction , Serializable {
     public Value call(ValueVector vv, Context c) throws JessException {
         Value v1 = vv.get(1).resolveValue(c);
         Value v2 = vv.get(2).resolveValue(c);
+//        System.out.println("--> VAL1: " + v1.toString());
+//        System.out.println("--> VAL2: " + v2.toString());
         Value v3 = vv.get(3).resolveValue(c);
+//        System.out.println("--> VAL3: " + v3.toString());
 
         String attribute = v1.toString();
         String value = v2.toString();

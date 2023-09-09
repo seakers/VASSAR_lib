@@ -4,15 +4,20 @@ import jess.*;
 import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.event.EventIntervalMerger;
 import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
 import seakers.vassar.BaseParams;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
-import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.event.EventIntervalMerger;
 
+import seakers.vassar.WatchParser;
+
+
+import java.io.StringWriter;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -73,6 +78,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         Result result = new Result();
 
         try {
+
+            StringWriter watch_router = new StringWriter();
+            r.addOutputRouter("wrouter", watch_router);
+            r.setWatchRouter("wrouter");
+            r.eval("(watch rules)");
+            WatchParser wparser = new WatchParser(r, watch_router);
+
+
             if (type.equalsIgnoreCase("Slow")) {
                 result = evaluatePerformance(params, r, arch, qb, m);
                 r.eval("(reset)");
@@ -83,6 +96,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             }
             evaluateCost(params, r, arch, result, qb, m);
             result.setTaskType(type);
+
+            wparser.runParsing(result, arch);
         }
         catch (Exception e) {
             System.out.println("EXC in Task:call: " + e.getClass() + " " + e.getMessage());
@@ -95,6 +110,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     }
 
     protected Result evaluatePerformance(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
+        System.out.println("EVALUATING PERFORMANCE");
 
         Result result = new Result();
         try {
@@ -105,17 +121,32 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
-            //r.eval("(watch rules)");
-            //r.eval("(facts)");
+            qb.saveQuery("missions_orig.txt", "MANIFEST::Mission");
 
             r.setFocus("MANIFEST0");
             r.run();
 
+            qb.saveQuery("all_instruments.txt", "DATABASE::Instrument");
+            qb.saveQuery("all_lv.txt", "DATABASE::Launch-vehicle");
+
             r.setFocus("MANIFEST");
             r.run();
 
+            // Design Spacecraft Here
+            // 1. power-duty-cycle
+            // 2. data-rate-duty-cycle
+            designSpacecraft(r, arch, qb, m);
+
+
+            qb.saveQuery("missions_manifest.txt", "MANIFEST::Mission");
+
+            qb.saveQuery("man_instruments.txt", "CAPABILITIES::Manifested-instrument");
+
             r.setFocus("CAPABILITIES");
             r.run();
+
+            qb.saveQuery("cap_insts.txt", "CAPABILITIES::Manifested-instrument");
+            qb.saveQuery("cap_insts_can_measure.txt", "CAPABILITIES::can-measure");
 
             r.setFocus("CAPABILITIES-REMOVE-OVERLAPS");
             r.run();
@@ -123,15 +154,101 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("CAPABILITIES-GENERATE");
             r.run();
 
+            qb.saveQuery("meas_capabilities.txt", "REQUIREMENTS::Measurement");
+            qb.saveQuery("capgen_instruments.txt", "CAPABILITIES::Manifested-instrument");
+
             r.setFocus("CAPABILITIES-CROSS-REGISTER");
             r.run();
 
             r.setFocus("CAPABILITIES-UPDATE");
             r.run();
 
+            qb.saveQuery("cap_instruments.txt", "CAPABILITIES::Manifested-instrument");
+            qb.saveQuery("cap_can_meas.txt", "CAPABILITIES::can-measure");
+            qb.saveQuery("meas_original.txt", "REQUIREMENTS::Measurement"); // CAPABILITIES::resource-limitations
+            qb.saveQuery("cap_resource_limitations.txt", "CAPABILITIES::resource-limitations");
+
             r.setFocus("SYNERGIES");
             r.run();
 
+            qb.saveQuery("meas_synergy.txt", "REQUIREMENTS::Measurement");
+
+            this.calcRevisitTimes(r, params, qb, m);
+
+            r.setFocus("ASSIMILATION2");
+            r.run();
+
+            r.setFocus("ASSIMILATION");
+            r.run();
+
+            qb.saveQuery("meas_b4_fuzzy.txt", "REQUIREMENTS::Measurement");
+
+            r.setFocus("FUZZY");
+            r.run();
+
+            r.setFocus("SYNERGIES");
+            r.run();
+
+            r.setFocus("SYNERGIES-ACROSS-ORBITS");
+            r.run();
+
+
+            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+                r.setFocus("FUZZY-REQUIREMENTS");
+            }
+            else {
+                r.setFocus("REQUIREMENTS");
+            }
+            r.run();
+
+            qb.saveQuery("meas_final.txt", "REQUIREMENTS::Measurement");
+
+            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+                r.setFocus("FUZZY-AGGREGATION");
+            }
+            else {
+                r.setFocus("AGGREGATION");
+            }
+            r.run();
+
+            qb.saveQuery("agg_sub.txt", "AGGREGATION::SUBOBJECTIVE");
+            qb.saveQuery("agg_obj.txt", "AGGREGATION::OBJECTIVE");
+            qb.saveQuery("agg_stake.txt", "AGGREGATION::STAKEHOLDER");
+
+            if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-CASES"))) {
+                result = aggregate_performance_score_facts(params, r, m, qb);
+            }
+
+            System.out.println("--> SCIENCE: " + result.getScience());
+            System.out.println("--> FUZZY SCIENCE: " + result.getFuzzyScience().toString());
+
+            //////////////////////////////////////////////////////////////
+
+            if (this.debug) {
+                ArrayList<Fact> partials = qb.makeQuery("REASONING::partially-satisfied");
+                ArrayList<Fact> fulls = qb.makeQuery("REASONING::fully-satisfied");
+                fulls.addAll(partials);
+                //result.setExplanations(fulls);
+            }
+        }
+        catch (JessException e) {
+            System.out.println(e.getMessage() + " " + e.getClass() + " ");
+            e.printStackTrace();
+            System.exit(0);
+        }
+        catch (OrekitException e) {
+            e.printStackTrace();
+            throw new Error();
+        }
+        return result;
+    }
+
+
+
+
+
+    public void calcRevisitTimes(Rete r, BaseParams params, QueryBuilder qb, MatlabFunctions m){
+        try{
             int javaAssertedFactID = 1;
 
             // Check if all of the orbits in the original formulation are used
@@ -153,6 +270,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             }
 
             for (String param: params.measurementsToInstruments.keySet()) {
+//                System.out.println("--> UPDATING FOVS FOR MEASUREMENT: " + param);
                 Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
 
                 if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
@@ -163,6 +281,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         int tmp = thefovs.get(i).intValue(r.getGlobalContext());
                         fovs[i] = String.valueOf(tmp);
                     }
+//                    System.out.println("--> THE FOVS: " + thefovs.toStringWithParens());
 
                     boolean recalculateRevisitTime = false;
                     for(int i = 0; i < fovs.length; i++){
@@ -184,13 +303,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
                         double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
                         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+                        double[] latBoundsUS = new double[]{FastMath.toRadians(25), FastMath.toRadians(50)};
+                        double[] lonBoundsUS = new double[]{FastMath.toRadians(-125), FastMath.toRadians(-66)};
 
                         List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
 
                         // For each fieldOfview-orbit combination
                         for(Orbit orb: this.orbitsUsed){
                             int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
-
                             if(fov <= 0){
                                 continue;
                             }
@@ -203,7 +323,13 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                             int numSats = Integer.parseInt(orb.getNum_sats_per_plane());
                             int numPlanes = Integer.parseInt(orb.getNplanes());
 
-                            Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
+                            Map<TopocentricFrame, TimeIntervalArray> accesses = new HashMap<>();
+                            try{
+                                accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
+                            }
+                            catch (Exception ex){
+                                ex.printStackTrace();
+                            }
                             fieldOfViewEvents.add(accesses);
                         }
 
@@ -216,7 +342,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         }
 
                         therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
-                        therevtimesUS = therevtimesGlobal;
+                        therevtimesUS = coverageAnalysis.getRevisitTime(mergedEvents, latBoundsUS, lonBoundsUS)/3600;
 
                     }else{
                         // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
@@ -232,69 +358,38 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         therevtimesGlobal = params.revtimes.get(key).get("Global");
                     }
 
+//                    DecimalFormat df = new DecimalFormat("#.###");
+//                    therevtimesGlobal = Double.parseDouble(df.format(therevtimesGlobal));
+//                    therevtimesUS = Double.parseDouble(df.format(therevtimesUS));
+//
+//                    System.out.println("--> GLOBAL REVISIT: " + therevtimesGlobal);
+//                    System.out.println("--> US REVISIT: " + therevtimesUS);
+
                     String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " +  param + ") "
                             + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
-                            + "(avg-revisit-time-US# " + therevtimesUS + ")"
-                            + "(factHistory J" + javaAssertedFactID + ")))";
+                            + "(avg-revisit-time-US# " + therevtimesUS + ")))";
+//                            + "(factHistory J" + javaAssertedFactID + ")))";
                     javaAssertedFactID++;
                     r.eval(call);
                 }
             }
-
-            r.setFocus("ASSIMILATION2");
-            r.run();
-
-            r.setFocus("ASSIMILATION");
-            r.run();
-
-            r.setFocus("FUZZY");
-            r.run();
-
-            r.setFocus("SYNERGIES");
-            r.run();
-
-            r.setFocus("SYNERGIES-ACROSS-ORBITS");
-            r.run();
-
-            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                r.setFocus("FUZZY-REQUIREMENTS");
-            }
-            else {
-                r.setFocus("REQUIREMENTS");
-            }
-            r.run();
-
-            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                r.setFocus("FUZZY-AGGREGATION");
-            }
-            else {
-                r.setFocus("AGGREGATION");
-            }
-            r.run();
-
-            if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                result = aggregate_performance_score_facts(params, r, m, qb);
-            }
-
-            //////////////////////////////////////////////////////////////
-
-            if (this.debug) {
-                ArrayList<Fact> partials = qb.makeQuery("REASONING::partially-satisfied");
-                ArrayList<Fact> fulls = qb.makeQuery("REASONING::fully-satisfied");
-                fulls.addAll(partials);
-                //result.setExplanations(fulls);
-            }
         }
-        catch (JessException e) {
-            System.out.println(e.getMessage() + " " + e.getClass() + " ");
-            e.printStackTrace();
+        catch (Exception ex){
+            ex.printStackTrace();
+            System.exit(0);
         }
-        catch (OrekitException e) {
-            e.printStackTrace();
-            throw new Error();
-        }
-        return result;
     }
+
+
+
+
+
+
+
+
+
+
+
 
     protected Result aggregate_performance_score_facts(BaseParams params, Rete r, MatlabFunctions m, QueryBuilder qb) {
 
@@ -390,6 +485,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("MANIFEST0");
             r.run();
 
+
             r.eval("(focus MANIFEST)");
             r.eval("(run)");
 
@@ -426,6 +522,9 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
+
+            System.out.println("--> COST: " + cost);
+            System.out.println("--> FUZZY COST: " + fzcost);
 
             if (debug) {
                 res.setCostFacts(missions);
