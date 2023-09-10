@@ -58,6 +58,9 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                             payload += " " + params.getInstrumentList()[j];
                         }
                     }
+                    if(payload.contains("SMAP_RAD") || payload.contains("SMAP_MWR")){
+                        payload += " SMAP_ANT";
+                    }
                     call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
                             + "(factHistory F" + params.nof + ")))";
                     params.nof++;
