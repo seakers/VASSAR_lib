@@ -14,6 +14,8 @@ import jess.*;
 import jmetal.metaheuristics.singleObjective.differentialEvolution.DE;
 import jxl.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -32,21 +34,27 @@ import seakers.vassar.utils.MatlabFunctions;
 
 public class JessInitializer {
 
+//    private BaseParams params;
+
+
     private static JessInitializer instance = null;
-    private BaseParams params;
-
     private JessInitializer() { }
-
     public static JessInitializer getInstance() {
         if (instance == null) {
             instance = new JessInitializer();
         }
         return instance;
     }
+
+//    public JessInitializer(BaseParams params){
+//        this.params = params;
+//    }
+
     
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
-            this.params = params;
+            long startTime = System.nanoTime();
+//            this.params = params;
 
             // Create global variable path
             String tmp = params.problemPath.replaceAll("\\\\", "\\\\\\\\");
@@ -62,24 +70,24 @@ public class JessInitializer {
             Locale.setDefault(Locale.ENGLISH);
 
             // Load modules
-            loadModules(r);
+            loadModules(r, params);
 
             // Load templates
             Workbook templatesXls = Workbook.getWorkbook(new File(params.templateDefinitionXls));
-            loadTemplates(r, templatesXls, params.templateDefinitionClp);
+            loadTemplates(r, templatesXls, params.templateDefinitionClp, params);
 
             // Load functions
-            loadFunctions(r, params.functionsClp);
+            loadFunctions(r, params.functionsClp, params);
             
             // Load mission analysis database
             Workbook missionAnalysisXls = Workbook.getWorkbook(new File(params.missionAnalysisDatabaseXls));
 
-            loadOrderedDeffacts(r, missionAnalysisXls, "Walker", "Walker-revisit-time-facts","DATABASE::Revisit-time-of");
-            loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit");
+            loadOrderedDeffacts(r, missionAnalysisXls, "Walker", "Walker-revisit-time-facts","DATABASE::Revisit-time-of", params);
+            loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit", params);
 
 
             // Load launch vehicle database
-            loadOrderedDeffacts(r, missionAnalysisXls, "Launch Vehicles", "DATABASE::launch-vehicle-information-facts", "DATABASE::Launch-vehicle");
+            loadOrderedDeffacts(r, missionAnalysisXls, "Launch Vehicles", "DATABASE::launch-vehicle-information-facts", "DATABASE::Launch-vehicle", params);
             r.reset();
             ArrayList<Fact> facts = qb.makeQuery("DATABASE::Launch-vehicle");
 
@@ -110,9 +118,13 @@ public class JessInitializer {
                 m.addLaunchVehicletoDB(id, lvh);
             }
 
+            long rule1Time = System.nanoTime();
+
+
+
             // Load instrument database
             Workbook instrumentXls = Workbook.getWorkbook(new File(params.capabilityRulesXls));
-            loadUnorderedDeffacts(r, instrumentXls, "CHARACTERISTICS", "instrument-database-facts","DATABASE::Instrument");
+            loadUnorderedDeffacts(r, instrumentXls, "CHARACTERISTICS", "instrument-database-facts","DATABASE::Instrument", params);
 
             // Load attribute inheritance rules
             loadAttributeInheritanceRules(r, templatesXls, "Attribute Inheritance", params.attributeInheritanceClp);
@@ -143,29 +155,43 @@ public class JessInitializer {
             loadLaunchVehicleSelectionRules(r, params.launchVehicleSelectionRulesClp);
             
             // Load fuzzy attribute rules
-            loadFuzzyAttributeRules(r, templatesXls, "Fuzzy Attributes", "REQUIREMENTS::Measurement");
+            loadFuzzyAttributeRules(r, templatesXls, "Fuzzy Attributes", "REQUIREMENTS::Measurement", params);
 
             // Load requirement rules
             Workbook requirementsXls = Workbook.getWorkbook(new File(params.requirementSatisfactionXls));
             if (params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
-                loadFuzzyRequirementRules(r, requirementsXls, "Requirement rules");
+                loadFuzzyRequirementRules(r, requirementsXls, "Requirement rules", params);
             } else if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
-                loadRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
+                loadRequirementRulesAttribs(r, requirementsXls, "Attributes", m, params);
             } else if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) {
-                loadFuzzyRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
+                loadFuzzyRequirementRulesAttribs(r, requirementsXls, "Attributes", m, params);
             }
 //            else if (params.req_mode.equalsIgnoreCase("CRISP-CASES")) {
 //                loadRequirementRules(r, requirementsXls, "Requirement rules");
 //            }
 
+
+
+            long rule2Time = System.nanoTime();
+
             // Load capability rules
-            loadCapabilityRules(r, instrumentXls, params.capabilityRulesClp);
+            loadCapabilityRules(r, instrumentXls, params.capabilityRulesClp, params);
+            instrumentXls.close();
+
+            long rule25Time = System.nanoTime();
 
             // Load synergy rules
-            loadSynergyRules(r, params.synergyRulesClp);
+            loadSynergyRules(r, params.synergyRulesClp, params);
+
+            long rule26Time = System.nanoTime();
             
             // Load assimilation rules
             loadAssimilationRules(r, params.assimilationRulesClp);
+
+
+            long rule3Time = System.nanoTime();
+
+
             
             // Ad-hoc rules
             r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
@@ -194,8 +220,14 @@ public class JessInitializer {
             // Load aggregation rules
             Workbook aggregation_xls = Workbook.getWorkbook(new File(params.aggregationXls));
 
+
+
+            long rule4Time = System.nanoTime();
+
+
+
             loadAggregationRules(r, aggregation_xls, "Aggregation rules",
-                    new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp });
+                    new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp }, params);
             
             ///////////////////////////////////////////////////////////////////////////// 
 
@@ -207,6 +239,15 @@ public class JessInitializer {
 
             Defrule targetRule = new Defrule("","",r);
             int cnt = 0;
+
+
+
+
+
+            long ruleTime = System.nanoTime();
+
+
+
 
             while (ruleIter.hasNext()) {
                 HasLHS ruleCheck = ruleIterCheck.next();
@@ -231,8 +272,17 @@ public class JessInitializer {
             r.reset();
             
             //Create precomputed queries;
-            loadPrecomputeQueries(qb);
-        
+            loadPrecomputeQueries(qb, params);
+
+//            long endTime = System.nanoTime();
+//            System.out.println("--> INIT TIME TOTAL: " + (endTime - startTime) / 1000000000);
+//            System.out.println("--> RULE TIME TOTAL: " + (ruleTime - startTime) / 1000000000);
+//            System.out.println("--> RULE1 TIME TOTAL: " + (rule1Time - startTime) / 1000000000);
+//            System.out.println("--> RULE2 TIME TOTAL: " + (rule2Time - rule1Time) / 1000000000);
+//            System.out.println("--> RULE2.1 TIME TOTAL: " + (rule25Time - rule2Time) / 1000000000);
+//            System.out.println("--> RULE2.2 TIME TOTAL: " + (rule26Time - rule25Time) / 1000000000);
+//            System.out.println("--> RULE3 TIME TOTAL: " + (rule3Time - rule26Time) / 1000000000);
+//            System.out.println("--> RULE4 TIME TOTAL: " + (rule4Time - rule3Time) / 1000000000);
         }
         catch (Exception e) {
             System.out.println("EXC in InitializerJess " +e.getClass() + " : " + e.getMessage());
@@ -240,7 +290,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadPrecomputeQueries(QueryBuilder qb) {
+    private void loadPrecomputeQueries(QueryBuilder qb, BaseParams params) {
         HashMap<String,Fact> db_instruments = new HashMap<>();
         for (int i = 0; i < params.getNumInstr(); i++) {
             String instr = params.getInstrumentList()[i];
@@ -252,7 +302,7 @@ public class JessInitializer {
         qb.addPrecomputedQuery("DATABASE::Instrument", db_instruments);
     }
 
-    private void loadModules(Rete r) {
+    private void loadModules(Rete r, BaseParams params) {
         try {
             r.batch(params.moduleDefinitionClp);
         }
@@ -271,8 +321,8 @@ public class JessInitializer {
         }
     }
     
-    private void loadTemplates(Rete r, Workbook xls, String clp) {
-        loadMeasurementTemplate(r, xls);
+    private void loadTemplates(Rete r, Workbook xls, String clp, BaseParams params) {
+        loadMeasurementTemplate(r, xls, params);
         loadInstrumentTemplate(r, xls);
         loadSimpleTemplate(r, xls, "Mission","MANIFEST::Mission");
         loadSimpleTemplate(r, xls, "Orbit","DATABASE::Orbit");
@@ -280,7 +330,7 @@ public class JessInitializer {
         loadTemplatesCLP(r, clp);
     }
     
-    private void loadMeasurementTemplate(Rete r, Workbook xls) {
+    private void loadMeasurementTemplate(Rete r, Workbook xls, BaseParams params) {
         try {
             HashMap<String, Integer> attribsToKeys = new HashMap<>();
             HashMap<Integer, String> keysToAttribs = new HashMap<>();
@@ -421,7 +471,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadFunctions(Rete r, String[] clps) {
+    private void loadFunctions(Rete r, String[] clps, BaseParams params) {
         try {
             r.addUserfunction(new SameOrBetter());
             r.addUserfunction(new Improve());
@@ -445,13 +495,21 @@ public class JessInitializer {
             r.eval(writer.toString());
             writer.getBuffer().setLength(0);
 
+//            r.eval("(deffunction numerical-to-fuzzy (?num ?values ?mins ?maxs)"  +
+//                    "(bind ?ind 1)"  +
+//                    "(bind ?n (length$ ?values))"  +
+//                    "(while (<= ?ind ?n)"  +
+//                    "(if (and (< ?num (nth$ ?ind ?maxs)) (>= ?num (nth$ ?ind ?mins))) then (return (nth$ ?ind ?values))"  +
+//                    "else (++ ?ind))))");
             r.eval("(deffunction numerical-to-fuzzy (?num ?values ?mins ?maxs)"  +
-//                    "(printout t \"numerical-to-fuzzy printout \" ?num \" \" ?values crlf)" +
                     "(bind ?ind 1)"  +
                     "(bind ?n (length$ ?values))"  +
+                    "(if (< ?num (nth$ 1 ?mins)) then (return (nth$ 1 ?values)))" +
                     "(while (<= ?ind ?n)"  +
-                    "(if (and (< ?num (nth$ ?ind ?maxs)) (>= ?num (nth$ ?ind ?mins))) then (return (nth$ ?ind ?values))"  +
-                    "else (++ ?ind))))");
+                    "(if (and (< ?num (nth$ ?ind ?maxs)) (>= ?num (nth$ ?ind ?mins))) then (return (nth$ ?ind ?values)) else (++ ?ind)))"  +
+                    "(if (> ?ind ?n) then (return (nth$ ?n ?values))))");
+
+
             r.eval("(deffunction revisit-time-to-temporal-resolution (?region ?values)"  +
                     "(if (eq ?region Global) then "  +
                     "(return (nth$ 1 ?values))"  +
@@ -542,7 +600,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
+    private void loadOrderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template, BaseParams params) {
         try {
             PebbleEngine engine = new PebbleEngine.Builder().extension(new JessExtension()).build();
             StringWriter writer = new StringWriter();
@@ -592,7 +650,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadUnorderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template) {
+    private void loadUnorderedDeffacts(Rete r, Workbook xls, String sheet, String name, String template, BaseParams params) {
         try {
             Sheet meas = xls.getSheet(sheet);
             String call = "(deffacts " + name + " ";
@@ -713,7 +771,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadFuzzyAttributeRules(Rete r, Workbook xls, String sheet, String template) {
+    private void loadFuzzyAttributeRules(Rete r, Workbook xls, String sheet, String template, BaseParams params) {
         try {
             ArrayList<String> fuzzy_rules_ary = new ArrayList<>();
             Sheet meas = xls.getSheet(sheet);
@@ -762,7 +820,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
+    private void loadRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m, BaseParams params) {
         try {
             Sheet meas = xls.getSheet(sheet);
             int numLines = meas.getRows();
@@ -914,7 +972,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadFuzzyRequirementRules(Rete r, Workbook xls, String sheet) {
+    private void loadFuzzyRequirementRules(Rete r, Workbook xls, String sheet, BaseParams params) {
         ArrayList<String> rrules = new ArrayList<>();
 
         try {
@@ -1128,7 +1186,7 @@ public class JessInitializer {
         DebugWriter.writeDebug(rrules, "requirement_rules.txt");
     }
 
-    private void loadFuzzyRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m) {
+    private void loadFuzzyRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m, BaseParams params) {
         try {
             Sheet meas = xls.getSheet(sheet);
             int numLines = meas.getRows();
@@ -1314,7 +1372,7 @@ public class JessInitializer {
         return inverse;
     }
 
-    private void loadCapabilityRules2(Rete r, Workbook xls, String clp) {
+    private void loadCapabilityRules2(Rete r, Workbook xls, String clp, BaseParams params) {
         try {
             r.batch(clp);
             for (String instrument:params.getInstrumentList()) {
@@ -1421,7 +1479,7 @@ public class JessInitializer {
     }
 
 
-    private void loadCapabilityRules(Rete r, Workbook xls, String clp) {
+    private void loadCapabilityRules(Rete r, Workbook xls, String clp, BaseParams params) {
         try {
             r.batch(clp);
             for (String instrument: params.getInstrumentList()) {
@@ -1504,7 +1562,14 @@ public class JessInitializer {
                         + "))";
 
                 r.eval(call2);
+
+
+                // ------------------------------
+                // Block 1
+                // ------------------------------
                 params.instrumentsToMeasurements.put(instrument, meas);
+
+                // Method 1
                 for (String measurement: meas) {
                     ArrayList<String> subobjectives = params.measurementsToSubobjectives.get(measurement);
                     if (subobjectives != null) {
@@ -1515,7 +1580,24 @@ public class JessInitializer {
                         }
                     }
                 }
+
+                // Method 2
+//                Set<String> subobjSet = new HashSet<>(subobj); // Convert the list to a set for faster lookups
+//                for (String measurement : meas) {
+//                    List<String> subobjectives = params.measurementsToSubobjectives.getOrDefault(measurement, new ArrayList<>());
+//                    subobjSet.addAll(subobjectives);
+//                }
+//                subobj.clear();
+//                subobj.addAll(subobjSet); // Convert the set back to a list if necessary
+
+
+
+                // ------------------------------
+                // Block 2
+                // ------------------------------
                 params.instrumentsToSubobjectives.put(instrument, subobj);
+
+                // Method 1
                 for (String measurement: meas) {
                     ArrayList<String> objectives = params.measurementsToObjectives.get(measurement);
                     if (objectives != null) {
@@ -1526,7 +1608,25 @@ public class JessInitializer {
                         }
                     }
                 }
+
+                // Method 2
+//                Set<String> objSet = new HashSet<>(obj);  // Convert the list to a set for faster lookups
+//                for (String measurement : meas) {
+//                    List<String> objectives = params.measurementsToObjectives.getOrDefault(measurement, new ArrayList<>());
+//                    // Directly add to the set, avoiding duplicate entries automatically
+//                    objSet.addAll(objectives);
+//                }
+//                obj.clear();
+//                obj.addAll(objSet);  // Convert the set back to a list if necessary
+
+
+
+                // ------------------------------
+                // Block 3
+                // ------------------------------
                 params.instrumentsToObjectives.put(instrument, obj);
+
+                // Method 1
                 for (String measurement: meas) {
                     ArrayList<String> panels = params.measurementsToPanels.get(measurement);
                     if (panels != null) {
@@ -1537,6 +1637,19 @@ public class JessInitializer {
                         }
                     }
                 }
+
+                // Method 2
+//                Set<String> panSet = new HashSet<>(pan);  // Convert the list to a set for faster lookups
+//                for (String measurement : meas) {
+//                    List<String> panels = params.measurementsToPanels.getOrDefault(measurement, new ArrayList<>());
+//                    // Directly add to the set, avoiding duplicate entries automatically
+//                    panSet.addAll(panels);
+//                }
+//                pan.clear();
+//                pan.addAll(panSet);  // Convert the set back to a list if necessary
+
+
+
                 params.instrumentsToPanels.put(instrument, pan);
             }
             params.measurementsToInstruments = getInverseHashMapSALToSAL(params.instrumentsToMeasurements);
@@ -1574,6 +1687,29 @@ public class JessInitializer {
         return inverse;
     }
 
+    private HashMap<String, ArrayList<String>> getInverseHashMapSALToSAL2(HashMap<String, ArrayList<String>> hm) {
+        HashMap<String, HashSet<String>> inverse = new HashMap<>();
+        for (Map.Entry<String, ArrayList<String>> entr: hm.entrySet()) {
+            String key = entr.getKey();
+            ArrayList<String> vals = entr.getValue();
+            for (String val: vals) {
+                inverse.computeIfAbsent(val, k -> new HashSet<>()).add(key);
+            }
+        }
+        HashMap<String, ArrayList<String>> result = new HashMap<>();
+        for (Map.Entry<String, HashSet<String>> entry : inverse.entrySet()) {
+            result.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return result;
+    }
+
+
+
+
+
+
+
+
     private HashMap<String, ArrayList<String>> getInverseHashMapSSToSAL(HashMap<String, String> hm) {
         HashMap<String, ArrayList<String>> inverse = new HashMap<>();
         for (Map.Entry<String, String> entr: hm.entrySet()) {
@@ -1595,7 +1731,7 @@ public class JessInitializer {
         return inverse;
     }
 
-    private void loadSynergyRules(Rete r, String clp) {
+    private void loadSynergyRules(Rete r, String clp, BaseParams params) {
         try {
             r.batch(clp);
             for(Map.Entry<String, ArrayList<String>> es: params.measurementsToSubobjectives.entrySet()) {
@@ -1617,7 +1753,7 @@ public class JessInitializer {
         }
     }
 
-    private void loadAggregationRules(Rete r, Workbook xls, String sheet, String[] clps) {
+    private void loadAggregationRules(Rete r, Workbook xls, String sheet, String[] clps, BaseParams params) {
         try {
             for (String clp: clps) {
                 r.batch(clp);

@@ -73,15 +73,15 @@ public class CoverageAnalysis {
     private AbsoluteDate startDate;
     private AbsoluteDate endDate;
 
-    public CoverageAnalysis(int numThreads, int coverageGridGranularity) throws OrekitException{
-        this(numThreads, coverageGridGranularity, true, true);
-    }
+//    public CoverageAnalysis(int numThreads, int coverageGridGranularity) throws OrekitException{
+//        this(numThreads, coverageGridGranularity, true, true, System.getProperty("orekit.coveragedatabase"));
+//    }
+//
+//    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String orekitCovDB) throws OrekitException {
+//        this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"), orekitCovDB);
+//    }
 
-    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding) throws OrekitException {
-        this(numThreads, coverageGridGranularity, saveAccessData, binaryEncoding, System.getProperty("user.dir"));
-    }
-
-    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd) throws OrekitException{
+    public CoverageAnalysis(int numThreads, int coverageGridGranularity, boolean saveAccessData, boolean binaryEncoding, String cwd, String orekitCovDB) throws OrekitException{
 
         //setup logger
 //        Level level = Level.ALL;
@@ -116,7 +116,7 @@ public class CoverageAnalysis {
         this.gridStyle = EQUAL_AREA;
         this.saveAccessData = saveAccessData;
         this.binaryEncoding = binaryEncoding;
-        this.coverageAnalysisIO = new CoverageAnalysisIO(this.binaryEncoding, utc);
+        this.coverageAnalysisIO = new CoverageAnalysisIO(this.binaryEncoding, utc, orekitCovDB);
 
         reset();
     }
@@ -158,21 +158,14 @@ public class CoverageAnalysis {
     }
 
     public Map<TopocentricFrame, TimeIntervalArray> getAccesses(double fieldOfView, double inclination, double altitude, int numSats, int numPlanes, String raanLabel) throws IOException, ClassNotFoundException {
-        // System.out.println("\n----- GET ACCESSES -----");
-        // System.out.println(fieldOfView);
-        // System.out.println(inclination);
-        // System.out.println(altitude);
-        // System.out.println(numSats);
-        // System.out.println(numPlanes);
-        // System.out.println(raanLabel);
-        // System.out.println("------------------------\n");
-        // EvaluatorApp.sleep(10);
-
         CoverageAnalysisIO.AccessDataDefinition definition = new CoverageAnalysisIO.AccessDataDefinition(fieldOfView, inclination, altitude, numSats, numPlanes, this.coverageGridGranularity, raanLabel);
 
         String filename = this.coverageAnalysisIO.getAccessDataFilename(definition);
-        if (this.coverageAnalysisIO.getAccessDataFile(filename).exists()) {
-            return this.coverageAnalysisIO.readAccessData(definition);
+        File access_file = this.coverageAnalysisIO.getAccessDataFile(filename);
+        if (access_file.exists()) {
+            Map<TopocentricFrame, TimeIntervalArray> cov_data = this.coverageAnalysisIO.readAccessData(definition);
+//            System.out.println("--> ACCESES FILE: " + access_file.getAbsolutePath() + " " + cov_data.keySet().size());
+            return cov_data;
         }
         else {
             System.out.println("--> COMPUTING NEW ACCESSES: " + altitude + " " + fieldOfView);

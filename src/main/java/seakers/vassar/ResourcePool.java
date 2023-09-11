@@ -5,6 +5,7 @@
 package seakers.vassar;
 
 import jess.JessException;
+import seakers.vassar.problems.Assigning.GigaAssigningParams;
 
 import java.util.Stack;
 
@@ -16,8 +17,17 @@ public class ResourcePool
         pool = new Stack<>();
         
         for (int i = 0; i < numCPU; i++) {
-            Resource res = new Resource(params.copy());
-            
+
+            long startTime = System.nanoTime();
+            BaseParams resource_params = params.copy();
+            resource_params.setOrekitCoverageDatabase(i);
+            Resource res = new Resource(resource_params);
+            long endTime = System.nanoTime();
+            // Calculate and print the time taken in milliseconds
+            long timeElapsed = (endTime - startTime) / 1000000000;
+            System.out.println("Execution time in seconds: " + timeElapsed);
+
+
             pool.push( res );
             System.out.println("Resource " + i + " initialized.");
         }

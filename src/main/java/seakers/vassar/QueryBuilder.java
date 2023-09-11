@@ -44,6 +44,9 @@ public class QueryBuilder {
     }
 
     public ArrayList<Fact> saveQuery(String fileName, String template){
+        if(!DebugWriter.debug){
+            return null;
+        }
 
         ArrayList<Fact> facts = new ArrayList<>();
 

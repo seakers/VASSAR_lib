@@ -124,6 +124,8 @@ public class ArchitectureEvaluationManager {
         return executorService.submit(t);
     }
 
+
+
     public void clearResults() {
         results.clear();
         futures.clear();

@@ -15,6 +15,8 @@ import java.util.HashMap;
 
 public abstract class BaseParams {
 
+    public String orekitCoverageDatabase = "";
+
     public String resourcesPath;
     public String problemName;
     public String orekitResourcesPath;
@@ -236,6 +238,18 @@ public abstract class BaseParams {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void setOrekitCoverageDatabase(int db_num) {
+        this.orekitCoverageDatabase = this.orekitResourcesPath + File.separator + "CoverageDatabase_" + Integer.toString(db_num);
+    }
+
+    public void setOrekitCoverageDatabase() {
+        this.orekitCoverageDatabase = this.orekitResourcesPath + File.separator + "CoverageDatabase";
+    }
+
+    public String getOrekitCoverageDatabase(){
+        return this.orekitCoverageDatabase;
     }
 
     public String getName() {

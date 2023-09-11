@@ -22,8 +22,11 @@ public class Resource {
         this.qb = new QueryBuilder(this.r);
         this.m = new MatlabFunctions(this);
         this.r.addUserfunction(this.m);
+
+        // this.r.setDebug(false);
         
         JessInitializer.getInstance().initializeJess(this.params, this.r, this.qb, this.m);
+//        (new JessInitializer(this.params)).initializeJess(this.params, this.r, this.qb, this.m);
 
         // PARSE RULES
         try{

@@ -39,6 +39,7 @@ public class CoverageAnalysisIO {
 
     private boolean binaryEncoding;
     private TimeScale timeScale;
+    private String orekitCovDb;
 
     private static HashMap<String, ReentrantLock> fileLocks;
 
@@ -60,9 +61,10 @@ public class CoverageAnalysisIO {
         fileLocks.get(filename).unlock();
     }
 
-    public CoverageAnalysisIO(boolean binaryEncoding, TimeScale timeScale){
+    public CoverageAnalysisIO(boolean binaryEncoding, TimeScale timeScale, String orekitCovDb){
         this.binaryEncoding = binaryEncoding;
         this.timeScale = timeScale;
+        this.orekitCovDb = orekitCovDb;
     }
 
     public void setBinaryEncoding(boolean binaryEncoding){
@@ -240,9 +242,11 @@ public class CoverageAnalysisIO {
     }
 
     public File getAccessDataFile(String filename) {
+//        String covDB = System.getProperty("orekit.coveragedatabase");
+        String covDB = this.orekitCovDb;
 
         return new File(
-                System.getProperty("orekit.coveragedatabase"),
+                covDB,
                 filename
         );
     }
@@ -251,7 +255,7 @@ public class CoverageAnalysisIO {
 
         String filename = getAccessDataFilename(definition);
 
-        CoverageAnalysisIO.lockFile(filename);
+//        CoverageAnalysisIO.lockFile(filename);
 
         File file = getAccessDataFile(filename);
 
@@ -274,9 +278,9 @@ public class CoverageAnalysisIO {
             exc.printStackTrace();
             throw exc;
         }
-        finally {
-            CoverageAnalysisIO.unlockFile(filename);
-        }
+//        finally {
+//            CoverageAnalysisIO.unlockFile(filename);
+//        }
 
         return out;
     }

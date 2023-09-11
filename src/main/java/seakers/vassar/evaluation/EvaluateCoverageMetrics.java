@@ -59,7 +59,7 @@ public class EvaluateCoverageMetrics {
                 int numSats = 1;
                 int numPlanes = 1;
                 System.out.println("--> RUNNING COVERAGE ANALYSIS");
-                CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, orekitResourcesPath);
+                CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, orekitResourcesPath, coverageDatabase);
                 try{
                     Map<TopocentricFrame, TimeIntervalArray> accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
                 }

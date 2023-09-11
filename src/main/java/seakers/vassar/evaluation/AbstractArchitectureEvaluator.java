@@ -10,6 +10,7 @@ import seakers.vassar.*;
 import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.coverage.CoverageAnalysis;
 import seakers.vassar.BaseParams;
+import seakers.vassar.coverage.CoverageRetriever;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
 
@@ -110,9 +111,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
     }
 
     protected Result evaluatePerformance(BaseParams params, Rete r, AbstractArchitecture arch, QueryBuilder qb, MatlabFunctions m) {
-        System.out.println("EVALUATING PERFORMANCE");
+        // System.out.println("EVALUATING PERFORMANCE");
 
         Result result = new Result();
+        result.setScience(-1.0);
         try {
             r.reset();
             assertMissions(params, r, arch, m);
@@ -183,8 +185,12 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             qb.saveQuery("meas_b4_fuzzy.txt", "REQUIREMENTS::Measurement");
 
+//            r.eval("(watch all)");
+
             r.setFocus("FUZZY");
             r.run();
+
+//            r.eval("(unwatch all)");
 
             r.setFocus("SYNERGIES");
             r.run();
@@ -219,8 +225,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 result = aggregate_performance_score_facts(params, r, m, qb);
             }
 
-            System.out.println("--> SCIENCE: " + result.getScience());
-            System.out.println("--> FUZZY SCIENCE: " + result.getFuzzyScience().toString());
+//            System.out.println("--> SCIENCE: " + result.getScience());
+//            System.out.println("--> FUZZY SCIENCE: " + result.getFuzzyScience().toString());
 
             //////////////////////////////////////////////////////////////
 
@@ -234,7 +240,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         catch (JessException e) {
             System.out.println(e.getMessage() + " " + e.getClass() + " ");
             e.printStackTrace();
-            System.exit(0);
+//            System.exit(0);
         }
         catch (OrekitException e) {
             e.printStackTrace();
@@ -242,10 +248,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         }
         return result;
     }
-
-
-
-
 
     public void calcRevisitTimes(Rete r, BaseParams params, QueryBuilder qb, MatlabFunctions m){
         try{
@@ -300,7 +302,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         int coverageGranularity = 20;
 
                         //Revisit times
-                        CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath);
+                        CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath, params.getOrekitCoverageDatabase());
                         double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
                         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
                         double[] latBoundsUS = new double[]{FastMath.toRadians(25), FastMath.toRadians(50)};
@@ -311,15 +313,17 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         // For each fieldOfview-orbit combination
                         for(Orbit orb: this.orbitsUsed){
                             int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
-                            if(fov <= 0){
+                            if(fov < 0){
                                 continue;
+                            }
+                            else if(fov == 0){
+                                fov = 1;
                             }
 
                             double fieldOfView = fov; // [deg]
                             double inclination = orb.getInclinationNum(); // [deg]
                             double altitude = orb.getAltitudeNum(); // [m]
                             String raanLabel = orb.getRaan();
-
                             int numSats = Integer.parseInt(orb.getNum_sats_per_plane());
                             int numPlanes = Integer.parseInt(orb.getNplanes());
 
@@ -344,7 +348,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
                         therevtimesUS = coverageAnalysis.getRevisitTime(mergedEvents, latBoundsUS, lonBoundsUS)/3600;
 
-                    }else{
+                    }
+                    else{
                         // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
                         if (thefovs.size() < 5) {
                             String[] new_fovs = new String[5];
@@ -358,10 +363,6 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                         therevtimesGlobal = params.revtimes.get(key).get("Global");
                     }
 
-//                    DecimalFormat df = new DecimalFormat("#.###");
-//                    therevtimesGlobal = Double.parseDouble(df.format(therevtimesGlobal));
-//                    therevtimesUS = Double.parseDouble(df.format(therevtimesUS));
-//
 //                    System.out.println("--> GLOBAL REVISIT: " + therevtimesGlobal);
 //                    System.out.println("--> US REVISIT: " + therevtimesUS);
 
@@ -382,10 +383,152 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
 
 
+    public ArrayList<Double> getRevisitTimeOrekit(boolean recalculateRevisitTime, BaseParams params, ValueVector thefovs, String[] fovs, int[] revTimePrecomputedIndex, MatlabFunctions m, Rete r) throws Exception{
+        ArrayList<Double> result = new ArrayList<>();
+
+        Double therevtimesGlobal;
+        Double therevtimesUS;
+
+        if(recalculateRevisitTime){
+            // Do the re-calculation of the revisit times
+
+            int coverageGranularity = 20;
+
+            //Revisit times
+            CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, coverageGranularity, true, true, params.orekitResourcesPath, params.getOrekitCoverageDatabase());
+            double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+            double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+            double[] latBoundsUS = new double[]{FastMath.toRadians(25), FastMath.toRadians(50)};
+            double[] lonBoundsUS = new double[]{FastMath.toRadians(-125), FastMath.toRadians(-66)};
+
+            List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+
+            // For each fieldOfview-orbit combination
+            for(Orbit orb: this.orbitsUsed){
+                int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
+                if(fov < 0){
+                    continue;
+                }
+                else if(fov == 0){
+                    fov = 1;
+                }
+
+                double fieldOfView = fov; // [deg]
+                double inclination = orb.getInclinationNum(); // [deg]
+                double altitude = orb.getAltitudeNum(); // [m]
+                String raanLabel = orb.getRaan();
+                int numSats = Integer.parseInt(orb.getNum_sats_per_plane());
+                int numPlanes = Integer.parseInt(orb.getNplanes());
+
+                Map<TopocentricFrame, TimeIntervalArray> accesses = new HashMap<>();
+                try{
+                    accesses = coverageAnalysis.getAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
+                }
+                catch (Exception ex){
+                    ex.printStackTrace();
+                }
+                fieldOfViewEvents.add(accesses);
+            }
+
+            // Merge accesses to get the revisit time
+            Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
+
+            for(int i = 1; i < fieldOfViewEvents.size(); ++i) {
+                Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
+                mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
+            }
+
+            therevtimesGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
+            therevtimesUS = coverageAnalysis.getRevisitTime(mergedEvents, latBoundsUS, lonBoundsUS)/3600;
+
+        }
+        else{
+            // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
+            if (thefovs.size() < 5) {
+                String[] new_fovs = new String[5];
+                for (int i = 0; i < 5; i++) {
+                    new_fovs[i] = fovs[revTimePrecomputedIndex[i]];
+                }
+                fovs = new_fovs;
+            }
+            String key = "1" + " x " + m.stringArraytoStringWith(fovs, "  ");
+            therevtimesUS = params.revtimes.get(key).get("US"); //key: 'Global' or 'US', value Double
+            therevtimesGlobal = params.revtimes.get(key).get("Global");
+        }
+
+        return result;
+    }
 
 
+    public ArrayList<Double> getRevisitTimePreCalc(boolean recalculateRevisitTime, BaseParams params, ValueVector thefovs, String[] fovs, int[] revTimePrecomputedIndex, MatlabFunctions m, Rete r) throws Exception{
+        ArrayList<Double> result = new ArrayList<>();
 
+        Double therevtimesGlobal;
+        Double therevtimesUS;
 
+        if(recalculateRevisitTime){
+            int coverageGranularity = 20;
+
+            CoverageRetriever coverageRetriever = new CoverageRetriever(params.getOrekitCoverageDatabase(), coverageGranularity);
+
+            double[] latBounds = new double[]{FastMath.toRadians(-70), FastMath.toRadians(70)};
+            double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
+            double[] latBoundsUS = new double[]{FastMath.toRadians(25), FastMath.toRadians(50)};
+            double[] lonBoundsUS = new double[]{FastMath.toRadians(-125), FastMath.toRadians(-66)};
+
+            List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+
+            for(Orbit orb: this.orbitsUsed){
+                int fov = thefovs.get(params.getOrbitIndexes().get(orb.toString())).intValue(r.getGlobalContext());
+                if(fov < 0){
+                    continue;
+                }
+                else if(fov == 0){
+                    fov = 1;
+                }
+
+                double fieldOfView = fov; // [deg]
+                double inclination = orb.getInclinationNum(); // [deg]
+                double altitude = orb.getAltitudeNum(); // [m]
+                String raanLabel = orb.getRaan();
+                int numSats = Integer.parseInt(orb.getNum_sats_per_plane());
+                int numPlanes = Integer.parseInt(orb.getNplanes());
+
+                Map<TopocentricFrame, TimeIntervalArray> accesses = coverageRetriever.getAccesses(fieldOfView, inclination, altitude, numSats, numPlanes, raanLabel);
+                fieldOfViewEvents.add(accesses);
+            }
+            System.out.println("--> FOV EVENTS SIZE: " + fieldOfViewEvents.size());
+
+            // Merge accesses to get the revisit time
+            Map<TopocentricFrame, TimeIntervalArray> mergedEvents = new HashMap<>(fieldOfViewEvents.get(0));
+
+            for(int i = 1; i < fieldOfViewEvents.size(); ++i) {
+                Map<TopocentricFrame, TimeIntervalArray> event = fieldOfViewEvents.get(i);
+                mergedEvents = EventIntervalMerger.merge(mergedEvents, event, false);
+            }
+
+            therevtimesGlobal = coverageRetriever.getRevisitTime(mergedEvents, latBounds, lonBounds)/3600;
+            therevtimesUS = coverageRetriever.getRevisitTime(mergedEvents, latBoundsUS, lonBoundsUS)/3600;
+        }
+        else{
+            // Re-assign fovs based on the original orbit formulation, if the number of orbits is less than 5
+            if (thefovs.size() < 5) {
+                String[] new_fovs = new String[5];
+                for (int i = 0; i < 5; i++) {
+                    new_fovs[i] = fovs[revTimePrecomputedIndex[i]];
+                }
+                fovs = new_fovs;
+            }
+            String key = "1" + " x " + m.stringArraytoStringWith(fovs, "  ");
+            therevtimesUS = params.revtimes.get(key).get("US"); //key: 'Global' or 'US', value Double
+            therevtimesGlobal = params.revtimes.get(key).get("Global");
+        }
+
+        result.add(therevtimesGlobal);
+        result.add(therevtimesUS);
+
+        return result;
+    }
 
 
 
@@ -523,8 +666,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             res.setCost(cost);
             res.setFuzzyCost(fzcost);
 
-            System.out.println("--> COST: " + cost);
-            System.out.println("--> FUZZY COST: " + fzcost);
+//            System.out.println("--> COST: " + cost);
+//            System.out.println("--> FUZZY COST: " + fzcost);
 
             if (debug) {
                 res.setCostFacts(missions);

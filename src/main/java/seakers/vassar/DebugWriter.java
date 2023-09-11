@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class DebugWriter {
 
-    public static boolean debug = true;
+    public static boolean debug = false;
 
     public static void writeDebug(ArrayList<String> lines, String file_name) {
         if(!DebugWriter.debug){
