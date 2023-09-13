@@ -34,6 +34,8 @@ public class Result implements Serializable {
     private ArrayList<Fact> costFacts;
     private String taskType;
 
+    public ArrayList<String> fired_rules = new ArrayList<>();
+
     //Constructors
     public Result(){}
 
@@ -149,6 +151,13 @@ public class Result implements Serializable {
     }
     public void setFuzzyCost(FuzzyValue fuzzyCost) {
         this.fuzzyCost = fuzzyCost;
+    }
+
+    public ArrayList<String> getFiredRules(){
+        return this.fired_rules;
+    }
+    public void setFiredRules(ArrayList<String> fired_rules){
+        this.fired_rules = fired_rules;
     }
 
     public static double SumDollar(ArrayList<Double> a) {

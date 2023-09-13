@@ -117,7 +117,7 @@ public class WatchParser {
             ex.printStackTrace();
         }
 
-//        result.setFiredRules(rule_names_ary);
+        result.setFiredRules(rule_names_ary);
     }
 
 
