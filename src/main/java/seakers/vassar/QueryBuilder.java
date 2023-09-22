@@ -43,6 +43,23 @@ public class QueryBuilder {
         return facts;
     }
 
+    public void countFacts(String template){
+        int counter = 0;
+        String call = "(defquery TempArchitecture2-query ?f <- (" + template + "))";
+        try {
+            r.eval(call);
+            QueryResult q_result = r.runQueryStar("TempArchitecture2-query", new ValueVector());
+            while(q_result.next())
+                counter++;
+            r.removeDefrule("TempArchitecture2-query");
+
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("--> " + counter + " FACTS: " + template);
+    }
+
     public ArrayList<Fact> saveQuery(String fileName, String template){
         if(!DebugWriter.debug){
             return null;

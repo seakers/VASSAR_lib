@@ -1138,11 +1138,11 @@ public class JessInitializer {
                 // ASSERT REASONING
                 if (type.startsWith("nominal")) {
                     call = call + "(assert (REASONING::fully-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (taken-by ?who)"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+//                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
                             + "))" ;
                 } else {
                     call = call + "(assert (REASONING::partially-satisfied (subobjective " + subobj + ") (parameter " + param + ") (objective \" " + explan + "\") (attribute " + desc + ") (taken-by ?who)"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+//                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
                             + "))" ;
                 }
                 //Addition for fuzzy rules
@@ -1160,7 +1160,7 @@ public class JessInitializer {
                 params.nof++;
                 call = call + "(assert (AGGREGATION::SUBOBJECTIVE (id " + subobj + ") (index " + the_index + " ) (parent " + the_parent +
                         " ) (fuzzy-value (new FuzzyValue \"Value\" (call (new FuzzyValue \"Value\" (new Interval \"interval\" ?sValue ?sValue) \"utils\" (MatlabFunctions getValueHashmap)) getFuzzy_val) \"utils\" (MatlabFunctions getValueInvHashmap))) (satisfaction ?sValue)  (satisfied-by ?who)"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
+//                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?mea getFactId) \"}\"))"
                         + " ))";
 
                 //Back to normal rules
@@ -1183,7 +1183,7 @@ public class JessInitializer {
         }catch (Exception e) {
             System.out.println( "EXC in loadRequirementRules " +e.getMessage() );
         }
-        DebugWriter.writeDebug(rrules, "requirement_rules.txt");
+//        DebugWriter.writeDebug2(rrules, "requirement_rules.txt");
     }
 
     private void loadFuzzyRequirementRulesAttribs(Rete r, Workbook xls, String sheet, MatlabFunctions m, BaseParams params) {

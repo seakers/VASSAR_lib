@@ -128,8 +128,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("MANIFEST0");
             r.run();
 
-            qb.saveQuery("all_instruments.txt", "DATABASE::Instrument");
-            qb.saveQuery("all_lv.txt", "DATABASE::Launch-vehicle");
+//            qb.saveQuery("all_instruments.txt", "DATABASE::Instrument");
+//            qb.saveQuery("all_lv.txt", "DATABASE::Launch-vehicle");
 
             r.setFocus("MANIFEST");
             r.run();
@@ -140,15 +140,14 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             designSpacecraft(r, arch, qb, m);
 
 
-            qb.saveQuery("missions_manifest.txt", "MANIFEST::Mission");
-
-            qb.saveQuery("man_instruments.txt", "CAPABILITIES::Manifested-instrument");
+//            qb.saveQuery("missions_manifest.txt", "MANIFEST::Mission");
+//            qb.saveQuery("man_instruments.txt", "CAPABILITIES::Manifested-instrument");
 
             r.setFocus("CAPABILITIES");
             r.run();
 
-            qb.saveQuery("cap_insts.txt", "CAPABILITIES::Manifested-instrument");
-            qb.saveQuery("cap_insts_can_measure.txt", "CAPABILITIES::can-measure");
+//            qb.saveQuery("cap_insts.txt", "CAPABILITIES::Manifested-instrument");
+//            qb.saveQuery("cap_insts_can_measure.txt", "CAPABILITIES::can-measure");
 
             r.setFocus("CAPABILITIES-REMOVE-OVERLAPS");
             r.run();
@@ -156,8 +155,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("CAPABILITIES-GENERATE");
             r.run();
 
-            qb.saveQuery("meas_capabilities.txt", "REQUIREMENTS::Measurement");
-            qb.saveQuery("capgen_instruments.txt", "CAPABILITIES::Manifested-instrument");
+//            qb.saveQuery("meas_capabilities.txt", "REQUIREMENTS::Measurement");
+//            qb.saveQuery("capgen_instruments.txt", "CAPABILITIES::Manifested-instrument");
 
             r.setFocus("CAPABILITIES-CROSS-REGISTER");
             r.run();
@@ -165,17 +164,19 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("CAPABILITIES-UPDATE");
             r.run();
 
-            qb.saveQuery("cap_instruments.txt", "CAPABILITIES::Manifested-instrument");
-            qb.saveQuery("cap_can_meas.txt", "CAPABILITIES::can-measure");
-            qb.saveQuery("meas_original.txt", "REQUIREMENTS::Measurement"); // CAPABILITIES::resource-limitations
-            qb.saveQuery("cap_resource_limitations.txt", "CAPABILITIES::resource-limitations");
+//            qb.saveQuery("cap_instruments.txt", "CAPABILITIES::Manifested-instrument");
+//            qb.saveQuery("cap_can_meas.txt", "CAPABILITIES::can-measure");
+//            qb.saveQuery("meas_original.txt", "REQUIREMENTS::Measurement"); // CAPABILITIES::resource-limitations
+//            qb.saveQuery("cap_resource_limitations.txt", "CAPABILITIES::resource-limitations");
 
             r.setFocus("SYNERGIES");
             r.run();
 
-            qb.saveQuery("meas_synergy.txt", "REQUIREMENTS::Measurement");
+//            qb.saveQuery("meas_synergy.txt", "REQUIREMENTS::Measurement");
 
+//            System.out.println("--> CALCULATING REVISIT TIMES");
             this.calcRevisitTimes(r, params, qb, m);
+//            System.out.println("--> FINISHED");
 
             r.setFocus("ASSIMILATION2");
             r.run();
@@ -183,12 +184,16 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("ASSIMILATION");
             r.run();
 
-            qb.saveQuery("meas_b4_fuzzy.txt", "REQUIREMENTS::Measurement");
+//            System.out.println("--> ASSIMILATION DONE");
+
+//            qb.saveQuery("meas_b4_fuzzy.txt", "REQUIREMENTS::Measurement");
 
 //            r.eval("(watch all)");
 
             r.setFocus("FUZZY");
             r.run();
+
+//            System.out.println("--> FUZZY DONE");
 
 //            r.eval("(unwatch all)");
 
@@ -198,16 +203,29 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.setFocus("SYNERGIES-ACROSS-ORBITS");
             r.run();
 
+//            System.out.println("--> SYNERGIES DONE");
+//            qb.saveQuery("meas_final.txt", "REQUIREMENTS::Measurement");
+//            qb.countFacts("REQUIREMENTS::Measurement");
 
+
+//            System.out.println("--> WATCHING RULES");
+//            r.eval("(watch all)");
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+//                System.out.println("--> SETTING REQUIREMENTS FOCUS");
                 r.setFocus("FUZZY-REQUIREMENTS");
             }
             else {
                 r.setFocus("REQUIREMENTS");
             }
+//            System.out.println("--> RUNNING REQUIREMENTS");
             r.run();
+//            r.eval("(unwatch all)");
 
-            qb.saveQuery("meas_final.txt", "REQUIREMENTS::Measurement");
+
+
+
+//            System.out.println("--> REQUIREMENTS DONE");
+
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.setFocus("FUZZY-AGGREGATION");
@@ -217,9 +235,11 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             }
             r.run();
 
-            qb.saveQuery("agg_sub.txt", "AGGREGATION::SUBOBJECTIVE");
-            qb.saveQuery("agg_obj.txt", "AGGREGATION::OBJECTIVE");
-            qb.saveQuery("agg_stake.txt", "AGGREGATION::STAKEHOLDER");
+//            System.out.println("--> AGGREGATION DONE");
+
+//            qb.saveQuery("agg_sub.txt", "AGGREGATION::SUBOBJECTIVE");
+//            qb.saveQuery("agg_obj.txt", "AGGREGATION::OBJECTIVE");
+//            qb.saveQuery("agg_stake.txt", "AGGREGATION::STAKEHOLDER");
 
             if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-CASES"))) {
                 result = aggregate_performance_score_facts(params, r, m, qb);
@@ -535,6 +555,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
 
     protected Result aggregate_performance_score_facts(BaseParams params, Rete r, MatlabFunctions m, QueryBuilder qb) {
+//        System.out.println("--> AGGREGATION 1");
 
         ArrayList<ArrayList<ArrayList<Double>>> subobj_scores = new ArrayList<>();
         ArrayList<ArrayList<Double>> obj_scores = new ArrayList<>();
@@ -557,54 +578,63 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
                 panel_scores.add(Double.parseDouble(str_val));
             }
 
-            ArrayList<Fact> subobj_facts = qb.makeQuery("AGGREGATION::SUBOBJECTIVE");
-            for (Fact f: subobj_facts) {
-                String subobj = f.getSlotValue("id").stringValue(r.getGlobalContext());
-                Double subobj_score = f.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
-                Double current_subobj_score = subobj_scores_map.get(subobj);
-                if(current_subobj_score == null || subobj_score > current_subobj_score) {
-                    subobj_scores_map.put(subobj, subobj_score);
-                }
-                if (!explanations.containsKey(subobj)) {
-                    explanations.put(subobj, qb.makeQuery("AGGREGATION::SUBOBJECTIVE (id " + subobj + ")"));
-                }
-            }
+//            System.out.println("--> AGGREGATION 2");
+
+//            ArrayList<Fact> subobj_facts = qb.makeQuery("AGGREGATION::SUBOBJECTIVE");
+//            System.out.println("--> AGGREGATION 2 subobj facts len: " + subobj_facts.size());
+//            for (Fact f: subobj_facts) {
+//                String subobj = f.getSlotValue("id").stringValue(r.getGlobalContext());
+//                Double subobj_score = f.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
+//                Double current_subobj_score = subobj_scores_map.get(subobj);
+//                if(current_subobj_score == null || subobj_score > current_subobj_score) {
+//                    subobj_scores_map.put(subobj, subobj_score);
+//                }
+//                if (!explanations.containsKey(subobj)) {
+//                    explanations.put(subobj, qb.makeQuery("AGGREGATION::SUBOBJECTIVE (id " + subobj + ")"));
+//                }
+//            }
+
+//            System.out.println("--> AGGREGATION 3");
 
             //Subobjective scores
-            for (int p = 0; p < params.numPanels; p++) {
-                int nob = params.numObjectivesPerPanel.get(p);
-                ArrayList<ArrayList<Double>> subobj_scores_p = new ArrayList<>(nob);
-                for (int o = 0; o < nob; o++) {
-                    ArrayList<ArrayList<String>> subobj_p = params.subobjectives.get(p);
-                    ArrayList<String> subobj_o = subobj_p.get(o);
-                    int nsubob = subobj_o.size();
-                    ArrayList<Double> subobj_scores_o = new ArrayList<>(nsubob);
-                    for (String subobj : subobj_o) {
-                        subobj_scores_o.add(subobj_scores_map.get(subobj));
-                    }
-                    subobj_scores_p.add(subobj_scores_o);
-                }
-                subobj_scores.add(subobj_scores_p);
-            }
+//            for (int p = 0; p < params.numPanels; p++) {
+//                int nob = params.numObjectivesPerPanel.get(p);
+//                ArrayList<ArrayList<Double>> subobj_scores_p = new ArrayList<>(nob);
+//                for (int o = 0; o < nob; o++) {
+//                    ArrayList<ArrayList<String>> subobj_p = params.subobjectives.get(p);
+//                    ArrayList<String> subobj_o = subobj_p.get(o);
+//                    int nsubob = subobj_o.size();
+//                    ArrayList<Double> subobj_scores_o = new ArrayList<>(nsubob);
+//                    for (String subobj : subobj_o) {
+//                        subobj_scores_o.add(subobj_scores_map.get(subobj));
+//                    }
+//                    subobj_scores_p.add(subobj_scores_o);
+//                }
+//                subobj_scores.add(subobj_scores_p);
+//            }
+
+//            System.out.println("--> AGGREGATION 4");
 
             //Objective scores
-            for (int p = 0; p < params.numPanels; p++) {
-                int nob = params.numObjectivesPerPanel.get(p);
-                ArrayList<Double> obj_scores_p = new ArrayList<>(nob);
-                for (int o = 0; o < nob; o++) {
-                    ArrayList<ArrayList<Double>> subobj_weights_p = params.subobjWeights.get(p);
-                    ArrayList<Double> subobj_weights_o = subobj_weights_p.get(o);
-                    ArrayList<ArrayList<Double>> subobj_scores_p = subobj_scores.get(p);
-                    ArrayList<Double> subobj_scores_o = subobj_scores_p.get(o);
-                    try {
-                        obj_scores_p.add(Result.sumProduct(subobj_weights_o, subobj_scores_o));
-                    }
-                    catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-                obj_scores.add(obj_scores_p);
-            }
+//            for (int p = 0; p < params.numPanels; p++) {
+//                int nob = params.numObjectivesPerPanel.get(p);
+//                ArrayList<Double> obj_scores_p = new ArrayList<>(nob);
+//                for (int o = 0; o < nob; o++) {
+//                    ArrayList<ArrayList<Double>> subobj_weights_p = params.subobjWeights.get(p);
+//                    ArrayList<Double> subobj_weights_o = subobj_weights_p.get(o);
+//                    ArrayList<ArrayList<Double>> subobj_scores_p = subobj_scores.get(p);
+//                    ArrayList<Double> subobj_scores_o = subobj_scores_p.get(o);
+//                    try {
+//                        obj_scores_p.add(Result.sumProduct(subobj_weights_o, subobj_scores_o));
+//                    }
+//                    catch (Exception e) {
+//                        System.out.println(e.getMessage());
+//                    }
+//                }
+//                obj_scores.add(obj_scores_p);
+//            }
+
+//            System.out.println("--> AGGREGATION 5");
         }
         catch (Exception e) {
             System.out.println(e.getMessage() + " " + e.getClass());

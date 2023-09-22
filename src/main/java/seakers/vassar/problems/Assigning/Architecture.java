@@ -64,9 +64,14 @@ public class Architecture extends AbstractArchitecture{
     // Utils
     private boolean[][] booleanString2Matrix(String bitString) {
         boolean[][] mat = new boolean[params.getNumOrbits()][params.getNumInstr()];
+
+        int count = 0;
         for (int i = 0; i < params.getNumOrbits(); i++) {
             for (int j = 0; j < params.getNumInstr(); j++) {
-                String b = bitString.substring(params.getNumInstr() *i + j,params.getNumInstr()*i + j + 1);
+                char charAtSpecificIndex = bitString.charAt(count);
+                String b = Character.toString(charAtSpecificIndex);
+
+//                String b = bitString.substring(params.getNumInstr() *i + j,params.getNumInstr()*i + j + 1);
                 if (b.equalsIgnoreCase("1")) {
                     mat[i][j] = true;
                 }
@@ -74,8 +79,9 @@ public class Architecture extends AbstractArchitecture{
                     mat[i][j] = false;
                 }
                 else {
-                    System.out.println("Architecture: booleanString2Matrix string b is nor equal to 1 or 0!");
+                    System.out.println("Architecture: booleanString2Matrix string b is nor equal to 1 or 0!: " + b);
                 }
+                count++;
             }
         }
         return mat;
