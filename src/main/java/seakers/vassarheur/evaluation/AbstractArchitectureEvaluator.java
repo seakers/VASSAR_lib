@@ -150,6 +150,8 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
                 result.setHeuristics(archHeuristicViolations);
 
+                r.eval("(unwatch rules)");
+
                 // Extract and store operator parameters
                 ArrayList<ArrayList<Double>> operatorParameters = getOperatorParameters(r, qb);
                 result.setOperatorParameters(operatorParameters);
@@ -186,7 +188,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
-            //r.eval("(watch rules)");
+            r.eval("(watch rules)");
             //r.eval("(facts)");
 
             r.setFocus("MANIFEST0");
@@ -211,7 +213,10 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.run();
 
             r.setFocus("SYNERGIES");
+            //System.out.println("SYNERGIES Rules 1");
+            //r.watch(1);
             r.run();
+            //r.unwatch(1);
 
             int javaAssertedFactID = 1;
 
@@ -332,10 +337,16 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             r.run();
 
             r.setFocus("SYNERGIES");
+            //System.out.println("SYNERGIES Rules 2");
+            //r.watch(1);
             r.run();
+            //r.unwatch(1);
 
             r.setFocus("SYNERGIES-ACROSS-ORBITS");
+            //System.out.println("SYNERGIES-ACROSS-ORBITS Rules");
+            //r.watch(1);
             r.run();
+            //r.unwatch(1);
 
             if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
                 r.setFocus("FUZZY-REQUIREMENTS");
