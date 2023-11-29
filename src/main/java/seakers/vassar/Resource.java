@@ -29,13 +29,13 @@ public class Resource {
 //        (new JessInitializer(this.params)).initializeJess(this.params, this.r, this.qb, this.m);
 
         // PARSE RULES
-        try{
-            ModelParser mParser = new ModelParser(this.r);
-            mParser.saveVocabulary();
-        }
-        catch (Exception ex){
-            ex.printStackTrace();
-        }
+//        try{
+//            ModelParser mParser = new ModelParser(this.r);
+//            mParser.saveVocabulary();
+//        }
+//        catch (Exception ex){
+//            ex.printStackTrace();
+//        }
     }
 
     public BaseParams getParams(){ return params; }

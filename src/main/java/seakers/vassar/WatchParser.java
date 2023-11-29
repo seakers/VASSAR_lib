@@ -98,7 +98,7 @@ public class WatchParser {
 
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String designs_dir = "/home/ec2-user/designs2_100k/designs_all";
+            String designs_dir = "/home/ubuntu/designs2_100k/designs_all";
 //            String designs_dir = "/home/ec2-user/vassar/VASSAR_exec/designs";
             String design_file_name = this.getFileName(designs_dir);
             objectives.addProperty("science", result.getScience());
@@ -107,17 +107,17 @@ public class WatchParser {
             objectives.addProperty("rules_fired", rule_names.size());
             objectives.add("rules", rule_names);
 //            objectives.add("cost_facts", cost_facts_ary);
-            FileWriter jsonWriter3 = new FileWriter(design_file_name);
-            String jsonString3 = gson.toJson(objectives);
-            jsonWriter3.write(jsonString3);
-            jsonWriter3.flush();
+//            FileWriter jsonWriter3 = new FileWriter(design_file_name);
+//            String jsonString3 = gson.toJson(objectives);
+//            jsonWriter3.write(jsonString3);
+//            jsonWriter3.flush();
 
         }
         catch (Exception ex){
             ex.printStackTrace();
         }
 
-        result.setFiredRules(rule_names_ary);
+//        result.setFiredRules(rule_names_ary);
     }
 
 
