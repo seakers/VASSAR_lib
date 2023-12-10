@@ -98,7 +98,7 @@ public class WatchParser {
 
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String designs_dir = "/home/ec2-user/designs2_100k/designs_all";
+            String designs_dir = "/home/ec2-user/designs3_100k/designs_all";
 //            String designs_dir = "/home/ec2-user/vassar/VASSAR_exec/designs";
             String design_file_name = this.getFileName(designs_dir);
             objectives.addProperty("science", result.getScience());

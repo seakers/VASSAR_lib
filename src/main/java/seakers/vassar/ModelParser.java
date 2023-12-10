@@ -20,7 +20,7 @@ public class ModelParser {
     }
 
     public void saveVocabulary() throws Exception{
-        String vocab_file = "/home/ec2-user/vassar/VASSAR_exec/designs/vocab.json";
+        String vocab_file = "/home/ec2-user/vassar/VASSAR_exec/designs/vocab3.json";
         File file = new File(vocab_file);
         if(file.exists() && file.isFile()){
 //            System.out.println("\n\n\n--> VOCAB ALREADY EXISTS");
