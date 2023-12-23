@@ -87,7 +87,7 @@ public class XGrants_VariableAgility {
                     initialization);
 
 
-            while (algorithm.getNumberOfEvaluations() < 10000) {
+            while (algorithm.getNumberOfEvaluations() < 2000) {
                 algorithm.step();
                 Population currentPop = algorithm.getResult();
                 try {

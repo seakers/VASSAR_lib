@@ -33,7 +33,7 @@ public class DesignEvaluatorFromFile {
         String path = "../VASSAR_resources";
         OrekitConfig.init(12);
         ArrayList<String> orbitList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/0406_variables_4456.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/0511_variables_2482.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             int count = 0;
             while ((line = br.readLine()) != null) {
