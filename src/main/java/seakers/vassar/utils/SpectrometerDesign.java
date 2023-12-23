@@ -18,6 +18,9 @@ public class SpectrometerDesign {
     private boolean tir;
     private double swath;
 
+    private double focalLength;
+    private double aperture;
+
     public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture, double vnirPixelSize, double swirPixelSize, double agility) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
         double maxWavelength = 2500e-9;
@@ -75,6 +78,8 @@ public class SpectrometerDesign {
         //System.out.println("VNIR SNR: "+vnirSNR);
         //System.out.println("SWIR SNR: "+swirSNR);
         mass = lensMass + vnirSensorMass + swirSensorMass + tirSensorMass;
+        this.focalLength = focalLength;
+        this.aperture = aperture;
     }
 
     public double getMass() {
@@ -87,6 +92,10 @@ public class SpectrometerDesign {
 
     public double getDataRate() {
         return dataRate;
+    }
+
+    public double getMaxDim() {
+        return Math.max(focalLength,aperture);
     }
 
     public double getSpectralResolution() { return spectralResolution; }

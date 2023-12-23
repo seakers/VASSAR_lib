@@ -14,3 +14,4 @@ backup/
 classes/
 lib/
 /src/test/output/
+bin

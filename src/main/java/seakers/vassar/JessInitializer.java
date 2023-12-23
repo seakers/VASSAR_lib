@@ -625,6 +625,9 @@ public class JessInitializer {
                             if(slot_name.equals("avg-power#")) {
                                 slot_value = String.valueOf(sd.getPower());
                             }
+                            if(slot_name.equals("dimension-x#")) {
+                                slot_value = String.valueOf(sd.getMaxDim());
+                            }
                         }
                         //System.out.println(slot_name+" "+slot_value);
                     }
