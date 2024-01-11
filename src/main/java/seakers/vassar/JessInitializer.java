@@ -626,7 +626,10 @@ public class JessInitializer {
                                 slot_value = String.valueOf(sd.getPower());
                             }
                             if(slot_name.equals("dimension-x#")) {
-                                slot_value = String.valueOf(sd.getMaxDim());
+                                slot_value = String.valueOf(sd.getApertureDim());
+                            }
+                            if(slot_name.equals("dimension-y#")) {
+                                slot_value = String.valueOf(sd.getFocalDim());
                             }
                         }
                         //System.out.println(slot_name+" "+slot_value);

@@ -13,6 +13,8 @@ import seakers.vassar.problems.SimpleParams;
 import seakers.vassar.utils.SpectrometerDesign;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class XGrantsProblemVariableAgility extends AbstractProblem {
     public XGrantsProblemVariableAgility() {
@@ -113,7 +115,7 @@ public class XGrantsProblemVariableAgility extends AbstractProblem {
         for (int i = 0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
         try {
-            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "normal", sd);
+            SimpleParams params = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES", "test", "reduced", sd);
             DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
             ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(params, evaluator);
             evaluationManager.init(1);

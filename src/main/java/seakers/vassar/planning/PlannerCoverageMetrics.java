@@ -84,18 +84,18 @@ public class PlannerCoverageMetrics {
         for (TopocentricFrame tf : fovEventsPlanned.keySet()) {
             GeodeticPoint gp = tf.getPoint();
             if(fovEventsPlanned.get(tf).getDurations().length < 2) {
-                System.out.println(gp);
+                //System.out.println(gp);
             }
 
         }
         double[] latBounds = new double[]{FastMath.toRadians(-80), FastMath.toRadians(80)};
         double[] lonBounds = new double[]{FastMath.toRadians(-180), FastMath.toRadians(180)};
         double fovMaxRevisitPlanned = getMaxRevisitTime(fovEventsPlanned,latBounds,lonBounds)/3600;
-        System.out.printf("FOV max revisit time: %.2f\n",fovMaxRevisitPlanned);
+        //System.out.printf("FOV max revisit time: %.2f\n",fovMaxRevisitPlanned);
         double forMaxRevisit = getMaxRevisitTime(forEvents,latBounds,lonBounds)/3600;
         double fov99thRevisitPlanned = get99thRevisitTime(fovEventsPlanned,latBounds,lonBounds)/3600;
-        System.out.printf("FOR max revisit time, all points: %.2f\n",forMaxRevisit);
-        System.out.printf("FOV 99th revisit time: %.2f\n",fov99thRevisitPlanned);
+        //System.out.printf("FOR max revisit time, all points: %.2f\n",forMaxRevisit);
+        //System.out.printf("FOV 99th revisit time: %.2f\n",fov99thRevisitPlanned);
         maximumRevisitTime = fovMaxRevisitPlanned;
     }
 

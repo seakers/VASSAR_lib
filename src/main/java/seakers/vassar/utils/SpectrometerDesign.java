@@ -93,11 +93,12 @@ public class SpectrometerDesign {
     public double getDataRate() {
         return dataRate;
     }
-
-    public double getMaxDim() {
-        return Math.max(focalLength,aperture);
+    public double getApertureDim() {
+        return aperture;
     }
-
+    public double getFocalDim() {
+        return focalLength;
+    }
     public double getSpectralResolution() { return spectralResolution; }
     public double getSpatialResolution() { return spatialResolution; }
     public double getSpectralRange() { return spectralRange; }
