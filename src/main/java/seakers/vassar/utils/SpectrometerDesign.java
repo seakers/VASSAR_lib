@@ -21,6 +21,49 @@ public class SpectrometerDesign {
     private double focalLength;
     private double aperture;
 
+    public SpectrometerDesign(double alt, int numVNIRSpec, double focalLength, double FOV, double aperture, double vnirPixelSize, double agility) {
+        double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
+        double maxWavelength = 2500e-9;
+        double swirSpectralResolution = 0;
+        this.agility = agility;
+        spectralRange = 1001.0-379.0;
+        spectralResolution = vnirSpectralResolution;
+        maxWavelength = 1000e-9;
+        // nm
+        double orbitalVelocity = Math.sqrt(398600 / (6378 + alt)); // km/s
+        double groundVelocity = orbitalVelocity * 6378 / (6378 + alt); // km/s
+        int bitsPerPixel = 16;
+        double pixelSize = vnirPixelSize;
+        double IFOV = pixelSize / focalLength;
+        double gsd = IFOV * alt * 1000;
+        double diffractionLimitedResolution = 1.22 * alt * 1000 * maxWavelength / aperture;
+        spatialResolution = Math.max(diffractionLimitedResolution, gsd);
+        double imagingRate = groundVelocity*1000 / gsd;
+        double numSpatialPixels = Math.floor(Math.toRadians(FOV)/IFOV);
+        swath = gsd * numSpatialPixels / 1000;
+        power = 2.69e-5*numVNIRSpec*numSpatialPixels + 1.14; // Watts, based on regression
+        dataRate = numVNIRSpec * numSpatialPixels * bitsPerPixel * imagingRate / 1e6; // Mbps
+        //System.out.println("Datarate: "+dataRate);
+        double lensMass = Math.exp(4.365*focalLength+2.009*aperture - 2.447);
+        double vnirSensorMass = 0.363 + 0.0014e-3 * numSpatialPixels * numVNIRSpec;
+
+        // Calculate SNR
+        double vnirL = 0.1; // approximate, at 600 nm
+        double swirL = 0.02; // approximate, at 1600 nm
+        double vnirLambda = 600e-9;
+        double swirLambda = 1600e-9;
+        double c = 3e8;
+        double h = 6.63e-34;
+        double eff = 0.8;
+        double vnirSignal = vnirLambda*vnirL*Math.PI*Math.pow(aperture,2)*Math.pow(vnirPixelSize,2)*(1/imagingRate)*eff*vnirSpectralResolution/(4*h*c*Math.pow(focalLength,2));
+        double vnirNoise = Math.sqrt(Math.pow(Math.sqrt(vnirSignal),2)+10000);
+        vnirSNR = vnirSignal/vnirNoise;
+        //System.out.println("VNIR SNR: "+vnirSNR);
+        //System.out.println("SWIR SNR: "+swirSNR);
+        mass = lensMass + vnirSensorMass;
+        this.focalLength = focalLength;
+        this.aperture = aperture;
+    }
     public SpectrometerDesign(double alt, int numVNIRSpec, int numSWIRSpec, boolean tir, double focalLength, double FOV, double aperture, double vnirPixelSize, double swirPixelSize, double agility) {
         double vnirSpectralResolution = (1000.0-380.0)/numVNIRSpec;
         double maxWavelength = 2500e-9;

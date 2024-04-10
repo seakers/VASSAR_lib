@@ -31,7 +31,7 @@ public class XGrantsProgressListener implements ProgressListener {
         System.out.println("Current function evals: "+event.getCurrentNFE());
         PrintStream fileOut = null;
         try {
-            fileOut = new PrintStream("./src/test/output/xgrants/012323_running_population"+event.getCurrentNFE()+".txt");
+            fileOut = new PrintStream("./src/test/output/planner/040924_running_population"+event.getCurrentNFE()+".txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -41,7 +41,7 @@ public class XGrantsProgressListener implements ProgressListener {
         if (xd != null) {
             NondominatedPopulation currentPop = xd.getResult();
             try {
-                FileOutputStream f = new FileOutputStream("current_population.txt");
+                FileOutputStream f = new FileOutputStream("planner_current_population.txt");
                 ObjectOutputStream o = new ObjectOutputStream(f);
                 for (Solution sol : currentPop) {
                     o.writeObject(sol);
@@ -55,7 +55,7 @@ public class XGrantsProgressListener implements ProgressListener {
                 System.out.println("Error initializing stream");
             }
             try {
-                PopulationIO.writeObjectives(new File("./src/test/output/xgrants/012323_objectives"+event.getCurrentNFE()+".txt"), currentPop);
+                PopulationIO.writeObjectives(new File("./src/test/output/planner/040924_objectives"+event.getCurrentNFE()+".txt"), currentPop);
             } catch (IOException e) {
                 e.printStackTrace();
             }

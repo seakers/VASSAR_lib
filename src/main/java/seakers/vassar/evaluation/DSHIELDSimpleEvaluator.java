@@ -116,13 +116,13 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         Result result = new Result();
         mrt = 86400.0;
         overlap = 0.0;
-        result.setScience(evaluateScience(params,r,arch,qb,m));
-        result.setExplanations(aggregate_performance_score_facts(params, r, m, qb).getExplanations());
-        try{
-            result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+        //result.setScience(evaluateScience(params,r,arch,qb,m));
+        //result.setExplanations(aggregate_performance_score_facts(params, r, m, qb).getExplanations());
+//        try{
+//            result.setCapabilities(aggregate_performance_score_facts(params, r, m, qb).getCapabilities());
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
 
         //result.setScience(0.0);
         try {
@@ -137,8 +137,8 @@ public class DSHIELDSimpleEvaluator extends AbstractArchitectureEvaluator {
         //result.setCoverage(evaluateCoverage(params,r,arch,qb,m));
 
         result.setCost(evaluateCosts(params,r,arch,qb,m));
-        result.setOverlap(this.overlap);
-        result.setMRT(this.mrt);
+//        result.setOverlap(this.overlap);
+//        result.setMRT(this.mrt);
 
         this.resourcePool.freeResource(res);
         System.out.println("Finished evaluating architecture!");

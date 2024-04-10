@@ -36,9 +36,9 @@ public class DesignEvaluator {
         String path = "../VASSAR_resources";
         OrekitConfig.init(12);
         ArrayList<String> orbitList = new ArrayList<>();
-        int r = 1; // planes
-        int s = 8; // satellites per plane
-        double alt = 750;
+        int r = 2; // planes
+        int s = 1; // satellites per plane
+        double alt = 800;
         double inc = getSSOInclination(alt)*180/Math.PI;
         ArrayList<OrbitInstrumentObject> radarOnlySatellites = new ArrayList<>();
         for(int m = 0; m < r; m++) {
@@ -64,15 +64,15 @@ public class DesignEvaluator {
         String[] orbList = new String[orbitList.size()];
         for (int i =0; i < orbitList.size(); i++)
             orbList[i] = orbitList.get(i);
-        int numVNIRSpec = 100;
-        int numSWIRSpec = 100;
-        boolean tir = false;
-        double focalLength = 0.1;
-        double FOV = 0.1;
-        double aperture = 0.1;
-        double vnirPixelSize = 1.87e-5;
-        double swirPixelSize= 1.457e-5;
-        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,2.963);
+        int numVNIRSpec = 202;
+        int numSWIRSpec = 329;
+        boolean tir = true;
+        double focalLength = 0.162;
+        double FOV = 0.766;
+        double aperture = 0.243;
+        double vnirPixelSize = 1.9987080838781243E-5;
+        double swirPixelSize= 1.85e-5;
+        SpectrometerDesign sd = new SpectrometerDesign(alt,numVNIRSpec,numSWIRSpec,tir,focalLength,FOV,aperture,vnirPixelSize,swirPixelSize,1.74);
         SimpleParams simpleParams = new SimpleParams(orbList, "XGrants", path, "CRISP-ATTRIBUTES","test", "reduced", sd);
         DSHIELDSimpleEvaluator evaluator = new DSHIELDSimpleEvaluator();
         ArchitectureEvaluationManager evaluationManager = new ArchitectureEvaluationManager(simpleParams, evaluator);

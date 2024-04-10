@@ -27,9 +27,9 @@ public class SpectrometerAnalysis {
         int numVNIRSpec = 150;
         int numSWIRSpec = 300;
         boolean tir = true;
-        Double[] focalLengths = {0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0};
+        Double[] focalLengths = {0.01, 0.02, 0.05, 0.1, 0.2, 0.28};
         Double[] fovs = {0.1, 0.2, 0.5, 1.0, 2.0, 5.0};
-        Double[] apertures = {0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0};
+        Double[] apertures = {0.01, 0.02, 0.05, 0.1, 0.18};
         Double[] vnirPixelSizes = {1e-6,2e-6,5e-6,10e-6,20e-6};
         Double[] swirPixelSizes = {5e-6,10e-6,20e-6,50e-6};
         double agility = 1.0;
@@ -60,13 +60,13 @@ public class SpectrometerAnalysis {
                 }
             }
         }
-        File csvOutputFile = new File("spectrometers.csv");
+        File csvOutputFile = new File("spectrometers_cubesat.csv");
         try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
                 specLines.stream()
                 .map(SpectrometerAnalysis::convertToCSV)
                 .forEach(pw::println);
                 }
-        SpectrometerDesign sd = new SpectrometerDesign(850, 313, 324, true, 0.58, 2.1, 1.01, 10.7e-6, 18.6e-6, 0.07);
+        SpectrometerDesign sd = new SpectrometerDesign(850, 313, 324, true, 0.28, 1.0, 0.18, 10.7e-6, 18.6e-6, 0.07);
         System.out.println(sd.getSpatialResolution());
         System.out.println(sd.getMass());
         System.out.println("DONE");
