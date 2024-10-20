@@ -1,0 +1,20 @@
+function [] = jess_temp_rule(varargin)
+% head: head of the new temporary rule, as a string
+% varargin: rule body
+% To remove the temporary rules from the engine: jess_temp_rule(-9)
+
+    tokens = flatten_cell(varargin);
+    head = tokens{1};
+    
+    persistent list
+    if ~iscell(list), list = {}; end;
+    
+    jess([{'defrule'} tokens]);
+    list = [list {head}];
+    
+    function [] = remove_rules()
+        j = global_jess_engine();
+        cellfun(@(rule) j.removeDefrule(rule), list);
+        list = {};
+    end
+end

@@ -1,0 +1,45 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group 'seakers'
+version '1.0'
+
+sourceCompatibility = 11
+
+compileJava {
+    options.compilerArgs += ["-Xlint"]
+}
+
+repositories {
+    maven {
+        url "https://maven.geotoolkit.org"
+    }
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'com.googlecode.combinatoricslib:combinatoricslib:2.2'
+    implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    implementation 'org.orekit:orekit:10.0'
+    implementation 'seakers:orekit:1.0'
+    implementation 'gov.sandia:jess:7.1p2'
+    //implementation files("C:\\Users\\demagall\\Documents\\IntelliJ\\VASSAR\\jess.jar")
+    implementation 'io.pebbletemplates:pebble:3.1.0'
+    implementation 'org.slf4j:slf4j-simple:1.7.28'
+    implementation 'org.json:json:20210307'
+    //testCompile 'junit:junit:4.12'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'vassar'
+            from components.java
+        }
+    }
+}

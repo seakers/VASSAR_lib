@@ -1,0 +1,3 @@
+function cout = filter_cell(cin, predicate, varargin)
+    cout = cin(cellfun(predicate, cin));
+end

@@ -1,0 +1,44 @@
+function mission = RBES_Create_Mission(arch, orbit, instrument_list,params)
+mission = Mission(orbit,arch);
+for i = 1:length(instrument_list)
+    instr = params.instrument_pool.get(instrument_list{i});
+    nsats_per_plane = num(i,1);
+    nplanes = num(i,2);
+    altitude = num(i,3);
+    inclination = num(i,4);
+    if inclination == 12345
+        inclination = 'SSO';
+    else
+        inclination = num2str(inclination);
+    end
+    
+    if nsats_per_plane == 1 && nplanes == 1
+        arch = 'single-sat';
+    else
+        arch = 'constellation';
+    end
+    fov = num(i,5);
+    avg_revisit_time_global = num(i,6);
+    avg_revisit_time_tropics = num(i,7);
+    avg_revisit_time_NH = num(i,8);
+    avg_revisit_time_SH = num(i,9);
+    avg_revisit_time_cold = num(i,10);
+    avg_revisit_time_US = num(i,11);
+    call = ['(assert (MANIFEST::Revisit-time-of (architecture ' arch ' ) ' ...
+        '(num-planes# ' num2str(nplanes) ' ) ' ...
+        '(num-of-sats-per-plane# ' num2str(nsats_per_plane) ' ) ' ...
+        '(orbit-altitude# ' num2str(altitude) ' ) ' ...
+        '(orbit-inclination ' inclination ' ) ' ...
+        '(instrument-field-of-view# ' num2str(fov) ' ) ' ...
+        '(avg-revisit-time-global# ' num2str(avg_revisit_time_global) ' ) ' ...
+        '(avg-revisit-time-tropics# ' num2str(avg_revisit_time_tropics) ' ) ' ...
+        '(avg-revisit-time-northern-hemisphere# ' num2str(avg_revisit_time_NH) ' ) ' ...
+        '(avg-revisit-time-southern-hemisphere# ' num2str(avg_revisit_time_SH) ' ) ' ...
+        '(avg-revisit-time-cold-regions# ' num2str(avg_revisit_time_cold) ' ) ' ...
+        '(avg-revisit-time-US# ' num2str(avg_revisit_time_US) ' ) ' ...
+    '))'];
+
+    r.eval(call);
+    mission.addInstrument(instr);
+end
+return
