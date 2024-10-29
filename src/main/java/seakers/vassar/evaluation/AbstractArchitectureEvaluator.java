@@ -102,28 +102,29 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
         Result result = new Result();
         try {
             r.reset();
+
+            r.eval("(watch rules)");
+            r.eval("(watch facts)");
+//            r.eval("(watch all)");
+
             assertMissions(params, r, arch, m);
 
             r.eval("(bind ?*science-multiplier* 1.0)");
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
 
-            //r.eval("(watch rules)");
-            //r.eval("(facts)");
-
             r.setFocus("MANIFEST0");
             r.run();
 
-
-            Fact fact;
-            Iterator factIterator = r.listFacts();
-
-            // Step 4: Loop through the facts and print them
-            while (factIterator.hasNext()) {
-                fact = (Fact) factIterator.next();
-                // Print the fact's details
-                System.out.println(fact);
-            }
+//            Fact fact;
+//            Iterator factIterator = r.listFacts();
+//
+//            // Step 4: Loop through the facts and print them
+//            while (factIterator.hasNext()) {
+//                fact = (Fact) factIterator.next();
+//                // Print the fact's details
+//                System.out.println(fact);
+//            }
 
             r.setFocus("MANIFEST");
             r.run();
@@ -148,51 +149,56 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
             int javaAssertedFactID = 1;
 
-            // Check if all of the orbits in the original formulation are used
-            int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
-            String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
-
-            for(int i = 0; i < params.getOrbitList().length; i++){
-                String orb = params.getOrbitList()[i];
-                int matchedIndex = -1;
-                for(int j = 0; j < revTimePrecomputedOrbitList.length; j++){
-                    if(revTimePrecomputedOrbitList[j].equalsIgnoreCase(orb)){
-                        matchedIndex = j;
-                        break;
-                    }
-                }
-
-                // Assign -1 if unmatched. Otherwise, assign the corresponding index
-                revTimePrecomputedIndex[i] = matchedIndex;
-            }
-
-            for (String param: params.measurementsToInstruments.keySet()) {
-                Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
-
-                if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
-
-                    ValueVector thefovs = v.listValue(r.getGlobalContext());
-                    String[] fovs = new String[thefovs.size()];
-                    for (int i = 0; i < thefovs.size(); i++) {
-                        int tmp = thefovs.get(i).intValue(r.getGlobalContext());
-                        fovs[i] = String.valueOf(tmp);
-                    }
-
-                    boolean recalculateRevisitTime = false;
-                    for(int i = 0; i < fovs.length; i++){
-                        if(revTimePrecomputedIndex[i] == -1){
-                            // If there exists a single orbit that is different from pre-calculated ones, re-calculate
-                            recalculateRevisitTime = true;
-                        }
-                    }
-
-                    HashMap<String, Double> revisitTimes = getRevisitTimes(params, thefovs, fovs, recalculateRevisitTime, revTimePrecomputedIndex, r, m);
-                    Double therevtimesGlobal = revisitTimes.get("Global");
-                    Double therevtimesUS = revisitTimes.get("US");
-//            Double therevtimesGlobal = 10.0;
-//            Double therevtimesUS = 10.0;
+//            // Check if all of the orbits in the original formulation are used
+//            int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
+//            String[] revTimePrecomputedOrbitList = {"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
+//
 //            for(int i = 0; i < params.getOrbitList().length; i++){
-//                for (String param: params.measurementsToInstruments.keySet()) {
+//                String orb = params.getOrbitList()[i];
+//                int matchedIndex = -1;
+//                for(int j = 0; j < revTimePrecomputedOrbitList.length; j++){
+//                    if(revTimePrecomputedOrbitList[j].equalsIgnoreCase(orb)){
+//                        matchedIndex = j;
+//                        break;
+//                    }
+//                }
+//
+//                // Assign -1 if unmatched. Otherwise, assign the corresponding index
+//                revTimePrecomputedIndex[i] = matchedIndex;
+//            }
+//            int [] revTimePrecomputedIndex = new int[] {0, 1, 2, 3, 4};
+//            Double therevtimesGlobal = 0.;
+//            Double therevtimesUS = 0.;
+//
+//            for (String param: params.measurementsToInstruments.keySet()) {
+//                Value v = r.eval("(update-fovs " + param + " (create$ " + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
+//
+////                if (RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
+//
+//                ValueVector thefovs = v.listValue(r.getGlobalContext());
+//                String[] fovs = new String[thefovs.size()];
+//                for (int i = 0; i < thefovs.size(); i++) {
+//                    int tmp = thefovs.get(i).intValue(r.getGlobalContext());
+//                    fovs[i] = String.valueOf(tmp);
+//                }
+//
+//                boolean recalculateRevisitTime = true;
+////                    for (int i = 0; i < fovs.length; i++) {
+////                        if (revTimePrecomputedIndex[i] == -1) {
+////                            // If there exists a single orbit that is different from pre-calculated ones, re-calculate
+////                            recalculateRevisitTime = true;
+////                        }
+////                    }
+//
+//                HashMap<String, Double> revisitTimes = getRevisitTimes(params, thefovs, fovs, recalculateRevisitTime, revTimePrecomputedIndex, r, m);
+//                therevtimesGlobal = revisitTimes.get("Global");
+//                therevtimesUS = revisitTimes.get("US");
+////                }
+//            }
+            Double therevtimesGlobal = 10.0;
+            Double therevtimesUS = 10.0;
+            for(int i = 0; i < params.getOrbitList().length; i++){
+                for (String param: params.measurementsToInstruments.keySet()) {
                     String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " +  param + ") "
                             + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
                             + "(avg-revisit-time-US# " + therevtimesUS + ")"
@@ -341,6 +347,7 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
             ArrayList<Fact> vals = qb.makeQuery("AGGREGATION::VALUE");
             Fact val = vals.get(0);
             science = val.getSlotValue("satisfaction").floatValue(r.getGlobalContext());
+//            System.out.print("AGGREGATION::VALUE Facts: " + vals + "\n");
             if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES") || params.reqMode.equalsIgnoreCase("FUZZY-CASES")) {
                 fuzzy_science = (FuzzyValue)val.getSlotValue("fuzzy-value").javaObjectValue(r.getGlobalContext());
             }
@@ -517,9 +524,9 @@ public abstract class AbstractArchitectureEvaluator implements Callable<Result> 
 
     protected abstract void assertMissions(BaseParams params, Rete r, AbstractArchitecture arch, MatlabFunctions m);
 
-    protected abstract void assertMissionsFromJSON(BaseParams params, JSONObject arch, Rete r, MatlabFunctions m);
+    public abstract void assertMissionsFromJSON(BaseParams params, JSONObject arch, QueryBuilder qb, Rete r, MatlabFunctions m);
 
-    public abstract Result evaluatePerformanceFromJSON(JSONObject inputData, BaseParams params);
+    public abstract Result evaluatePerformanceFromJSON(JSONObject inputData, Double revisitTime, BaseParams params);
 
     public void setDebug(boolean debug) {
         this.debug = debug;

@@ -26,6 +26,10 @@ import seakers.vassar.spacecraft.LaunchVehicle;
 import seakers.vassar.template.classes.SlotInfo;
 import seakers.vassar.template.functions.JessExtension;
 import seakers.vassar.utils.MatlabFunctions;
+import seakers.vassar.problems.Assigning.ArchitectureEvaluator;
+
+
+import org.json.JSONObject;
 
 public class JessInitializer {
 
@@ -40,8 +44,195 @@ public class JessInitializer {
         }
         return instance;
     }
-    
+
     public void initializeJess(BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
+        try {
+            this.params = params;
+
+            // Create global variable path
+            String tmp = params.problemPath.replaceAll("\\\\", "\\\\\\\\");
+            r.eval("(defglobal ?*app_path* = \"" + tmp + "\")");
+            r.eval("(import seakers.vassar.*)");
+            r.eval("(import java.util.*)");
+            r.eval("(import jess.*)");
+            r.eval("(defglobal ?*rulesMap* = (new java.util.HashMap))");
+            r.eval("(set-reset-globals nil)");
+            params.nof = 1;
+            params.nor = 1;
+
+            Locale.setDefault(Locale.ENGLISH);
+
+            // Load modules
+            loadModules(r);
+
+            // Load templates
+            Workbook templatesXls = Workbook.getWorkbook(new File(params.templateDefinitionXls));
+            loadTemplates(r, templatesXls, params.templateDefinitionClp);
+
+            // Load functions
+            loadFunctions(r, params.functionsClp);
+
+            // Load mission analysis database
+            Workbook missionAnalysisXls = Workbook.getWorkbook(new File(params.missionAnalysisDatabaseXls));
+            loadOrderedDeffacts(r, missionAnalysisXls, "Walker", "Walker-revisit-time-facts","DATABASE::Revisit-time-of");
+            loadOrderedDeffacts(r, missionAnalysisXls, "Power", "orbit-information-facts", "DATABASE::Orbit");
+
+            // Load launch vehicle database
+            loadOrderedDeffacts(r, missionAnalysisXls, "Launch Vehicles", "DATABASE::launch-vehicle-information-facts", "DATABASE::Launch-vehicle");
+            r.reset();
+            ArrayList<Fact> facts = qb.makeQuery("DATABASE::Launch-vehicle");
+
+            for (Fact lv: facts) {
+                String id = lv.getSlotValue("id").stringValue(r.getGlobalContext());
+                double cost = lv.getSlotValue("cost").floatValue(r.getGlobalContext());
+                double diam = lv.getSlotValue("diameter").floatValue(r.getGlobalContext());
+                double height = lv.getSlotValue("height").floatValue(r.getGlobalContext());
+                HashMap<String, ValueVector> payload_coeffs = new HashMap<>();
+                ValueVector payload_LEO_polar = lv.getSlotValue("payload-LEO-polar").listValue(r.getGlobalContext());
+                ValueVector payload_SSO = lv.getSlotValue("payload-SSO").listValue(r.getGlobalContext());
+                ValueVector payload_LEO_equat = lv.getSlotValue("payload-LEO-equat").listValue(r.getGlobalContext());
+                ValueVector payload_MEO = lv.getSlotValue("payload-MEO").listValue(r.getGlobalContext());
+                ValueVector payload_GEO = lv.getSlotValue("payload-GEO").listValue(r.getGlobalContext());
+                ValueVector payload_HEO = lv.getSlotValue("payload-HEO").listValue(r.getGlobalContext());
+//                ValueVector payload_ISS = lv.getSlotValue("payload-ISS").listValue(r.getGlobalContext());
+                payload_coeffs.put("LEO-polar", payload_LEO_polar);
+                payload_coeffs.put("SSO-SSO", payload_SSO);
+                payload_coeffs.put("LEO-equat", payload_LEO_equat);
+                payload_coeffs.put("MEO-polar", payload_MEO);
+                payload_coeffs.put("GEO-equat", payload_GEO);
+                payload_coeffs.put("HEO-polar", payload_HEO);
+//                payload_coeffs.put("LEO-ISS", payload_ISS);
+                LaunchVehicle lvh = new LaunchVehicle(id, payload_coeffs, diam, height, cost);
+                m.addLaunchVehicletoDB(id, lvh);
+            }
+
+            // Load instrument database
+            Workbook instrumentXls = Workbook.getWorkbook(new File(params.capabilityRulesXls));
+            loadUnorderedDeffacts(r, instrumentXls, "CHARACTERISTICS", "instrument-database-facts","DATABASE::Instrument");
+
+            // Load attribute inheritance rules
+            loadAttributeInheritanceRules(r, templatesXls, "Attribute Inheritance", params.attributeInheritanceClp);
+
+            // Load orbit rules;
+            loadOrbitRules(r, params.orbitRulesClp);
+
+            // Load mass budget rules;
+            loadMassBudgetRules(r, params.massBudgetRulesClp);
+            loadMassBudgetRules(r, params.subsystemMassBudgetRulesClp);
+            loadMassBudgetRules(r, params.deltaVBudgetRulesClp);
+
+            // Load eps design rules;
+            loadSpacecraftDesignRules(r, params.epsDesignRulesClp);
+            loadSpacecraftDesignRules(r, params.adcsDesignRulesClp);
+            loadSpacecraftDesignRules(r, params.propulsionDesignRulesClp);
+
+            // Load cost estimation rules;
+            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+                loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
+            }
+            else {
+                loadCostEstimationRules(r, new String[]{params.costEstimationRulesClp});
+            }
+            loadCostEstimationRules(r, new String[]{params.fuzzyCostEstimationRulesClp});
+
+            // Load launch vehicle selection rules
+            loadLaunchVehicleSelectionRules(r, params.launchVehicleSelectionRulesClp);
+
+            // Load fuzzy attribute rules
+            loadFuzzyAttributeRules(r, templatesXls, "Fuzzy Attributes", "REQUIREMENTS::Measurement");
+
+            // Load requirement rules
+            Workbook requirementsXls = Workbook.getWorkbook(new File(params.requirementSatisfactionXls));
+            if (params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) {
+                loadRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
+            } else if (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES")) {
+                loadFuzzyRequirementRulesAttribs(r, requirementsXls, "Attributes", m);
+            }
+
+            // Load capability rules
+            loadCapabilityRules(r, instrumentXls, params.capabilityRulesClp);
+
+            // Load synergy rules
+            loadSynergyRules(r, params.synergyRulesClp);
+
+            // Load assimilation rules
+            loadAssimilationRules(r, params.assimilationRulesClp);
+
+            // Ad-hoc rules
+            r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
+            r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
+                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS)) (factHistory "+ params.nof +")))");
+            params.nof++;
+            if (!params.adhocRulesClp.isEmpty()) {
+                System.out.println("WARNING: Loading ad-hoc rules");
+                r.batch(params.adhocRulesClp);
+            }
+
+            // Load down-selection rules
+            loadDownSelectionRules(r, params.downSelectionRulesClp);
+
+            // Load search rules
+            r.eval("(deffacts DATABASE::add-improve-orbit-list-of-improve-heuristics " +
+                    "(SEARCH-HEURISTICS::improve-heuristic (id improveOrbit) (factHistory " + params.nof + ")" +
+                    "))");
+            params.nof++;
+
+            loadSearchRules(r, params.searchHeuristicRulesClp);
+
+            // Load explanation rules
+            loadExplanationRules(r, params.explanationRulesClp);
+
+            // Load aggregation rules
+            Workbook aggregation_xls = Workbook.getWorkbook(new File(params.aggregationXls));
+
+            loadAggregationRules(r, aggregation_xls, "Aggregation rules",
+                    new String[]{ params.aggregationRulesClp, params.fuzzyAggregationRulesClp });
+
+            /////////////////////////////////////////////////////////////////////////////
+
+            Iterator<HasLHS> ruleIter = RawSafety.castType(r.listDefrules());
+            Iterator<HasLHS> ruleIterCheck = RawSafety.castType(r.listDefrules());
+            params.rulesDefruleMap = new HashMap<>();
+            params.rulesNametoIDMap = new HashMap<>();
+            params.rulesIDtoNameMap = new HashMap<>();
+
+            Defrule targetRule = new Defrule("","",r);
+            int cnt = 0;
+
+            while (ruleIter.hasNext()) {
+                HasLHS ruleCheck = ruleIterCheck.next();
+                if (ruleCheck instanceof Defquery) {
+                    ruleIter.next();
+                    ruleIter.remove();
+                }
+                else if (ruleCheck instanceof Defrule) {
+                    cnt++;
+                    Defrule currentRule = (Defrule)ruleIter.next();
+                    String ruleName = currentRule.getName();
+                    params.rulesDefruleMap.put(ruleName, currentRule);
+                    params.rulesNametoIDMap.put(ruleName, cnt);
+                    params.rulesIDtoNameMap.put(cnt, ruleName);
+                    String tmpString = "(?*rulesMap* put " + ruleName + " " + cnt + ")";
+                    r.eval(tmpString);
+                }
+            }
+
+            //////////////////////////////////////////////////////////////////////////
+
+            r.reset();
+
+            //Create precomputed queries;
+            loadPrecomputeQueries(qb);
+
+        }
+        catch (Exception e) {
+            System.out.println("EXC in InitializerJess " +e.getClass() + " : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    public void initializeJessJSON(JSONObject inputData, BaseParams params, Rete r, QueryBuilder qb, MatlabFunctions m) {
         try {
             this.params = params;
 
@@ -104,7 +295,7 @@ public class JessInitializer {
 
             // Load instrument database
             Workbook instrumentXls = Workbook.getWorkbook(new File(params.capabilityRulesXls));
-            loadUnorderedDeffacts(r, instrumentXls, "CHARACTERISTICS", "instrument-database-facts","DATABASE::Instrument");
+//            loadUnorderedDeffacts(r, instrumentXls, "CHARACTERISTICS", "instrument-database-facts","DATABASE::Instrument");
 
             // Load attribute inheritance rules
             loadAttributeInheritanceRules(r, templatesXls, "Attribute Inheritance", params.attributeInheritanceClp);
@@ -156,9 +347,12 @@ public class JessInitializer {
             
             // Ad-hoc rules
             r.eval("(deftemplate DATABASE::list-of-instruments (multislot list) (slot factHistory))");
-            r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
-                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS)) (factHistory "+ params.nof +")))");
-            params.nof++;
+//            r.eval("(deffacts DATABASE::list-of-instruments (DATABASE::list-of-instruments " +
+//                    "(list (create$ SMAP_RAD SMAP_MWR CMIS VIIRS BIOMASS)) (factHistory "+ params.nof +")))");
+//            params.nof++;
+            ArchitectureEvaluator evaluator = new ArchitectureEvaluator();
+            evaluator.assertMissionsFromJSON(params, inputData, qb, r, m);
+
             if (!params.adhocRulesClp.isEmpty()) {
                 System.out.println("WARNING: Loading ad-hoc rules");
                 r.batch(params.adhocRulesClp);
@@ -218,7 +412,7 @@ public class JessInitializer {
             r.reset();
             
             //Create precomputed queries;
-            loadPrecomputeQueries(qb);
+//            loadPrecomputeQueries(qb);
         
         }
         catch (Exception e) {
