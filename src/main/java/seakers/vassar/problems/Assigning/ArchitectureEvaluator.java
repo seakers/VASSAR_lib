@@ -220,32 +220,39 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             JSONArray satList = arch.getJSONArray("satellites");
             for (int i = 0; i < satList.length(); i++){
                 JSONObject satellite = satList.getJSONObject(i);
-                //            JSONArray satellites = arch.getJSONArray("satellites");
-                //            for (int i = 0; i < satellites.length(); i++) {
-                //            JSONObject satellite = satellites.getJSONObject(i);
+
                 JSONObject orbit = satellite.getJSONObject("orbit");
-                //                String orbitType = orbit.getString("orbitType");
-                String orbitType = "LEO";
+                String orbitType = orbit.getString("orbitType");
+                String inclination_type;
+                String raan;
+                String type = "LEO";
                 int semimajorAxis = orbit.getInt("semimajorAxis");
-                //                int semimajorAxis = 6378 + 500;
                 double inclination = orbit.getDouble("inclination");
                 double eccentricity = orbit.getDouble("eccentricity");
                 double periapsisArgument = orbit.getDouble("periapsisArgument");
-                double rightAscensionAscendingNode = orbit.getDouble("rightAscensionAscendingNode");
                 double trueAnomaly = orbit.getDouble("trueAnomaly");
 
-                String orbitName = orbitType + "-" + (semimajorAxis - 6378) + "-" + orbitType + "-" + "NA";
-                //                String orbitName = "LEO-600-polar-NA";
+                // Determine inclination type
+                if (orbitType.contains("SSO")) {
+                    inclination_type = "SSO";
+                } else if (orbitType.contains("LEO") && inclination == 90) {
+                    inclination_type = "polar";
+                } else {
+                    inclination_type = String.valueOf(inclination);
+                }
 
-                //                String orbJessString = " (num-of-planes# " + "1" + ")" +
-                //                        " (num-of-sats-per-plane# "  + "1" + ")"  +
-                //                        " (mission-architecture " + "single_arch" + ")" +
-                //                        " (orbit-type " + orbitType + ")"  +
-                //                        " (orbit-altitude# "  + String.format("%f", semimajorAxis-6378) + ")"  +
-                //                        " (orbit-eccentricity "  + String.format("%f", eccentricity) + ")"  +
-                //                        " (orbit-RAAN " + rightAscensionAscendingNode + ")"  +
-                //                        " (orbit-inclination " + String.format("%f", inclination) + ")"  +
-                //                        " (orbit-string " + orbitName + ")";
+                // Determine RAAN based on orbit type
+                if (orbitType.contains("AM")) {
+                    raan = "AM";
+                } else if (orbitType.contains("DD")) {
+                    raan = "DD";
+                } else if (orbitType.contains("PM")) {
+                    raan = "PM";
+                } else {
+                    raan = "NA";
+                }
+
+                String orbitName = type + "-" + (semimajorAxis-6378) + "-" + inclination_type + "-" + raan;
 
                 Orbit orb = new Orbit(orbitName, 1, 1);
                 this.orbitsUsed.add(orb);
@@ -259,14 +266,6 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                     payload += " " + payloadObj.getString("name").replace(" ", "_");
                 }
 
-                //                payload = "ACE_ORCA ACE_POL ACE_LID CLAR_ERB"; // just for testing
-
-                //                for (int j = 0; j < params.getNumInstr(); j++) {
-                //                    if (mat[i][j]) {
-                //                        payload += " " + params.getInstrumentList()[j];
-                //                    }
-                //                }
-
                 call += "(instruments " + payload + ") (lifetime 5) (launch-date 2015) (select-orbit no) " + orb.toJessSlots() + ""
                         + "(factHistory F" + params.nof + ")))";
                 params.nof++;
@@ -274,14 +273,12 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                 call += "(assert (SYNERGIES::cross-registered-instruments " +
                         " (instruments " + payload +
                         ") (degree-of-cross-registration spacecraft) " +
-                        " (platform " + orbitName + " )"
+                        " (platform " + orbitName +  " )"
                         + "(factHistory F" + params.nof + ")))";
                 params.nof++;
                 r.eval(call);
-//            }
             }
         }
-
         catch (Exception e) {
             System.out.println("" + e.getClass() + " " + e.getMessage());
             e.printStackTrace();
