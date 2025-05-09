@@ -7,7 +7,15 @@ import seakers.vassar.architecture.AbstractArchitecture;
 import seakers.vassar.evaluation.AbstractArchitectureEvaluator;
 import seakers.vassar.spacecraft.Orbit;
 import seakers.vassar.utils.MatlabFunctions;
+import org.hipparchus.util.FastMath;
+import org.orekit.frames.TopocentricFrame;
+import seakers.vassar.coverage.CoverageAnalysis;
+import seakers.vassar.BaseParams;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.event.EventIntervalMerger;
 
+import java.util.*;
+import java.util.concurrent.Callable;
 import java.io.PrintWriter;
 import java.util.*;
 import org.json.JSONObject;
@@ -252,7 +260,8 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                     raan = "NA";
                 }
 
-                String orbitName = type + "-" + (semimajorAxis-6378) + "-" + inclination_type + "-" + raan;
+                String orbitName = type + "-" + orbit.getInt("altitude") + "-" + inclination_type + "-" + raan;
+                System.out.println("orbitName: " + orbitName);
 
                 Orbit orb = new Orbit(orbitName, 1, 1);
                 this.orbitsUsed.add(orb);
@@ -286,6 +295,7 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
     }
 
     public Result evaluatePerformanceFromJSON(JSONObject inputData, Double revisitTime, BaseParams params) {
+        System.out.println("THIS IS THE REAL SOURCE FILE BEING COMPILED");
         Result result = new Result();
         try {
             // Initializations
@@ -294,127 +304,155 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             MatlabFunctions m = new MatlabFunctions(new Resource(params));
             r.addUserfunction(m);
             JessInitializer.getInstance().initializeJess(params, r, qb, m);
-
             r.reset();
-
-            r.eval("(watch rules)");
-            r.eval("(watch facts)");
-//            r.eval("(watch all)");
-
+    
             assertMissionsFromJSON(params, inputData, qb, r, m);
-
-
-
+    
             r.eval("(bind ?*science-multiplier* 1.0)");
             r.eval("(defadvice before (create$ >= <= < >) (foreach ?xxx $?argv (if (eq ?xxx nil) then (return FALSE))))");
             r.eval("(defadvice before (create$ sqrt + * **) (foreach ?xxx $?argv (if (eq ?xxx nil) then (bind ?xxx 0))))");
-
-            r.setFocus("MANIFEST0");
-            r.run();
-
-//
-
-            r.setFocus("MANIFEST");
-            r.run();
-
-            r.setFocus("CAPABILITIES");
-            r.run();
-
-            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS");
-            r.run();
-
-            r.setFocus("CAPABILITIES-GENERATE");
-            r.run();
-
-            r.setFocus("CAPABILITIES-CROSS-REGISTER");
-            r.run();
-
-            r.setFocus("CAPABILITIES-UPDATE");
-            r.run();
-
-            r.setFocus("SYNERGIES");
-            r.run();
-
+    
+            r.setFocus("MANIFEST0"); r.run();
+            r.setFocus("MANIFEST"); r.run();
+            r.setFocus("CAPABILITIES"); r.run();
+            r.setFocus("CAPABILITIES-REMOVE-OVERLAPS"); r.run();
+            r.setFocus("CAPABILITIES-GENERATE"); r.run();
+            r.setFocus("CAPABILITIES-CROSS-REGISTER"); r.run();
+            r.setFocus("CAPABILITIES-UPDATE"); r.run();
+            r.setFocus("SYNERGIES"); r.run();
+    
             int javaAssertedFactID = 1;
-
-            for(int i = 0; i < params.getOrbitList().length; i++){
-                for (String param: params.measurementsToInstruments.keySet()) {
-                    Double therevtimesGlobal = revisitTime;
-                    Double therevtimesUS = revisitTime;
-
-                    String call = "(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " +  param + ") "
-                            + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
-                            + "(avg-revisit-time-US# " + therevtimesUS + ")"
-                            + "(factHistory J" + javaAssertedFactID + ")))";
-                    javaAssertedFactID++;
-                    r.eval(call);
+    
+            int[] revTimePrecomputedIndex = new int[params.getOrbitList().length];
+            String[] revTimePrecomputedOrbitList = {
+                "LEO-600-polar-NA", "SSO-600-SSO-AM", 
+                "SSO-600-SSO-DD", "SSO-800-SSO-DD", "SSO-800-SSO-PM"
+            };
+    
+            for (int i = 0; i < params.getOrbitList().length; i++) {
+                String orb = params.getOrbitList()[i];
+                int matchedIndex = -1;
+                for (int j = 0; j < revTimePrecomputedOrbitList.length; j++) {
+                    if (revTimePrecomputedOrbitList[j].equalsIgnoreCase(orb)) {
+                        matchedIndex = j;
+                        break;
+                    }
                 }
+                revTimePrecomputedIndex[i] = matchedIndex;
             }
-
-            r.setFocus("ASSIMILATION2");
-            r.run();
-
-            r.setFocus("ASSIMILATION");
-            r.run();
-
-            r.setFocus("FUZZY");
-            r.run();
-
-            r.setFocus("SYNERGIES");
-            r.run();
-
-            r.setFocus("SYNERGIES-ACROSS-ORBITS");
-            r.run();
-
-//            r.eval("(facts MEASUREMENT)");
-
-            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                r.setFocus("FUZZY-REQUIREMENTS");
+    
+            for (String param : params.measurementsToInstruments.keySet()) {
+                Value v = r.eval("(update-fovs " + param + " (create$ " 
+                    + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
+                System.out.println("update-fovs returned: " + RU.getTypeName(v.type()));
+    
+                if (!RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
+                    System.err.println("update-fovs returned a SYMBOL for parameter: " 
+                        + param + ". Skipping revisit calculation for this parameter.");
+                    continue;  // skip this param since no FOVs
+                }
+    
+                ValueVector thefovs = v.listValue(r.getGlobalContext());
+                String[] fovs = new String[thefovs.size()];
+                for (int i = 0; i < thefovs.size(); i++) {
+                    int tmp = thefovs.get(i).intValue(r.getGlobalContext());
+                    fovs[i] = String.valueOf(tmp);
+                }
+    
+                boolean recalculateRevisitTime = false;
+                for (int idx : revTimePrecomputedIndex) {
+                    if (idx == -1) {
+                        recalculateRevisitTime = true;
+                        break;
+                    }
+                }
+    
+                Double therevtimesGlobal, therevtimesUS;
+    
+                if (recalculateRevisitTime) {
+                    CoverageAnalysis coverageAnalysis = new CoverageAnalysis(
+                        1, 20, true, true, params.orekitResourcesPath
+                    );
+                    double[] latBounds = {FastMath.toRadians(-70), FastMath.toRadians(70)};
+                    double[] lonBounds = {FastMath.toRadians(-180), FastMath.toRadians(180)};
+                    List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+    
+                    for (Orbit orb : this.orbitsUsed) {
+                        Integer fovIndex = params.getOrbitIndexes().get(orb.toString());
+                        if (fovIndex == null) {
+                            System.err.println("Orbit key not found: " + orb.toString());
+                            continue;
+                        }
+                        int fov = thefovs.get(fovIndex).intValue(r.getGlobalContext());
+                        if (fov <= 0) continue;
+    
+                        Map<TopocentricFrame, TimeIntervalArray> accesses = 
+                            coverageAnalysis.getAccesses(fov, orb.getInclinationNum(), orb.getAltitudeNum(),
+                                Integer.parseInt(orb.getNum_sats_per_plane()),
+                                Integer.parseInt(orb.getNplanes()), orb.getRaan());
+                        fieldOfViewEvents.add(accesses);
+                    }
+    
+                    if (fieldOfViewEvents.isEmpty()) {
+                        System.err.println("No valid FOV events found, defaulting revisit times to -1");
+                        therevtimesGlobal = -1.0;
+                        therevtimesUS = -1.0;
+                    } else {
+                        Map<TopocentricFrame, TimeIntervalArray> mergedEvents = 
+                            new HashMap<>(fieldOfViewEvents.get(0));
+                        for (int i = 1; i < fieldOfViewEvents.size(); i++) {
+                            mergedEvents = EventIntervalMerger.merge(
+                                mergedEvents, fieldOfViewEvents.get(i), false
+                            );
+                        }
+                        therevtimesGlobal = coverageAnalysis.getRevisitTime(
+                            mergedEvents, latBounds, lonBounds) / 3600;
+                        therevtimesUS = therevtimesGlobal;
+                    }
+                } else {
+                    if (thefovs.size() < 5) {
+                        String[] new_fovs = new String[5];
+                        for (int i = 0; i < 5; i++) {
+                            new_fovs[i] = fovs[revTimePrecomputedIndex[i]];
+                        }
+                        fovs = new_fovs;
+                    }
+                    String key = "1 x " + m.stringArraytoStringWith(fovs, " ");
+                    Map<String, Double> revs = params.revtimes.get(key);
+                    if (revs == null) {
+                        System.err.println("Revisit time lookup failed for key: " + key);
+                        therevtimesUS = -1.0;
+                        therevtimesGlobal = -1.0;
+                    } else {
+                        therevtimesUS = revs.getOrDefault("US", -1.0);
+                        therevtimesGlobal = revs.getOrDefault("Global", -1.0);
+                    }
+                }
+    
+                r.eval("(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
+                    + "(avg-revisit-time-global# " + therevtimesGlobal + ") "
+                    + "(avg-revisit-time-US# " + therevtimesUS + ")"
+                    + "(factHistory J" + javaAssertedFactID++ + ")))");
             }
-            else {
-                r.setFocus("REQUIREMENTS");
-            }
-            r.run();
-
-//            Fact fact;
-//            Iterator factIterator = r.listFacts();
-//
-//            // Step 4: Loop through the facts and print them
-//            while (factIterator.hasNext()) {
-//                fact = (Fact) factIterator.next();
-//                // Print the fact's details
-//                System.out.println(fact);
-//            }
-
-            if ((params.reqMode.equalsIgnoreCase("FUZZY-CASES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
-                r.setFocus("FUZZY-AGGREGATION");
-            }
-            else {
-                r.setFocus("AGGREGATION");
-            }
-            r.run();
-
-            if ((params.reqMode.equalsIgnoreCase("CRISP-ATTRIBUTES")) || (params.reqMode.equalsIgnoreCase("FUZZY-ATTRIBUTES"))) {
+    
+            r.setFocus("ASSIMILATION2"); r.run();
+            r.setFocus("ASSIMILATION"); r.run();
+            r.setFocus("FUZZY"); r.run();
+            r.setFocus("SYNERGIES"); r.run();
+            r.setFocus("SYNERGIES-ACROSS-ORBITS"); r.run();
+    
+            String reqMode = params.reqMode;
+            r.setFocus(reqMode.contains("FUZZY") ? "FUZZY-REQUIREMENTS" : "REQUIREMENTS"); r.run();
+            r.setFocus(reqMode.contains("FUZZY") ? "FUZZY-AGGREGATION" : "AGGREGATION"); r.run();
+    
+            if (reqMode.contains("ATTRIBUTES")) {
                 result = aggregate_performance_score_facts(params, r, m, qb);
             }
-
-            //////////////////////////////////////////////////////////////
-
-            if (this.debug) {
-                ArrayList<Fact> partials = qb.makeQuery("REASONING::partially-satisfied");
-                ArrayList<Fact> fulls = qb.makeQuery("REASONING::fully-satisfied");
-                fulls.addAll(partials);
-                //result.setExplanations(fulls);
-            }
-        }
-        catch (JessException e) {
-            System.out.println(e.getMessage() + " " + e.getClass() + " ");
+    
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        catch (OrekitException e) {
-            e.printStackTrace();
-            throw new Error();
         }
         return result;
     }
+    
 }
