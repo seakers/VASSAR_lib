@@ -8,27 +8,55 @@ public class OLAttribute extends EOAttribute {
         this.characteristic = "N/A";
         this.value = "N/A";
         this.type = "OL";
+        this.acceptedValues = new Hashtable<>();
     }
 
     public OLAttribute(String charact, String val, Hashtable<String, Integer> accepted) {
         this.characteristic = charact;
         this.value = val;
         this.type = "OL";
-        this.acceptedValues = accepted;
+        this.acceptedValues = accepted != null ? accepted : new Hashtable<>();
     }
 
     public OLAttribute(String charact, String val) {
         this.characteristic = charact;
         this.value = val;
         this.type = "OL";
+        this.acceptedValues = new Hashtable<>();
     }
 
     @Override
     public int SameOrBetter(EOAttribute other) {
         // Since this is a Neutral List attribute:
         int z = 0;
-        int value_this = this.acceptedValues.get(this.value);
-        int value_other = other.acceptedValues.get(other.value);
+        
+        // Add null checks
+        if (this.acceptedValues == null) {
+            this.acceptedValues = new Hashtable<>();
+        }
+        if (other.acceptedValues == null) {
+            other.acceptedValues = new Hashtable<>();
+        }
+        
+        // Add null checks for values
+        if (this.value == null) {
+            this.value = "N/A";
+        }
+        if (other.value == null) {
+            other.value = "N/A";
+        }
+        
+        // Get values with null checks
+        Integer value_this = this.acceptedValues.get(this.value);
+        Integer value_other = other.acceptedValues.get(other.value);
+        
+        if (value_this == null) {
+            value_this = 0; // Default to lowest value if not found
+        }
+        if (value_other == null) {
+            value_other = 0; // Default to lowest value if not found
+        }
+        
         if (value_this == value_other) {
             z = 0;
         }
