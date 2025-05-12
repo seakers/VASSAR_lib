@@ -404,11 +404,14 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
             for (String param : params.measurementsToInstruments.keySet()) {
                 Value v = r.eval("(update-fovs " + param + " (create$ " 
                     + m.stringArraytoStringWithSpaces(params.getOrbitList()) + "))");
+
+                
     
                 if (!RU.getTypeName(v.type()).equalsIgnoreCase("LIST")) {
                     continue;  // skip this param since no FOVs
                 }
     
+                // Extract thefovs[] first
                 ValueVector thefovs = v.listValue(r.getGlobalContext());
                 String[] fovs = new String[thefovs.size()];
                 for (int i = 0; i < thefovs.size(); i++) {
@@ -416,21 +419,33 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                     fovs[i] = String.valueOf(tmp);
                 }
 
-                // Create the key for this combination
+                // THEN map orbitsUsed to the correct index in thefovs[]
+                int l = 0;
+                for (Orbit orb : this.orbitsUsed) {
+                    if (!params.getOrbitIndexes().containsKey(orb.toString())) {
+                        params.getOrbitIndexes().put(orb.toString(), l);
+                    }
+                    l++;
+                }
+                                // Create the key for this combination
                 StringBuilder keyBuilder = new StringBuilder("1 x");
                 for (String fov : fovs) {
                     keyBuilder.append(" ").append(fov);
                 }
                 String key = keyBuilder.toString();
 
-                // Try to find a match
                 Map<String, Double> revs = params.revtimes.get(key);
+
+                boolean fallbackToOrekit = false;
+
                 if (revs == null) {
-                    // Try to find closest match by replacing -1 with 55
+                    // Attempt closest match by replacing -1 with 55
                     String[] modifiedFovs = fovs.clone();
+                    boolean hadMinusOne = false;
                     for (int i = 0; i < modifiedFovs.length; i++) {
                         if (modifiedFovs[i].equals("-1")) {
                             modifiedFovs[i] = "55";
+                            hadMinusOne = true;
                         }
                     }
                     StringBuilder modifiedKeyBuilder = new StringBuilder("1 x");
@@ -439,20 +454,78 @@ public class ArchitectureEvaluator extends AbstractArchitectureEvaluator {
                     }
                     String modifiedKey = modifiedKeyBuilder.toString();
                     revs = params.revtimes.get(modifiedKey);
+
+                    if (revs == null) {
+                        // No lookup match found → trigger Orekit
+                        fallbackToOrekit = true;
+                    }
                 }
 
-                if (revs == null) {
-                    revs = new HashMap<>();
-                    revs.put("US", 24.0);
-                    revs.put("Global", 24.0);
+                // Fallback using Orekit-based calculation if needed
+                double revGlobal, revUS;
+                if (fallbackToOrekit) {
+                    System.out.println("Revisit key not found, recalculating revisit using Orekit for param: " + param);
+                    CoverageAnalysis coverageAnalysis = new CoverageAnalysis(1, 20, true, true, params.orekitResourcesPath);
+                    double[] latBounds = {FastMath.toRadians(-70), FastMath.toRadians(70)};
+                    double[] lonBounds = {FastMath.toRadians(-180), FastMath.toRadians(180)};
+                    List<Map<TopocentricFrame, TimeIntervalArray>> fieldOfViewEvents = new ArrayList<>();
+
+                    for (int i = 0; i < params.getOrbitList().length; i++) {
+                        String orbitName = params.getOrbitList()[i];
+                        Orbit orb = this.orbitsUsed.stream().filter(o -> o.toString().equals(orbitName)).findFirst().orElse(null);
+                        if (orb == null) {
+                            System.err.println("Orbit " + orbitName + " not found in orbitsUsed, skipping.");
+                            continue;
+                        }
+                    
+                        int fov = thefovs.get(i).intValue(r.getGlobalContext());
+                        if (fov <= 0) {
+                            System.err.println("Invalid FOV " + fov + " for orbit: " + orb);
+                            continue;
+                        }
+                    
+                        try {
+                            Map<TopocentricFrame, TimeIntervalArray> accesses =
+                                coverageAnalysis.getAccesses(fov, orb.getInclinationNum(), orb.getAltitudeNum(),
+                                    Integer.parseInt(orb.getNum_sats_per_plane()),
+                                    Integer.parseInt(orb.getNplanes()), orb.getRaan());
+                            fieldOfViewEvents.add(accesses);
+                        } catch (Exception e) {
+                            System.err.println("Error computing accesses for orbit: " + orb + " → " + e.getMessage());
+                        }
+                    }
+                    
+                    
+
+                    if (fieldOfViewEvents.isEmpty()) {
+                        revGlobal = revUS = 24.0; // Safe fallback if Orekit returns empty
+                    } else {
+                        Map<TopocentricFrame, TimeIntervalArray> mergedEvents = fieldOfViewEvents.get(0);
+                        for (int i = 1; i < fieldOfViewEvents.size(); i++) {
+                            mergedEvents = EventIntervalMerger.merge(mergedEvents, fieldOfViewEvents.get(i), false);
+                        }
+                        revGlobal = coverageAnalysis.getRevisitTime(mergedEvents, latBounds, lonBounds) / 3600.0;
+                        revUS = revGlobal;
+                    }
+                } else {
+                    revGlobal = revs.getOrDefault("Global", 24.0);
+                    revUS = revs.getOrDefault("US", 24.0);
                 }
+                if (fallbackToOrekit) {
+                    HashMap<String, Double> newRevs = new HashMap<>();
+                    newRevs.put("Global", revGlobal);
+                    newRevs.put("US", revUS);
+                    params.revtimes.put(key, newRevs);
+                    System.out.println("Cached new revisit times for key: " + key);
+                }
+                
 
                 r.eval("(assert (ASSIMILATION2::UPDATE-REV-TIME (parameter " + param + ") "
-                    + "(avg-revisit-time-global# " + revs.get("Global") + ") "
-                    + "(avg-revisit-time-US# " + revs.get("US") + ")"
+                    + "(avg-revisit-time-global# " + revGlobal + ") "
+                    + "(avg-revisit-time-US# " + revUS + ")"
                     + "(factHistory J" + javaAssertedFactID++ + ")))");
             }
-    
+                    
             r.setFocus("ASSIMILATION2"); r.run();
             r.setFocus("ASSIMILATION"); r.run();
             r.setFocus("FUZZY"); r.run();
