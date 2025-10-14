@@ -1091,18 +1091,18 @@ public class JessInitializer {
                         call2 += " (" + att_value_pair2 + ") ";
                     }
                     call2 += "(taken-by " + instrument +  ") (flies-in ?miss) (orbit-altitude# ?h) (orbit-RAAN ?raan) (orbit-anomaly# ?ano) (Id " + instrument + i + ") (Instrument " + instrument + ")"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+//                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
                             + ")) ";
                     listOfMeasurements += " " + instrument + i + " ";
                 }
                 call2 += "(assert (SYNERGIES::cross-registered (measurements " + listOfMeasurements + " ) (degree-of-cross-registration instrument) (platform ?id  )"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
+//                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" A\" (call ?this getFactId) \" A\" (call ?this2 getFactId) \"}\"))"
                         + "))";
                 call2 += "(modify ?this (measurement-ids " + listOfMeasurements + ")"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
+//                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
                         + ")";
                 call2 += "(modify ?this2 (copied-to-measurement-fact yes)"
-                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
+//                        + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ ruleName +") \" \" ?fh1 \" S\" (call ?this2 getFactId) \"}\"))"
                         + "))";
 
                 r.eval(call2);
@@ -1207,7 +1207,7 @@ public class JessInitializer {
                     String ruleName = "SYNERGIES::stop-improving-" + meas.substring(1, meas.indexOf(" "));
                     call += "?fsat <- (REASONING::fully-satisfied (subobjective " + subobj + ") (factHistory ?fh))";
                     call += " => (assert (REASONING::stop-improving (Measurement " + meas + ")"
-                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?fsat getFactId) \"}\"))"
+//                            + "(factHistory (str-cat \"{R\" (?*rulesMap* get "+ruleName+") \" A\" (call ?fsat getFactId) \"}\"))"
                             + ")))";
                     r.eval(call);
                 }
@@ -1247,7 +1247,7 @@ public class JessInitializer {
                 params.panelDescriptions.put(panelName, panelDescription);
             }
             call = call.concat(" (AGGREGATION::VALUE (sh-scores (repeat$ -1.0 " + params.numPanels + ")) (sh-fuzzy-scores (repeat$ -1.0 " + params.numPanels + ")) (weights " + javaArrayList2JessList(params.panelWeights) + ")"
-                    + "(factHistory F" + params.nof + "))");
+                    + ")"); // + "(factHistory F" + params.nof + "))");
             params.nof++;
 
             // Objectives
@@ -1276,7 +1276,7 @@ public class JessInitializer {
                 params.numObjectivesPerPanel.add(obj_weights_p.size());
 
                 call = call.concat(" (AGGREGATION::STAKEHOLDER (id " + params.panelNames.get(p) + " ) (index " + (p + 1) + " ) (obj-fuzzy-scores (repeat$ -1.0 " +  obj_weights_p.size() + ")) (obj-scores (repeat$ -1.0 " + obj_weights_p.size() + ")) (weights " +  javaArrayList2JessList(obj_weights_p) + ")"
-                        + "(factHistory F" + params.nof + ")) ");
+                        + ") "); // + "(factHistory F" + params.nof + ")) ");
                 params.nof++;
                 p++;
                 i += 4;

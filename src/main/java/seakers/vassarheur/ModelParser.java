@@ -19,7 +19,7 @@ public class ModelParser {
     }
 
     public void saveVocabulary() throws Exception{
-        String vocab_file = "/home/ec2-user/rbs-transformer/vocabulary/vocab.json";
+        String vocab_file = "/home/ubuntu/rbs-transformer/vocabulary/vocab.json";
         File file = new File(vocab_file);
         if(file.exists() && file.isFile()){
             System.out.println("\n\n\n--> VOCAB ALREADY EXISTS");

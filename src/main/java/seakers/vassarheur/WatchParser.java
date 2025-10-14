@@ -98,17 +98,17 @@ public class WatchParser {
 
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String designs_dir = "/home/ec2-user/designs";
+            String designs_dir = "/home/ubuntu/designs";
             String design_file_name = this.getFileName(designs_dir);
             objectives.addProperty("science", result.getScience());
             objectives.addProperty("cost", result.getCost());
             objectives.addProperty("design", arch.toString(""));
             objectives.add("rules", rule_names);
             objectives.add("cost_facts", cost_facts_ary);
-            FileWriter jsonWriter3 = new FileWriter(design_file_name);
-            String jsonString3 = gson.toJson(objectives);
-            jsonWriter3.write(jsonString3);
-            jsonWriter3.flush();
+//            FileWriter jsonWriter3 = new FileWriter(design_file_name);
+//            String jsonString3 = gson.toJson(objectives);
+//            jsonWriter3.write(jsonString3);
+//            jsonWriter3.flush();
 
         }
         catch (Exception ex){
