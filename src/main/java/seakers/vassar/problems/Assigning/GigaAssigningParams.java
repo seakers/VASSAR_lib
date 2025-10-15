@@ -4,6 +4,9 @@ import seakers.orekit.util.OrekitConfig;
 import seakers.vassar.BaseParams;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 public class GigaAssigningParams extends AssigningParams {
 
@@ -43,6 +46,47 @@ public class GigaAssigningParams extends AssigningParams {
     @Override
     public BaseParams copy(){
         return new GigaAssigningParams(super.resourcesPath, super.reqMode, super.name, super.runMode, this.orekit_threads);
+    }
+
+    public static int indexOf(String[] arr, String target) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(target)) {
+                return i;
+            }
+        }
+        return -1; // not found
+    }
+
+
+    public String getBitString(HashMap<String, ArrayList<String>> elements){
+        int numInsts = this.getNumInstr();
+        int numOrbs = this.getNumOrbits();
+
+        // Create an empty bit string
+        int n_bits = numInsts * numOrbs;
+        String bitString = "";
+        for(int i = 0; i < n_bits; i++){
+            bitString += "0";
+        }
+        StringBuilder bitStringBuilder = new StringBuilder(bitString);
+
+        // Get all the keys in the hash map
+        List<String> orbits = new ArrayList<>(elements.keySet());
+
+        // Iterate over each key, then iterate over each value in the list
+        for(String orbit: orbits){
+            int orbit_idx = indexOf(this.getOrbitList(), orbit);
+
+            List<String> insts = elements.get(orbit);
+            for(String inst: insts) {
+                int inst_idx = indexOf(this.getInstrumentList(), inst);
+                int bit_idx = orbit_idx * numInsts + inst_idx;
+                // Set the character at bit_idx to 1
+                bitStringBuilder.setCharAt(bit_idx, '1');
+            }
+        }
+
+        return bitStringBuilder.toString();
     }
 
 
