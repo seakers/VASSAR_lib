@@ -13,6 +13,5 @@ CoverageDatabase/
 backup/
 classes/
 lib/
-gradle/
 debug
 

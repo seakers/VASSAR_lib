@@ -39,7 +39,7 @@ public class EvaluateCoverageMetrics {
 
 
         // Initialize Orekit
-        String orekitResourcesPath = "/home/ec2-user/vassar/giga/VASSAR_resources/orekit";
+        String orekitResourcesPath = "/app/VASSAR_resources/orekit";
         String coverageDatabase = orekitResourcesPath + File.separator + "CoverageDatabase_" + proc_num;
         EvaluateCoverageMetrics.createDir(coverageDatabase);
 
