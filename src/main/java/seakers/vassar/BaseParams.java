@@ -105,6 +105,8 @@ public abstract class BaseParams {
     public HashMap<String, String> subobjDescriptions;
     public HashMap<String, Double> subobjWeightsMap;
 
+    public HashMap<String, Double> panelWeightMap = new HashMap<>();
+
 //    public HashMap<String, Double> revtimes;
     public HashMap<String, HashMap<String, Double>> revtimes;
     public HashMap<ArrayList<String>, HashMap<String, Double>> scores;
@@ -246,6 +248,10 @@ public abstract class BaseParams {
 
     public void setOrekitCoverageDatabase() {
         this.orekitCoverageDatabase = this.orekitResourcesPath + File.separator + "CoverageDatabase";
+    }
+
+    public void setPanelWeightMap(HashMap<String, Double> panelWeightMap){
+        this.panelWeightMap = panelWeightMap;
     }
 
     public String getOrekitCoverageDatabase(){

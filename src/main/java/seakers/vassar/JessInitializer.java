@@ -1755,6 +1755,9 @@ public class JessInitializer {
 
     private void loadAggregationRules(Rete r, Workbook xls, String sheet, String[] clps, BaseParams params) {
         try {
+            System.out.println("LOADING AGGREGATION RULES...");
+
+
             for (String clp: clps) {
                 r.batch(clp);
             }
@@ -1776,9 +1779,19 @@ public class JessInitializer {
                 String panelName = meas.getCell(1, i+2).getContents();
                 String panelDescription = meas.getCell(2, i+2).getContents();
                 params.panelNames.add(panelName);
-                NumberCell nc = (NumberCell)meas.getCell(3, i+2);
-                params.panelWeights.add(nc.getValue());
                 params.panelDescriptions.put(panelName, panelDescription);
+
+
+                // Instead of using the default value provided in the Excel, check to see if the value is defined in the panelWeightMap in BaseParams
+                NumberCell nc = (NumberCell)meas.getCell(3, i+2);
+                Double weightFromExcel = nc.getValue();
+                // Check if there's an override in params.panelWeightMap
+                if (params.panelWeightMap.containsKey(panelName)) {
+                    System.out.println("Overriding weight for panel " + panelName + ": " + weightFromExcel + " -> " + params.panelWeightMap.get(panelName));
+                    weightFromExcel = params.panelWeightMap.get(panelName);
+                }
+                params.panelWeights.add(weightFromExcel);
+                System.out.println("Panel " + panelName + " with weight " + weightFromExcel);
             }
             call = call.concat(" (AGGREGATION::VALUE (sh-scores (repeat$ -1.0 " + params.numPanels + ")) (sh-fuzzy-scores (repeat$ -1.0 " + params.numPanels + ")) (weights " + javaArrayList2JessList(params.panelWeights) + ")"
                     + "(factHistory F" + params.nof + "))");

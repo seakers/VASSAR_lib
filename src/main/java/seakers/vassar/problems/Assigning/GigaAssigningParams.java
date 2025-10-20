@@ -45,7 +45,10 @@ public class GigaAssigningParams extends AssigningParams {
 
     @Override
     public BaseParams copy(){
-        return new GigaAssigningParams(super.resourcesPath, super.reqMode, super.name, super.runMode, this.orekit_threads);
+        GigaAssigningParams copy_obj = new GigaAssigningParams(super.resourcesPath, super.reqMode, super.name, super.runMode, this.orekit_threads);
+        copy_obj.panelWeightMap = super.panelWeightMap;
+        return copy_obj;
+//        return new GigaAssigningParams(super.resourcesPath, super.reqMode, super.name, super.runMode, this.orekit_threads);
     }
 
     public static int indexOf(String[] arr, String target) {
