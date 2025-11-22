@@ -3,10 +3,14 @@ plugins {
     id 'maven-publish'
 }
 
-group 'seakers'
-version '1.0'
+group = 'seakers'
+version = '1.0'
 
-sourceCompatibility = 15
+// Use Java 17 for compilation & bytecode
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 compileJava {
     options.compilerArgs += ["-Xlint"]
@@ -18,16 +22,19 @@ repositories {
 }
 
 dependencies {
-    compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'com.googlecode.combinatoricslib:combinatoricslib:2.2'
-    compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
-    compile 'org.orekit:orekit:10.3'
-    compile 'seakers:orekit:1.0'
-    compile 'gov.sandia:jess:7.1p2'
-    compile 'io.pebbletemplates:pebble:3.1.0'
-    compile 'org.slf4j:slf4j-simple:1.7.28'
-    testCompile 'junit:junit:4.12'
+    // Old 'compile' → 'implementation'
+    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'com.googlecode.combinatoricslib:combinatoricslib:2.2'
+    implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    implementation 'org.orekit:orekit:10.3'
+    implementation 'seakers:orekit:1.0'
+    implementation 'gov.sandia:jess:7.1p2'
+    implementation 'io.pebbletemplates:pebble:3.1.0'
+    implementation 'org.slf4j:slf4j-simple:1.7.28'
+
+    // Old 'testCompile' → 'testImplementation'
+    testImplementation 'junit:junit:4.12'
 }
 
 publishing {
